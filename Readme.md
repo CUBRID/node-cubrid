@@ -1,11 +1,11 @@
-node-cubrid
-June-August, 2012
-http://www.cubrid.org
+<b>node-cubrid</b><br/>
+June-August, 2012<br/>
+http://www.cubrid.org<br/>
 
 
 Introduction
 =======================================================================================================
-The CUBRID node.js driver is an open-source project with the goal of implementing a 100% native node.js driver for the CUBRID database engine (www.cubrid.org).
+The <b>CUBRID</b> node.js driver is an open-source project with the goal of implementing a 100% native node.js driver for the <b>CUBRID</b> database engine (www.cubrid.org).
 
 The driver is currently under development and this (August 2012) is the first release (Milestone 1) of the driver code, which features:
 - 2.000+ LOC
@@ -25,7 +25,7 @@ These are the main project deliverables we target for the project:
 Installation
 =======================================================================================================
 
-This first release does not feature yet an npm installer – it will be available in the upcoming beta release.
+This first release does not feature yet an npm installer - it will be available in the upcoming beta release.
 Therefore, if you want to use it now, please download the driver code on your machine.
 
 
@@ -33,8 +33,75 @@ Usage
 =======================================================================================================
 This first release contains many test cases and demos which will show you how to use the driver.
 These examples are located in the following (sub)folders:
-	\demo
-	\src\test
+- <b><i>\demo</i></b>
+- <b><i>\src\test</i></b>
+
+Here is a typical usage scenario:
+
+    var client = require('../index.js').createDefaultCUBRIDDemodbConnection(),
+      Result2Array = require('../src/resultset/Result2Array');
+
+    var sql = 'select * from game';
+
+    client.connect(function (err) {
+      if (err) {
+        throw err.message;
+      } else {
+        console.log('Connected successfully to ' + client.brokerServer + ':' + client.connectionBrokerPort + '.');
+        client.getEngineVersion(function (err, result) {
+          if (err) {
+            throw err.message;
+          } else {
+            console.log('CUBRID Engine version is: ' + result);
+            console.log('Querying: [' + sql + ']');
+            client.query(sql, function (err, queryResults, queryHandle) {
+              if (err) {
+                throw err.message;
+              } else {
+                console.log('Query results - Rows count: ' + Result2Array.GetResultsCount(queryResults));
+                console.log('Query results - Column names: ' + Result2Array.GetResultsColumnNamesArray(queryResults));
+                console.log('Query results - Column data types: ' + Result2Array.GetResultsColumnsTypeArray(queryResults));
+                console.log('Query results - Data [displaying only the first 10 rows]:');
+                var arr = Result2Array.GetResultsArray(queryResults);
+                for (var j = 0; j < 10; j++) {
+                  console.log(arr[j].toString());
+                }
+                console.log('Fetching more results:');
+                client.fetch(queryHandle, function (err, result) {
+                  if (err) {
+                    throw err.message;
+                  } else {
+                    if (result) {
+                      console.log('Fetch results - Data [displaying only the first 10 rows]:');
+                      var arr = Result2Array.GetResultsArray(result);
+                      for (var k = 0; k < 10; k++) {
+                        console.log(arr[k].toString());
+                      }
+                    } else {
+                      console.log('There is no more data to fetch.');
+                    }
+                    client.closeRequest(queryHandle, function (err) {
+                      if (err) {
+                        throw err.message;
+                      } else {
+                        console.log('Query closed.');
+                        client.close(function (err) {
+                          if (err) {
+                            throw err.message;
+                          } else {
+                            console.log('Connection closed.');
+                          }
+                        })
+                      }
+                    })
+                  }
+                })
+              }
+            })
+          }
+        })
+      }
+    });
 
 
 TODOs
