@@ -1,0 +1,48 @@
+{
+  "author" : "CUBRID <contact@cubrid.org> (http://www.cubrid.org/)",
+
+  "contributors" : [
+    {
+      "name" : "",
+      "url"  : ""
+    }
+  ],
+
+  "name" : "node-cubrid",
+
+  "description" : "This is a native Node.js driver for CUBRID (www.cubrid.org). \
+        It is developed entirely in JavaScript, so it doesn't require platform compilation, and it is MIT licensed.",
+
+  "version" : "0.1",
+
+  "repository" : {
+    "type" : "git",
+    "url"  : "git://github.com/cubrid/node-cubrid.git"
+  },
+
+  "licenses" : [
+    {
+      "type" : "MIT",
+      "url"  : "http://github.com/cubrid/node-cubrid/raw/master/LICENSE"
+    }
+  ],
+
+  "keywords" : [
+    "native",
+    "CUBRID",
+    "module"
+  ],
+
+  "engines" : {
+    "node" : "*"
+  },
+
+  "dependencies" : {
+  },
+
+  "devDependencies" : {
+  },
+
+  "optionalDependencies" : {
+  }
+}
