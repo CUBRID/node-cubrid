@@ -9,30 +9,29 @@ The <b>CUBRID</b> node.js driver is an open-source project with the goal of impl
 
 The driver is currently under development and this (September 2012) is the 2nd release (Milestone 2) of the driver code, 
 which features:
-- 1.000+ LOC
-- Connect/Close, Query, Execute, Fetch, Close query, Set auto-commit, Commit, Rollback completed
-- Additional data types support
+- 3.000+ LOC
+- Connect/Close connection, Query/Close query, Fetch, Batch Execute, Set auto-commit, Commit, Rollback etc. completed
+- More data types support implemented since Milestone 1
 - Complete events model implemented
 - 30+ functional test cases
 - 30+ unit tests
 - 3 E2E demos
 - 4 Web site full demos
-- ...and more additions and improvements
+- ...and many more additions and improvements
 
-The main project deliverables we target for the cubrid-node project are:
+The main project deliverables we will target for the <b>cubrid-node</b> project are:
 -	The driver source code
 -	Test cases
 -	Code documentation
 -	Demos 
 -   Tutorials
--	A npm package; registered on http://search.npmjs.org/
+-	A npm package (http://search.npmjs.org/)
 
 
 Installation
 =======================================================================================================
-
-This release does not yet feature yet an npm installer - it will be available in the upcoming beta release.
-Therefore, if you want to use it now, please download the driver code on your machine.
+This release does not yet feature a npm installer - it will be available in the upcoming beta release.
+For now, please download the driver code on your machine.
 
 
 Usage
@@ -180,13 +179,14 @@ TODOs
 =======================================================================================================
 In the next code release (Beta - End September 2012), we are targeting:
 - Schema support
-- Documentation release
+- Documentation release & publishing
 - More functionality & more testing
 - Additional demos
 - Code improvements, optimizations and refactoring
+- A npm installer
 
 
-Author and Contributors
+Authors and Contributors
 =======================================================================================================
 The main authors of this driver are the members of the CUBRID API team - http://www.cubrid.org/wiki_apis.
 
@@ -196,7 +196,7 @@ We welcome any contributors and we hope you will enjoy coding with CUBRID! :)
 Special thanks
 =======================================================================================================
 We would like to thanks to the following people & projects for inspiration, 
-code we have reused and for doing such a great job for the open-source community!
+for the code we have reused and for doing such a great job for the open-source community!
 -	https://github.com/caolan/async
 -	https://github.com/felixge/node-mysql
 -	https://github.com/jeromeetienne/microcache.js
@@ -204,12 +204,12 @@ code we have reused and for doing such a great job for the open-source community
 
 Scheduled releases
 =======================================================================================================
-Here are the scheduled releases:
--	Milestone 1. Basic driver interfaces: connect, queries support
--	Milestone 2. Technology preview release: ~80% functionality ready
--	Milestone 3. Beta release
--	Milestone 4. Stable release
--	Milestone 5. Tutorials & Installer/Package completed; web awareness achieved.
+Here are the scheduled releases for this project:
+-	Milestone 1: Basic driver interfaces: connect, queries support
+-	Milestone 2: Technology preview release: ~80% functionality ready
+-	Milestone 3: Beta release
+-	Milestone 4: Stable release
+-	Milestone 5: Tutorials & Installer/Package completed; web awareness achieved.
 
 ...Stay tuned! :)
 
