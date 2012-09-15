@@ -9,15 +9,17 @@ The <b>CUBRID</b> node.js driver is an open-source project with the goal of impl
 
 The driver is currently under development and this (September 2012) is the 2nd release (Milestone 2) of the driver code, 
 which features:
-- 2.500+ LOC
+- 1.000+ LOC
 - Connect/Close, Query, Execute, Fetch, Close query, Set auto-commit, Commit, Rollback completed
+- Additional data types support
 - Complete events model implemented
-- 25+ functional test cases
-- 20+ unit tests
+- 30+ functional test cases
+- 30+ unit tests
 - 3 E2E demos
 - 4 Web site full demos
+- ...and more additions and improvements
 
-These are the main project deliverables we target for the cubrid-node project:
+The main project deliverables we target for the cubrid-node project are:
 -	The driver source code
 -	Test cases
 -	Code documentation
@@ -29,18 +31,84 @@ These are the main project deliverables we target for the cubrid-node project:
 Installation
 =======================================================================================================
 
-This first release does not feature yet an npm installer - it will be available in the upcoming beta release.
+This release does not yet feature yet an npm installer - it will be available in the upcoming beta release.
 Therefore, if you want to use it now, please download the driver code on your machine.
 
 
 Usage
 =======================================================================================================
-This first release contains many test cases and demos which will show you how to use the driver.
-These examples are located in the following (sub)folders:
+The code release contains many test cases and demos which will show you how to use the driver.
+The examples are located in the following (sub)folders:
 - <b><i>\demo</i></b>
 - <b><i>\src\test</i></b>
 
-Here is a typical usage scenario:
+Here is a typical usage scenario, using events:
+
+    var CUBRIDClient = require('./test_Setup').testClient,
+      Helpers = require('../src/utils/Helpers'),
+      Result2Array = require('../src/resultset/Result2Array');
+
+    global.savedQueryHandle = null;
+
+    CUBRIDClient.connect(function () {
+    });
+
+    CUBRIDClient.on(CUBRIDClient.EVENT_ERROR, function (err) {
+      Helpers.logError('Error!: ' + err.message);
+      throw 'We should not get here!';
+    });
+
+    CUBRIDClient.on(CUBRIDClient.EVENT_CONNECTED, function () {
+      Helpers.logInfo('Connected.');
+      Helpers.logInfo('Querying: select * from game');
+      CUBRIDClient.query('select * from game', function () {
+      });
+    });
+
+    CUBRIDClient.on(CUBRIDClient.EVENT_QUERY_DATA_AVAILABLE, function (result, queryHandle) {
+      Helpers.logInfo('Data received.');
+      Helpers.logInfo('Returned active query handle: ' + queryHandle);
+      global.savedQueryHandle = queryHandle; // save handle - needed for further fetch operations
+      Helpers.logInfo('Total query result rows count: ' + Result2Array.TotalRowsCount(result));
+      Helpers.logInfo('First "batch" of data returned rows count: ' + Result2Array.RowsArray(result).length);
+      Helpers.logInfo('Fetching more rows...');
+      CUBRIDClient.fetch(global.savedQueryHandle, function () {
+      });
+    });
+
+    CUBRIDClient.on(CUBRIDClient.EVENT_FETCH_DATA_AVAILABLE, function (result) {
+      Helpers.logInfo('*** Fetch data received.');
+      Helpers.logInfo('*** Current fetch of data returned rows count: ' + Result2Array.RowsArray(result).length);
+      Helpers.logInfo('*** First row: ' + Result2Array.RowsArray(result)[0].toString());
+      // continue to fetch...
+      Helpers.logInfo('...');
+      Helpers.logInfo('...fetching more rows...');
+      Helpers.logInfo('...');
+      CUBRIDClient.fetch(global.savedQueryHandle, function () {
+      });
+    });
+
+    CUBRIDClient.on(CUBRIDClient.EVENT_FETCH_NO_MORE_DATA_AVAILABLE, function () {
+      Helpers.logInfo('No more data to receive.');
+      Helpers.logInfo('Closing query...');
+      CUBRIDClient.closeQuery(global.savedQueryHandle, function () {
+      });
+    });
+
+    CUBRIDClient.on(CUBRIDClient.EVENT_QUERY_CLOSED, function () {
+      Helpers.logInfo('Query closed.');
+      global.savedQueryHandle = null;
+      Helpers.logInfo('Closing connection...');
+      CUBRIDClient.close(function () {
+      });
+    });
+
+    CUBRIDClient.on(CUBRIDClient.EVENT_CONNECTION_CLOSED, function () {
+      Helpers.logInfo('Connection closed.');
+    });
+
+
+Or, if you prefere the callbacks-style:
 
     var client = require('../index.js').createDefaultCUBRIDDemodbConnection(),
       Result2Array = require('../src/resultset/Result2Array');
@@ -110,13 +178,11 @@ Here is a typical usage scenario:
 
 TODOs
 =======================================================================================================
-In the next code release (Technology preview - September 2012), we are targeting:
-- Transactions support
-- Additional data types support
+In the next code release (Beta - End September 2012), we are targeting:
 - Schema support
 - Documentation release
 - More functionality & more testing
-- Additional demos and E2E scenarios
+- Additional demos
 - Code improvements, optimizations and refactoring
 
 
@@ -124,7 +190,7 @@ Author and Contributors
 =======================================================================================================
 The main authors of this driver are the members of the CUBRID API team - http://www.cubrid.org/wiki_apis.
 
-We welcome any contributors and we hope you will enjoy coding with CUBRID! J
+We welcome any contributors and we hope you will enjoy coding with CUBRID! :)
 
 
 Special thanks
@@ -136,10 +202,8 @@ code we have reused and for doing such a great job for the open-source community
 -	https://github.com/jeromeetienne/microcache.js
 
 
-TODO
+Scheduled releases
 =======================================================================================================
-This release is just the first milestone for this project.
-We intend to release soon a beta version, followed by a stable release, with demos and tutorials.
 Here are the scheduled releases:
 -	Milestone 1. Basic driver interfaces: connect, queries support
 -	Milestone 2. Technology preview release: ~80% functionality ready
@@ -149,5 +213,6 @@ Here are the scheduled releases:
 
 ...Stay tuned! :)
 
+ Thank you!
  
 
