@@ -107,7 +107,53 @@ Here is a typical usage scenario, using events:
     });
 
 
-Or, if you prefere the callbacks-style:
+Here is another example, based on <b>async</b> library project:
+
+    var CUBRIDClient = require('./test_Setup').testClient;
+
+    ActionQueue.enqueue(
+      [
+        function (cb) {
+          CUBRIDClient.connect(cb);
+        },
+
+        function (cb) {
+          CUBRIDClient.getEngineVersion(cb);
+        },
+
+        function (engineVersion, cb) {
+          Helpers.logInfo('Engine version is: ' + engineVersion);
+          CUBRIDClient.query('select * from code', cb);
+        },
+
+        function (result, queryHandle, cb) {
+          Helpers.logInfo('Query result rows count: ' + Result2Array.TotalRowsCount(result));
+          Helpers.logInfo('Query results:');
+          var arr = Result2Array.RowsArray(result);
+          for (var k = 0; k < arr.length; k++) {
+            Helpers.logInfo(arr[k].toString());
+          }
+          CUBRIDClient.closeQuery(queryHandle, cb);
+          Helpers.logInfo('Query closed.');
+        },
+
+        function (cb) {
+          CUBRIDClient.close(cb);
+          Helpers.logInfo('Connection closed.');
+        }
+      ],
+
+      function (err) {
+        if (err == null) {
+          Helpers.logInfo('Program closed.');
+        } else {
+          throw err.message;
+        }
+      }
+    );
+
+
+Or, if you prefere the plain callbacks-style:
 
     var client = require('../index.js').createDefaultCUBRIDDemodbConnection(),
       Result2Array = require('../src/resultset/Result2Array');
