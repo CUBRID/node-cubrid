@@ -1,5 +1,5 @@
 <b>node-cubrid</b><br/>
-June-August, 2012<br/>
+June-September, 2012<br/>
 http://www.cubrid.org<br/>
 
 
@@ -7,19 +7,23 @@ Introduction
 =======================================================================================================
 The <b>CUBRID</b> node.js driver is an open-source project with the goal of implementing a 100% native node.js driver for the <b>CUBRID</b> database engine (www.cubrid.org).
 
-The driver is currently under development and this (August 2012) is the first release (Milestone 1) of the driver code, which features:
-- 2.000+ LOC
-- Connect/Close, Query, Execute, Fetch, Close request etc. completed
-- 15+ functional test cases
-- 15+ unit tests
-- E2E demos
+The driver is currently under development and this (September 2012) is the 2nd release (Milestone 2) of the driver code, 
+which features:
+- 2.500+ LOC
+- Connect/Close, Query, Execute, Fetch, Close query, Set auto-commit, Commit, Rollback completed
+- Complete events model implemented
+- 25+ functional test cases
+- 20+ unit tests
+- 3 E2E demos
+- 4 Web site full demos
 
-These are the main project deliverables we target for the project:
+These are the main project deliverables we target for the cubrid-node project:
 -	The driver source code
 -	Test cases
 -	Code documentation
--	Demos & Tutorials
--	npm package; registered on http://search.npmjs.org/
+-	Demos 
+-   Tutorials
+-	A npm package; registered on http://search.npmjs.org/
 
 
 Installation
