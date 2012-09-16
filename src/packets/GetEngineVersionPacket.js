@@ -1,4 +1,5 @@
 var DATA_TYPES = require('../constants/DataTypes'),
+  Helpers = require('../utils/Helpers'),
   ErrorMessages = require('../constants/ErrorMessages'),
   CAS = require('../constants/CASConstants');
 
@@ -30,7 +31,7 @@ GetEngineVersionPacket.prototype.write = function (writer) {
     DATA_TYPES.BYTE_SIZEOF + DATA_TYPES.INT_SIZEOF + DATA_TYPES.BYTE_SIZEOF;
 
   writer._writeInt(bufferLength - DATA_TYPES.DATA_LENGTH_SIZEOF - DATA_TYPES.CAS_INFO_SIZE);
-  writer._writeBytes(4, this.casInfo);
+  writer._writeBytes(DATA_TYPES.CAS_INFO_SIZE, this.casInfo);
   writer._writeByte(CAS.CASFunctionCode.CAS_FC_GET_DB_VERSION);
   writer._writeInt(DATA_TYPES.BYTE_SIZEOF);
   writer._writeByte(1);
@@ -44,18 +45,13 @@ GetEngineVersionPacket.prototype.write = function (writer) {
  */
 GetEngineVersionPacket.prototype.parse = function (parser) {
   var reponseLength = parser._parseInt();
-  this.casInfo = parser._parseBuffer(4);
+  this.casInfo = parser._parseBytes(DATA_TYPES.CAS_INFO_SIZE);
   this.responseCode = parser._parseInt();
   if (this.responseCode < 0) {
     this.errorCode = parser._parseInt();
     this.errorMsg = parser._parseNullTerminatedString(reponseLength - 2 * DATA_TYPES.INT_SIZEOF);
     if (this.errorMsg.length == 0) {
-      for (var iter = 0; iter < ErrorMessages.CASErrorMsgId.length; iter++) {
-        if (this.errorCode == ErrorMessages.CASErrorMsgId[iter][1]) {
-          this.errorMsg = ErrorMessages.CASErrorMsgId[iter][0];
-          break;
-        }
-      }
+      this.errorMsg = Helpers._resolveErrorCode(this.errorCode);
     }
   } else {
     this.engineVersion = parser._parseNullTerminatedString(reponseLength - DATA_TYPES.INT_SIZEOF);

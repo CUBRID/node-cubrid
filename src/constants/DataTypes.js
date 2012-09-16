@@ -17,6 +17,7 @@ exports.TIME_SIZEOF = 14;
 exports.DATETIME_SIZEOF = 14;
 exports.TIMESTAMP_SIZEOF = 14;
 exports.OID_SIZEOF = 8;
+exports.BROKERINFO_SIZEOF = 8;
 
 exports.DATA_LENGTH_SIZEOF = 4;
 exports.CAS_INFO_SIZE = 4;

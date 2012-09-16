@@ -1,8 +1,8 @@
 var assert = require('assert'),
-  GetResultsArray = require('./../resultset/Result2Array').GetResultsArray,
-  GetResultsColumnNamesArray = require('./../resultset/Result2Array').GetResultsColumnNamesArray,
-  GetResultsColumnTypesArray = require('./../resultset/Result2Array').GetResultsColumnsTypeArray,
-  GetResultsCount = require('./../resultset/Result2Array').GetResultsCount;
+  GetResultsArray = require('./../resultset/Result2Array').RowsArray,
+  GetResultsColumnNamesArray = require('./../resultset/Result2Array').ColumnNamesArray,
+  GetResultsColumnTypesArray = require('./../resultset/Result2Array').ColumnTypesArray,
+  GetResultsCount = require('./../resultset/Result2Array').TotalRowsCount;
 
 var json_str = '{"ColumnNames":["s_name","f_name"],' +
   '"ColumnDataTypes":["char","string"],' +

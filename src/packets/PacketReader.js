@@ -239,58 +239,62 @@ PacketReader.prototype._parseChar = function () {
 };
 
 /**
- * Returns a long value from the internal buffer
- * @return {String}
+ * Returns a Long value from the internal buffer
+ * @return {Number}
  */
 PacketReader.prototype._parseLong = function () {
-  this._offset += DATA_TYPES.LONG_SIZEOF;
+  var value = 0;
 
-  return null; //Not implemented yet!
+  for (var i = DATA_TYPES.LONG_SIZEOF - 1; i >= 0; i--) {
+    value += this._buffer[this._offset++] * Math.pow(256, i);
+  }
+
+  if (value & 0x8000000000000000) {
+    return value - 0xFFFFFFFFFFFFFFFF - 1;
+  } else {
+    return value;
+  }
 };
 
 /**
  * Returns a double value from the internal buffer
- * @return {String}
+ * @return {Number}
  */
 PacketReader.prototype._parseDouble = function () {
+  var value = this._buffer.readDoubleBE(this._offset);
   this._offset += DATA_TYPES.DOUBLE_SIZEOF;
-
-  return null; //Not implemented yet!
+  return value;
 };
 
 /**
  * Returns a floating point value from the internal buffer
- * @return {String}
+ * @return {Number}
  */
 PacketReader.prototype._parseFloat = function () {
+  var value = this._buffer.readFloatBE(this._offset);
   this._offset += DATA_TYPES.FLOAT_SIZEOF;
-
-  return null; //Not implemented yet!
+  return value;
 };
 
 /**
- * Returns a numeric value from the internal buffer
- * @return {String}
+ * Returns a Numeric value from the internal buffer
+ * @return {Number}
  */
 PacketReader.prototype._parseNumeric = function (size) {
-  this._offset += size;
-
-  return null; //Not implemented yet!
+  return parseFloat(this._parseNullTerminatedString(size));
 };
 
 /**
- * Returns a object value from the internal buffer
+ * Returns a Object value from the internal buffer
  * @return {String}
  */
 PacketReader.prototype._parseObject = function () {
-  this._offset += DATA_TYPES.OBJECT_SIZEOF;
-
-  return null; //Not implemented yet!
+  return 'OID:@' + this._parseInt() + '|' + this._parseShort() + '|' + this._parseShort();
 };
 
 /**
- * Returns a blob object from the internal buffer
- * @return {String}
+ * Returns a BLOB object from the internal buffer
+ * @return {Buffer}
  */
 PacketReader.prototype._parseBlob = function (size) {
   this._offset += size;
@@ -299,7 +303,7 @@ PacketReader.prototype._parseBlob = function (size) {
 };
 
 /**
- * Returns a clob object from the internal buffer
+ * Returns a CLOB object from the internal buffer
  * @return {String}
  */
 PacketReader.prototype._parseClob = function (size) {
@@ -310,14 +314,14 @@ PacketReader.prototype._parseClob = function (size) {
 
 /**
  * Returns a sequence of values from the internal buffer
- * @return {String}
+ * @return {Array}
  */
 PacketReader.prototype._parseSequence = function () {
   var count = this._parseInt();
   var size = this._parseInt();
   this._offset += count * size;
 
-  return null; //Not implemented yet!
+  return null; //Not supported
 };
 
 /**
@@ -327,7 +331,7 @@ PacketReader.prototype._parseSequence = function () {
 PacketReader.prototype._parseResultSet = function () {
   this._offset += DATA_TYPES.RESULTSET_SIZEOF;
 
-  return null; //Not implemented yet!
+  return null; //Not supported
 };
 
 /**

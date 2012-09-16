@@ -1,4 +1,5 @@
 var DATA_TYPES = require('../constants/DataTypes'),
+  Helpers = require('../utils/Helpers'),
   ErrorMessages = require('../constants/ErrorMessages'),
   CAS = require('../constants/CASConstants');
 
@@ -43,23 +44,18 @@ OpenDatabasePacket.prototype.write = function (writer) {
  */
 OpenDatabasePacket.prototype.parse = function (parser) {
   var reponseLength = parser._parseInt();
-  this.casInfo = parser._parseBytes(4);
+  this.casInfo = parser._parseBytes(DATA_TYPES.CAS_INFO_SIZE);
 
   this.responseCode = parser._parseInt();
   if (this.responseCode < 0) {
     this.errorCode = parser._parseInt();
     this.errorMsg = parser._parseNullTerminatedString(reponseLength - DATA_TYPES.INT_SIZEOF * 2);
     if (this.errorMsg.length == 0) {
-      for (var iter = 0; iter < ErrorMessages.CASErrorMsgId.length; iter++) {
-        if (this.errorCode == ErrorMessages.CASErrorMsgId[iter][1]) {
-          this.errorMsg = ErrorMessages.CASErrorMsgId[iter][0];
-          break;
-        }
-      }
+      this.errorMsg = Helpers._resolveErrorCode(this.errorCode);
     }
   } else {
     //this.processId = this.responseCode;
-    this.brokerInfo = parser._parseBytes(8);
+    this.brokerInfo = parser._parseBytes(DATA_TYPES.BROKERINFO_SIZEOF);
     this.sessionId = parser._parseInt();
   }
 

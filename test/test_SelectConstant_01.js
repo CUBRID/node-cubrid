@@ -1,13 +1,13 @@
-var CUBRIDConnection = require('../src/CUBRIDConnection'),
+var CUBRIDClient = require('./test_Setup').testClient,
   Helpers = require('../src/utils/Helpers'),
   Result2Array = require('../src/resultset/Result2Array'),
   assert = require('assert');
 
-var CUBRIDClient = new CUBRIDConnection('localhost', 33000, 'public', '', 'demodb');
-
 function errorHandler(err) {
   throw err.message;
 }
+
+Helpers.logInfo(module.filename.toString() + ' started...');
 
 CUBRIDClient.connect(function (err) {
   if (err) {
@@ -19,17 +19,17 @@ CUBRIDClient.connect(function (err) {
       if (err) {
         errorHandler(err);
       } else {
-        assert(Result2Array.GetResultsCount(result) === 1);
-        Helpers.logInfo('Query result rows count: ' + Result2Array.GetResultsCount(result));
+        assert(Result2Array.TotalRowsCount(result) === 1);
+        Helpers.logInfo('Query result rows count: ' + Result2Array.TotalRowsCount(result));
         Helpers.logInfo('Query results:');
-        var arr = Result2Array.GetResultsArray(result);
+        var arr = Result2Array.RowsArray(result);
         assert(arr.length === 1);
         assert(arr[0].toString() === '1');
         for (var j = 0; j < arr.length; j++) {
           Helpers.logInfo(arr[j].toString());
         }
       }
-      CUBRIDClient.closeRequest(queryHandle, function (err) {
+      CUBRIDClient.closeQuery(queryHandle, function (err) {
         if (err) {
           errorHandler(err);
         } else {

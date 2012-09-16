@@ -1,13 +1,13 @@
-var CUBRIDConnection = require('../src/CUBRIDConnection'),
+var CUBRIDClient = require('./test_Setup').testClient,
   Helpers = require('../src/utils/Helpers'),
   assert = require('assert');
-
-var CUBRIDClient = new CUBRIDConnection('localhost', 33000, 'public', '', 'demodb');
 
 function errorHandler(err) {
   Helpers.logError(err.message);
   assert(err.message === '-493:Syntax: Unknown class "game_xyz". select * from game_xyz');
 }
+
+Helpers.logInfo(module.filename.toString() + ' started...');
 
 CUBRIDClient.connect(function (err) {
   if (err) {
@@ -18,7 +18,11 @@ CUBRIDClient.connect(function (err) {
     CUBRIDClient.query('select * from game_xyz', function (err) {
       if (err) {
         errorHandler(err);
-        CUBRIDClient.close();
+        CUBRIDClient.close(function (err) {
+          if (err) {
+            errorHandler(err);
+          }
+        });
         Helpers.logInfo('Connection closed.');
         Helpers.logInfo('Test passed.');
       } else {
@@ -27,5 +31,4 @@ CUBRIDClient.connect(function (err) {
     });
   }
 });
-
 

@@ -144,6 +144,9 @@ exports.CUBRIDDataType = {
   CCI_U_TYPE_CLOB      : 24
 };
 
+/**
+ * Convert data type number to data type name
+ */
 exports.getCUBRIDDataType = function (type) {
   switch (type) {
     case this.CUBRIDDataType.CCI_U_TYPE_CHAR:

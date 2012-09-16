@@ -24,7 +24,7 @@ ActionQueue.enqueue(
   ],
   function (err, results) {
     assert.equal(results, '1,2,3,4');
-    console.log('enqueue unit test ended OK.');
+    console.log('Unit test ended OK.');
   }
 );
 
@@ -41,9 +41,9 @@ ActionQueue.while(
       throw err.toString();
     } else {
       var endTime = (new Date()).getTime();
-      // 5 seconds have passed
+      // 5 seconds have passed?
       assert(endTime - startTime > 5 * 1000);
-      console.log('while unit test ended OK.');
+      console.log('Unit test ended OK.');
     }
   }
 );

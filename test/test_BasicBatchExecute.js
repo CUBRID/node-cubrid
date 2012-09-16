@@ -1,12 +1,12 @@
-var CUBRIDConnection = require('../src/CUBRIDConnection'),
+var CUBRIDClient = require('./test_Setup').testClient,
   Helpers = require('../src/utils/Helpers'),
   assert = require('assert');
-
-var CUBRIDClient = new CUBRIDConnection('localhost', 33000, 'public', '', 'demodb');
 
 function errorHandler(err) {
   throw err.message;
 }
+
+Helpers.logInfo(module.filename.toString() + ' started...');
 
 CUBRIDClient.connect(function (err) {
   if (err) {

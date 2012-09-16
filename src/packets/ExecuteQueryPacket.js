@@ -1,4 +1,5 @@
 var DATA_TYPES = require('../constants/DataTypes'),
+  Helpers = require('../utils/Helpers'),
   CAS = require('../constants/CASConstants'),
   ErrorMessages = require('../constants/ErrorMessages'),
   ColumnMetaData = require('../resultset/ColumnMetaData'),
@@ -51,7 +52,7 @@ ExecuteQueryPacket.prototype.write = function (writer) {
 
   //Prepare info
   writer._writeInt(bufferLength - DATA_TYPES.DATA_LENGTH_SIZEOF - DATA_TYPES.CAS_INFO_SIZE);
-  writer._writeBytes(4, this.casInfo);
+  writer._writeBytes(DATA_TYPES.CAS_INFO_SIZE, this.casInfo);
   writer._writeByte(CAS.CASFunctionCode.CAS_FC_PREPARE_AND_EXECUTE);
   writer._writeInt(DATA_TYPES.INT_SIZEOF);
   writer._writeInt(3);// number of CAS args
@@ -84,7 +85,7 @@ ExecuteQueryPacket.prototype.write = function (writer) {
  */
 ExecuteQueryPacket.prototype.parse = function (parser) {
   var reponseLength = parser._parseInt();
-  this.casInfo = parser._parseInt();
+  this.casInfo = parser._parseBytes(DATA_TYPES.CAS_INFO_SIZE);
 
   //var responseBuffer = parser.parseBuffer(reponseLength);
   this.handle = parser._parseInt();
@@ -92,12 +93,7 @@ ExecuteQueryPacket.prototype.parse = function (parser) {
     this.errorCode = parser._parseInt();
     this.errorMsg = parser._parseNullTerminatedString(reponseLength - 2 * DATA_TYPES.INT_SIZEOF);
     if (this.errorMsg.length == 0) {
-      for (var iter = 0; iter < ErrorMessages.CASErrorMsgId.length; iter++) {
-        if (this.errorCode == ErrorMessages.CASErrorMsgId[iter][1]) {
-          this.errorMsg = ErrorMessages.CASErrorMsgId[iter][0];
-          break;
-        }
-      }
+      this.errorMsg = Helpers._resolveErrorCode(this.errorCode);
     }
     return -1; //TODO Document this
   } else {
@@ -114,7 +110,7 @@ ExecuteQueryPacket.prototype.parse = function (parser) {
       info.precision = parser._parseInt();
       var len = parser._parseInt();
       info.Name = parser._parseNullTerminatedString(len);
-      if (true) { //TODO Refactor condition
+      if (true) { //TODO Refactor this
         len = parser._parseInt();
         info.RealName = parser._parseNullTerminatedString(len);
         len = parser._parseInt();
@@ -136,7 +132,7 @@ ExecuteQueryPacket.prototype.parse = function (parser) {
     this.totalTupleCount = parser._parseInt();
     this.cache_reusable = parser._parseByte();
     this.resultCount = parser._parseInt();
-    //read resultinfo
+    //read result info
     for (i = 0; i < this.resultCount; i++) {
       var resultInfo = new ResultInfo();
       resultInfo.StmtType = parser._parseByte();
@@ -161,23 +157,30 @@ ExecuteQueryPacket.prototype.parse = function (parser) {
 
     columnValues = this._getData(parser, this.tupleCount);
 
-    return JSON.stringify({
-      ColumnNames     : columnNames,
-      ColumnDataTypes : columnDataTypes,
-      RowsCount       : this.totalTupleCount,
-      ColumnValues    : columnValues
-    });
+    return JSON.stringify(
+      {
+        ColumnNames     : columnNames,
+        ColumnDataTypes : columnDataTypes,
+        RowsCount       : this.totalTupleCount,
+        ColumnValues    : columnValues
+      }
+    );
   }
 
   return parser;
 };
 
+/**
+ * Get Data from stream
+ * @param parser
+ * @param tupleCount
+ */
 ExecuteQueryPacket.prototype._getData = function (parser, tupleCount) {
   var columnValues = new Array(tupleCount);
   for (var i = 0; i < tupleCount; i++) {
     columnValues[i] = new Array(this.columnCount);
     var index = parser._parseInt();
-    var Oid = parser._parseBytes(8);
+    var Oid = parser._parseBytes(DATA_TYPES.OID_SIZEOF);
     for (var j = 0; j < this.columnCount; j++) {
       var size = parser._parseInt();
       var val;
@@ -202,9 +205,17 @@ ExecuteQueryPacket.prototype._getData = function (parser, tupleCount) {
     }
   }
   this.currentTupleCount += tupleCount;
+
   return columnValues;
 };
 
+/**
+ * Read value from stream
+ * @param index
+ * @param type
+ * @param size
+ * @param parser
+ */
 ExecuteQueryPacket.prototype._readValue = function (index, type, size, parser) {
   switch (type) {
     case CAS.CUBRIDDataType.CCI_U_TYPE_CHAR:

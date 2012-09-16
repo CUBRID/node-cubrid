@@ -77,6 +77,45 @@ PacketWriter.prototype._writeInt = function (value) {
 };
 
 /**
+ * Write a Long value to the internal buffer
+ * @param value
+ */
+PacketWriter.prototype._writeLong = function (value) {
+  var reminder = value % Math.pow(2, 32);
+  var quotient = (value - reminder) / Math.pow(2, 32);
+  this._writeInt(quotient);
+  this._writeInt(reminder);
+};
+
+/**
+ * Write a Floating point value to the internal buffer
+ * @param value
+ */
+PacketWriter.prototype._writeFloat = function (value) {
+  this._allocate(DATA_TYPES.FLOAT_SIZEOF);
+  this._buffer.writeFloatBE(value, this._offset);
+  this._offset += DATA_TYPES.FLOAT_SIZEOF;
+};
+
+/**
+ * Write a Double precision value to the internal buffer
+ * @param value
+ */
+PacketWriter.prototype._writeDouble = function (value) {
+  this._allocate(DATA_TYPES.DOUBLE_SIZEOF);
+  this._buffer.writeDoubleBE(value, this._offset);
+  this._offset += DATA_TYPES.DOUBLE_SIZEOF;
+};
+
+/**
+ * Write a Numeric value to the internal buffer
+ * @param value
+ */
+PacketWriter.prototype._writeNumeric = function (value) {
+  this._writeNullTerminatedString(value.toString(10));
+};
+
+/**
  * Write the specified value to the internal buffer
  * @param bytesCount
  * @param fillerValue
@@ -156,6 +195,12 @@ PacketWriter.prototype._writeFixedLengthString = function (value, fillerValue, f
   }
 };
 
+/**
+ * Write a Date value to the internal buffer
+ * @param year
+ * @param month
+ * @param day
+ */
 PacketWriter.prototype._writeDate = function (year, month, day) {
   this._allocate(DATA_TYPES.DATETIME_SIZEOF);
 
@@ -168,6 +213,16 @@ PacketWriter.prototype._writeDate = function (year, month, day) {
   this._writeShort(0);
 };
 
+/**
+ * Write a DateTime value to the internal buffer
+ * @param year
+ * @param month
+ * @param day
+ * @param hour
+ * @param min
+ * @param sec
+ * @param msec
+ */
 PacketWriter.prototype._writeDateTime = function (year, month, day, hour, min, sec, msec) {
   this._allocate(DATA_TYPES.DATETIME_SIZEOF);
 
@@ -180,6 +235,12 @@ PacketWriter.prototype._writeDateTime = function (year, month, day, hour, min, s
   this._writeShort(msec);
 };
 
+/**
+ * Write a Time value to the internal buffer
+ * @param hour
+ * @param min
+ * @param sec
+ */
 PacketWriter.prototype._writeTime = function (hour, min, sec) {
   this._allocate(DATA_TYPES.DATETIME_SIZEOF);
 
@@ -192,6 +253,15 @@ PacketWriter.prototype._writeTime = function (hour, min, sec) {
   this._writeShort(0);
 };
 
+/**
+ * Write a Timestamp value to the internal buffer
+ * @param year
+ * @param month
+ * @param day
+ * @param hour
+ * @param min
+ * @param sec
+ */
 PacketWriter.prototype._writeTimestamp = function (year, month, day, hour, min, sec) {
   this._allocate(DATA_TYPES.DATETIME_SIZEOF);
 

@@ -1,4 +1,5 @@
 var DATA_TYPES = require('../constants/DataTypes'),
+  Helpers = require('../utils/Helpers'),
   ErrorMessages = require('../constants/ErrorMessages'),
   CAS = require('../constants/CASConstants');
 
@@ -28,7 +29,7 @@ CloseDatabasePacket.prototype.write = function (writer) {
     DATA_TYPES.BYTE_SIZEOF;
 
   writer._writeInt(bufferLength - DATA_TYPES.DATA_LENGTH_SIZEOF - DATA_TYPES.CAS_INFO_SIZE);
-  writer._writeBytes(4, this.casInfo);
+  writer._writeBytes(DATA_TYPES.CAS_INFO_SIZE, this.casInfo);
   writer._writeByte(CAS.CASFunctionCode.CAS_FC_CON_CLOSE);
 
   return writer;
@@ -40,7 +41,7 @@ CloseDatabasePacket.prototype.write = function (writer) {
  */
 CloseDatabasePacket.prototype.parse = function (parser) {
   var reponseLength = parser._parseInt();
-  this.casInfo = parser._parseBytes(4);
+  this.casInfo = parser._parseBytes(DATA_TYPES.CAS_INFO_SIZE);
 
   var responseBuffer = parser._parseBuffer(reponseLength);
   this.responseCode = parser._parseInt();
@@ -48,12 +49,7 @@ CloseDatabasePacket.prototype.parse = function (parser) {
     this.errorCode = parser._parseInt();
     this.errorMsg = parser._parseNullTerminatedString(responseBuffer.length - 2 * DATA_TYPES.INT_SIZEOF);
     if (this.errorMsg.length == 0) {
-      for (var iter = 0; iter < ErrorMessages.CASErrorMsgId.length; iter++) {
-        if (this.errorCode == ErrorMessages.CASErrorMsgId[iter][1]) {
-          this.errorMsg = ErrorMessages.CASErrorMsgId[iter][0];
-          break;
-        }
-      }
+      this.errorMsg = Helpers._resolveErrorCode(this.errorCode);
     }
   }
 

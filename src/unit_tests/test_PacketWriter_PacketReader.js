@@ -212,6 +212,51 @@ function testPacketReaderBuffer() {
   assert.equal(newValue[1], 2);
 }
 
+function testLong(value) {
+  var packetWriter = new PacketWriter();
+  packetWriter._writeLong(value);
+  var packetReader = new PacketReader();
+  packetReader.write(packetWriter._toBuffer());
+  var newValue = packetReader._parseLong();
+  assert.equal(newValue, value);
+}
+
+function testFloat(value) {
+  var packetWriter = new PacketWriter();
+  packetWriter._writeFloat(value);
+  var packetReader = new PacketReader();
+  packetReader.write(packetWriter._toBuffer());
+  var newValue = packetReader._parseFloat();
+  assert.equal(newValue, value);
+}
+
+function testDouble(value) {
+  var packetWriter = new PacketWriter();
+  packetWriter._writeDouble(value);
+  var packetReader = new PacketReader();
+  packetReader.write(packetWriter._toBuffer());
+  var newValue = packetReader._parseDouble();
+  assert.equal(newValue, value);
+}
+
+function testNumeric(value) {
+  var packetWriter = new PacketWriter();
+  packetWriter._writeNumeric(value);
+  var packetReader = new PacketReader();
+  packetReader.write(packetWriter._toBuffer());
+  var length = packetReader._parseInt();
+  var newValue = packetReader._parseNumeric(length);
+  assert.equal(newValue, value);
+}
+
+function testObject() {
+  var packetWriter = new PacketWriter();
+  packetWriter._writeBuffer(new Buffer([0, 0, 0, 0, 0, 1, 0, 2]));
+  var packetReader = new PacketReader();
+  packetReader.write(packetWriter._toBuffer());
+  var newValue = packetReader._parseObject();
+  assert.equal(newValue, 'OID:@0|1|2');
+}
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 console.log('Unit test ' + module.filename.toString() + ' started...');
@@ -246,6 +291,11 @@ testPacketReaderBytes();
 testPacketReaderBuffer();
 testFiller();
 
+testLong(Math.pow(2, 53) - 152156);
+testLong(Math.pow(2, 53) + 100);//overflow
+testFloat(4.5);
+testDouble(3.14);
+testNumeric(1.5);
+testObject();
+
 console.log('Unit test ended OK.');
-
-

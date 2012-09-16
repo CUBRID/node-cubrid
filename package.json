@@ -3,17 +3,17 @@
 
   "contributors" : [
     {
-      "name" : "",
-      "url"  : ""
+      "name" : "CUBRID API team",
+      "url"  : "www.cubrid.org"
     }
   ],
 
   "name" : "node-cubrid",
 
   "description" : "This is a native Node.js driver for CUBRID (www.cubrid.org). \
-        It is developed entirely in JavaScript, so it doesn't require platform compilation, and it is MIT licensed.",
+        It is developed entirely in JavaScript, so it doesn't require specific platform compilation.",
 
-  "version" : "0.1",
+  "version" : "0.8",
 
   "repository" : {
     "type" : "git",

@@ -18,7 +18,6 @@ exports.createCUBRIDConnection = function(brokerServer, brokerPort, user, passwo
  * @return {*}
  */
 exports.createDefaultCUBRIDDemodbConnection = function() {
-  //return new CUBRIDConnection('localhost', 33000, 'public', '', 'demodb');
   return this.createCUBRIDConnection('localhost', 33000, 'public', '', 'demodb');
 };
 

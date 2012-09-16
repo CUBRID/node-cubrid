@@ -30,7 +30,7 @@ CloseQueryPacket.prototype.write = function (writer) {
     DATA_TYPES.INT_SIZEOF + DATA_TYPES.BYTE_SIZEOF;
 
   writer._writeInt(bufferLength - DATA_TYPES.DATA_LENGTH_SIZEOF - DATA_TYPES.CAS_INFO_SIZE);
-  writer._writeBytes(4, this.casInfo);
+  writer._writeBytes(DATA_TYPES.CAS_INFO_SIZE, this.casInfo);
   writer._writeByte(CAS.CASFunctionCode.CAS_FC_CLOSE_REQ_HANDLE);
   writer._writeInt(DATA_TYPES.INT_SIZEOF);
   writer._writeInt(this.reqHandle);
@@ -46,7 +46,7 @@ CloseQueryPacket.prototype.write = function (writer) {
  */
 CloseQueryPacket.prototype.parse = function (parser) {
   var reponseLength = parser._parseInt();
-  this.casInfo = parser._parseBytes(4);
+  this.casInfo = parser._parseBytes(DATA_TYPES.CAS_INFO_SIZE);
 
   var responseBuffer = parser._parseBuffer(reponseLength);
   this.responseCode = parser._parseInt();

@@ -1,6 +1,15 @@
 /**
  * Define CUBRID error messages
  */
+
+exports.ERROR_NEW_BROKER_PORT = 'Error receiving a new connection port!';
+exports.ERROR_CONNECTION_ALREADY_PENDING = 'A connection is already in progress! - denying current connection request.';
+exports.ERROR_QUERY_ALREADY_PENDING = 'Another query is already in progress! - denying current query request.';
+exports.ERROR_NO_ACTIVE_QUERY = 'No active query with this handle!';
+exports.ERROR_NO_ROLLBACK = 'AutoCommitMode is enabled! - denying rollback request.';
+exports.ERROR_ON_CLOSE_QUERY_HANDLE = 'Error closing request: ';
+exports.ERROR_INPUT_VALIDATION = 'Error validating input parameters.'
+
 exports.CASErrorMsgId = [
   ['CAS_ER_DBMS' , -1000],
   ['CAS_ER_INTERNAL' , -1001],

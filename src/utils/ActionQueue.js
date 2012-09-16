@@ -22,82 +22,62 @@
  THE SOFTWARE.
  */
 
-(function () {
-  var actionQueue = {};
-  var self = this;
-
-  if (typeof module != 'undefined' && module.exports) {
-    module.exports = actionQueue;
-  } else {
-    self.actionQueue = actionQueue;
+exports.enqueue = function _enqueue(tasks, callback) {
+  callback = callback || function () {
+  };
+  if (!tasks.length) {
+    return callback();
   }
 
-  // nextTick implementation with browser-compatible fallback
-  if (typeof process === 'undefined' || !(process.nextTick)) {
-    actionQueue.nextTick = function (fn) {
-      setTimeout(fn, 0);
-    };
-  } else {
-    actionQueue.nextTick = process.nextTick;
-  }
-
-  actionQueue.enqueue = function (tasks, callback) {
-    callback = callback || function () {
-    };
-    if (!tasks.length) {
-      return callback();
-    }
-    var wrapIterator = function (iterator) {
-      return function (err) {
-        if (err) {
-          callback(err);
-          callback = function () {
-          };
+  var wrapIterator = function (iterator) {
+    return function (err) {
+      if (err) {
+        callback(err);
+        callback = function () {
+        };
+      } else {
+        var args = Array.prototype.slice.call(arguments, 1);
+        var next = iterator.next();
+        if (next) {
+          args.push(wrapIterator(next));
         } else {
-          var args = Array.prototype.slice.call(arguments, 1);
-          var next = iterator.next();
-          if (next) {
-            args.push(wrapIterator(next));
-          } else {
-            args.push(callback);
-          }
-          actionQueue.nextTick(function () {
-            iterator.apply(null, args);
-          });
+          args.push(callback);
         }
-      };
+        process.nextTick(function () {
+          iterator.apply(null, args);
+        });
+      }
     };
-    wrapIterator(actionQueue._iterator(tasks))();
   };
+  wrapIterator(iterator(tasks))();
+};
 
-  actionQueue._iterator = function (tasks) {
-    var makeCallback = function (index) {
-      var fn = function () {
-        if (tasks.length) {
-          tasks[index].apply(null, arguments);
-        }
-        return fn.next();
-      };
-      fn.next = function () {
-        return (index < tasks.length - 1) ? makeCallback(index + 1) : null;
-      };
-      return fn;
+exports.while = function _while(test, iterator, callback) {
+  if (test()) {
+    iterator(function (err) {
+      if (err) {
+        return callback(err);
+      }
+      _while(test, iterator, callback);
+    });
+  } else {
+    callback();
+  }
+};
+
+function iterator(tasks) {
+  var makeCallback = function (index) {
+    var fn = function () {
+      if (tasks.length) {
+        tasks[index].apply(null, arguments);
+      }
+      return fn.next();
     };
-    return makeCallback(0);
+    fn.next = function () {
+      return (index < tasks.length - 1) ? makeCallback(index + 1) : null;
+    };
+    return fn;
   };
-
-  actionQueue.while = function (test, iterator, callback) {
-    if (test()) {
-      iterator(function (err) {
-        if (err) {
-          return callback(err);
-        }
-        actionQueue.while(test, iterator, callback);
-      });
-    } else {
-      callback();
-    }
-  };
-
-}());
+  return makeCallback(0);
+}
 

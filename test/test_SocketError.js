@@ -1,8 +1,6 @@
-var CUBRIDConnection = require('../src/CUBRIDConnection'),
+var CUBRIDClient = require('./test_Setup').testClient,
   Helpers = require('../src/utils/Helpers'),
   assert = require('assert');
-
-var CUBRIDClient = new CUBRIDConnection('localhost', 33000, 'public', '', 'demodb');
 
 function errorHandler(err) {
   Helpers.logInfo(err.message);
@@ -10,21 +8,22 @@ function errorHandler(err) {
   Helpers.logInfo('Test passed.');
 }
 
+Helpers.logInfo(module.filename.toString() + ' started...');
+
 CUBRIDClient.connect(function (err) {
   if (err) {
     errorHandler(err);
   } else {
     Helpers.logInfo('Connected.');
     Helpers.logInfo('Querying: select * from nation');
-    CUBRIDClient.socket.destroy();
-    CUBRIDClient.query('select * from nation', function (err) {
+    CUBRIDClient._socket.destroy();
+    CUBRIDClient.query('select * from nation', function (err, result, queryHandle) {
       if (err) {
         errorHandler(err);
       } else {
         Helpers.logInfo('We should not get here!');
+        CUBRIDClient.close(null);
       }
     })
   }
 });
-
-
