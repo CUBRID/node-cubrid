@@ -133,9 +133,11 @@ CUBRIDConnection.prototype._doGetBrokerPort = function (self, callback) {
     clientInfoExchangePacket.parse(packetReader);
     var newPort = clientInfoExchangePacket.newConnectionPort;
     self.connectionBrokerPort = newPort;
-    self._socket.end();
+    if (newPort > 0) {
+      self._socket.end();
+    }
     if (callback && typeof(callback) === 'function') {
-      if (newPort > 0) {
+      if (newPort < 0) {
         callback.call(null);
       } else {
         var err = new Error(ErrorMessages.ERROR_NEW_BROKER_PORT);
@@ -156,8 +158,10 @@ CUBRIDConnection.prototype._doDatabaseLogin = function (self, callback) {
   var responseData = new Buffer(0);
   var expectedResponseLength = this._INVALID_RESPONSE_LENGTH;
 
-  self._socket = Net.createConnection(self.connectionBrokerPort, self.brokerServer);
-  self._socket.setNoDelay(true);
+  if (self.connectionBrokerPort > 0) {
+    self._socket = Net.createConnection(self.connectionBrokerPort, self.brokerServer);
+    self._socket.setNoDelay(true);
+  }
 
   var packetWriter = new PacketWriter();
   var openDatabasePacket = new OpenDatabasePacket(
