@@ -42,6 +42,12 @@ assert(Helpers._validateInputBoolean('qwerty') === false);
 assert(Helpers._validateInputBoolean(true) === true);
 assert(Helpers._validateInputBoolean(1) === true);
 
+assert(Helpers._validateInputPositive(null) === false);
+assert(Helpers._validateInputPositive(3.14) === true);
+assert(Helpers._validateInputPositive(-1) === false);
+assert(Helpers._validateInputPositive(0) === false);
+assert(Helpers._validateInputPositive(14) === true);
+
 assert(Helpers._validateInputTimeout(null) === false);
 assert(Helpers._validateInputTimeout(3.14) === false);
 assert(Helpers._validateInputTimeout(-1) === false);

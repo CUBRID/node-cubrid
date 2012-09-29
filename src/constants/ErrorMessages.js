@@ -3,7 +3,9 @@
  */
 
 exports.ERROR_NEW_BROKER_PORT = 'Error receiving a new connection port!';
+exports.ERROR_CONNECTION_ALREADY_OPENED = 'The connection is already opened! - denying a second connection request.';
 exports.ERROR_CONNECTION_ALREADY_PENDING = 'A connection is already in progress! - denying current connection request.';
+exports.ERROR_CONNECTION_ALREADY_CLOSED = 'The connection is already closed!';
 exports.ERROR_QUERY_ALREADY_PENDING = 'Another query is already in progress! - denying current query request.';
 exports.ERROR_NO_ACTIVE_QUERY = 'No active query with this handle!';
 exports.ERROR_NO_ROLLBACK = 'AutoCommitMode is enabled! - denying rollback request.';

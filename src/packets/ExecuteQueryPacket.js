@@ -19,22 +19,21 @@ function ExecuteQueryPacket(options) {
   this.sql = options.sql;
   this.autoCommit = options.autoCommitMode;
   this.resultset = '';
-  this.resultCacheLifetime = 0;
-  this.statementType = null;
-  this.bindCount = 0;
-  this.isUpdatable = false;
-  this.totalTupleCount = 0;
-  this.cache_reusable = 0;
-  this.resultCount = 0;
-  this.resultInfos = null;
-  this.columnCount = 0;
-  this.infoArray = new ColumnMetaData();
-  this.resultInfos = new ResultInfo();
-  this.handle = 0;
-  this.currentTupleCount = 0;
-  this.tupleCount = 0;
-  this.errorCode = 0;
-  this.errorMsg = '';
+  this.resultCacheLifetime = 0; //Cache lifetime
+  this.statementType = null; //
+  this.bindCount = 0; //Bind count
+  this.isUpdatable = false; //Is updatable
+  this.totalTupleCount = 0; //Total nomber of tuples
+  this.cache_reusable = 0; //Cache reusable
+  this.resultCount = 0; //Number of results
+  this.columnCount = 0; //Number of columns
+  this.infoArray = new ColumnMetaData(); //Column meta data
+  this.resultInfos = new ResultInfo(); //Result info
+  this.handle = 0; //Query handle
+  this.currentTupleCount = 0; //Current number of returned tuples
+  this.tupleCount = 0; //Number of tuples
+  this.errorCode = 0; //Error code
+  this.errorMsg = ''; //Error message
 }
 
 /**
@@ -95,7 +94,6 @@ ExecuteQueryPacket.prototype.parse = function (parser) {
     if (this.errorMsg.length == 0) {
       this.errorMsg = Helpers._resolveErrorCode(this.errorCode);
     }
-    return -1; //TODO Document this
   } else {
     this.resultCacheLifetime = parser._parseInt();
     this.statementType = parser._parseByte();
@@ -110,22 +108,20 @@ ExecuteQueryPacket.prototype.parse = function (parser) {
       info.precision = parser._parseInt();
       var len = parser._parseInt();
       info.Name = parser._parseNullTerminatedString(len);
-      if (true) { //TODO Refactor this
-        len = parser._parseInt();
-        info.RealName = parser._parseNullTerminatedString(len);
-        len = parser._parseInt();
-        info.TableName = parser._parseNullTerminatedString(len);
-        info.IsNullable = (parser._parseByte() === 1);
-        len = parser._parseInt();
-        info.DafaultValue = parser._parseNullTerminatedString(len);
-        info.IsAutoIncrement = (parser._parseByte() === 1);
-        info.IsUniqueKey = (parser._parseByte() === 1);
-        info.IsPrimaryKey = (parser._parseByte() === 1);
-        info.IsReverseIndex = (parser._parseByte() === 1);
-        info.IsReverseUnique = (parser._parseByte() === 1);
-        info.IsForeignKey = (parser._parseByte() === 1);
-        info.IsShared = (parser._parseByte() === 1);
-      }
+      len = parser._parseInt();
+      info.RealName = parser._parseNullTerminatedString(len);
+      len = parser._parseInt();
+      info.TableName = parser._parseNullTerminatedString(len);
+      info.IsNullable = (parser._parseByte() === 1);
+      len = parser._parseInt();
+      info.DafaultValue = parser._parseNullTerminatedString(len);
+      info.IsAutoIncrement = (parser._parseByte() === 1);
+      info.IsUniqueKey = (parser._parseByte() === 1);
+      info.IsPrimaryKey = (parser._parseByte() === 1);
+      info.IsReverseIndex = (parser._parseByte() === 1);
+      info.IsReverseUnique = (parser._parseByte() === 1);
+      info.IsForeignKey = (parser._parseByte() === 1);
+      info.IsShared = (parser._parseByte() === 1);
       this.infoArray[i] = info;
     }
 
@@ -260,7 +256,7 @@ ExecuteQueryPacket.prototype._readValue = function (index, type, size, parser) {
 
     case CAS.CUBRIDDataType.CCI_U_TYPE_BIT:
     case CAS.CUBRIDDataType.CCI_U_TYPE_VARBIT:
-      return parser._parseBytes(size)[0]; //TODO: Refactor this
+      return parser._parseBytes(size);
 
     case CAS.CUBRIDDataType.CCI_U_TYPE_SET:
     case CAS.CUBRIDDataType.CCI_U_TYPE_MULTISET:

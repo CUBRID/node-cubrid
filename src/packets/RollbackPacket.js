@@ -3,14 +3,14 @@ var DATA_TYPES = require('../constants/DataTypes'),
   ErrorMessages = require('../constants/ErrorMessages'),
   CAS = require('../constants/CASConstants');
 
-module.exports = Rollback;
+module.exports = RollbackPacket;
 
 /**
  * Constructor
  * @param options
  * @constructor
  */
-function Rollback(options) {
+function RollbackPacket(options) {
   options = options || {};
 
   this.casInfo = options.casInfo;
@@ -24,7 +24,7 @@ function Rollback(options) {
  * Write data
  * @param writer
  */
-Rollback.prototype.write = function (writer) {
+RollbackPacket.prototype.write = function (writer) {
   var bufferLength = DATA_TYPES.DATA_LENGTH_SIZEOF + DATA_TYPES.CAS_INFO_SIZE +
     DATA_TYPES.BYTE_SIZEOF + DATA_TYPES.INT_SIZEOF + DATA_TYPES.BYTE_SIZEOF;
 
@@ -41,7 +41,7 @@ Rollback.prototype.write = function (writer) {
  * Read data
  * @param parser
  */
-Rollback.prototype.parse = function (parser) {
+RollbackPacket.prototype.parse = function (parser) {
   var reponseLength = parser._parseInt();
   this.casInfo = parser._parseBytes(DATA_TYPES.CAS_INFO_SIZE);
 

@@ -44,6 +44,12 @@ exports['test_Helpers'] = function (test) {
   test.equal(Helpers._validateInputBoolean(true), true);
   test.equal(Helpers._validateInputBoolean(1), true);
 
+  assert(Helpers._validateInputPositive(null) === false);
+  assert(Helpers._validateInputPositive(3.14) === true);
+  assert(Helpers._validateInputPositive(-1) === false);
+  assert(Helpers._validateInputPositive(0) === false);
+  assert(Helpers._validateInputPositive(14) === true);
+
   test.equal(Helpers._validateInputTimeout(null), false);
   test.equal(Helpers._validateInputTimeout(3.14), false);
   test.equal(Helpers._validateInputTimeout(-1), false);

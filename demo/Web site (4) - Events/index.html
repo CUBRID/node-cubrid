@@ -190,6 +190,7 @@ $(document).ready(function () {
 
   socket.on('populate', function (data, columns, rowsCount) {
     logMsg('Populating list of employees...');
+    //alert(rowsCount);
     var out = "";
 
     out += '<table cellspacing="0" cellpadding="0" border="0" width="625px">';
@@ -210,45 +211,48 @@ $(document).ready(function () {
     out += '       <div style="width:625px; height:200px; overflow:auto;">';
     out += '         <table id="table_employees" cellspacing="0" cellpadding="1" border="1" width="600" style="border-collapse: collapse;">';
 
-    for (var k = 0; k < data.length; k++) {
-      if (k % 2 == 0) {
-        if (data[k][1] == addedEmployeeName || data[k][1] == updatedEmployeeName) {
-          out += '<tr style="background-color: #F0F0F0;color: red;">';
+    if (rowsCount > 0) {
+      for (var k = 0; k < data.length; k++) {
+        if (k % 2 == 0) {
+          if (data[k][1] == addedEmployeeName || data[k][1] == updatedEmployeeName) {
+            out += '<tr style="background-color: #F0F0F0;color: red;">';
+          } else {
+            out += '<tr style="background-color: #F0F0F0;">';
+          }
         } else {
-          out += '<tr style="background-color: #F0F0F0;">';
+          if (data[k][1] == addedEmployeeName || data[k][1] == updatedEmployeeName) {
+            out += '<tr style="color: red;;">';
+          } else {
+            out += '<tr">';
+          }
         }
-      } else {
-        if (data[k][1] == addedEmployeeName || data[k][1] == updatedEmployeeName) {
-          out += '<tr style="color: red;;">';
-        } else {
-          out += '<tr">';
+        out += '<td width="10%"><input type="checkbox" name="employee" value="' + data[k][0] + '" /></td>';
+        for (var j = 0; j < data[k].length; j++) {
+          var width = '';
+          switch (j) {
+            case 0:
+              width = '15%';
+              break;
+            case 1:
+              width = '50%';
+              break;
+            case 2:
+              width = '35%';
+              break;
+          }
+          if (j == 2) {
+            out += '<td width="' + width + '" style="text-align: right">';
+            out += Number(data[k][j]).toLocaleString();
+          } else {
+            out += '<td width="' + width + '">';
+            out += data[k][j];
+          }
+          out += '</td>';
         }
+        out += '</tr>';
       }
-      out += '<td width="10%"><input type="checkbox" name="employee" value="' + data[k][0] + '" /></td>';
-      for (var j = 0; j < data[k].length; j++) {
-        var width = '';
-        switch (j) {
-          case 0:
-            width = '15%';
-            break;
-          case 1:
-            width = '50%';
-            break;
-          case 2:
-            width = '35%';
-            break;
-        }
-        if (j == 2) {
-          out += '<td width="' + width + '" style="text-align: right">';
-          out += Number(data[k][j]).toLocaleString();
-        } else {
-          out += '<td width="' + width + '">';
-          out += data[k][j];
-        }
-        out += '</td>';
-      }
-      out += '</tr>';
     }
+
     out += '        </table>';
     out += '      </div>';
     out += '    </td>';
@@ -263,10 +267,13 @@ $(document).ready(function () {
     $('#total').html(total);
 
     $('#from').html(from);
-    if (from + page_size < total) {
-      $('#to').html(from + page_size - 1);
-    } else {
-      $('#to').html(from + data.length - 1);
+
+    if (rowsCount > 0) {
+      if (from + page_size < total) {
+        $('#to').html(from + page_size - 1);
+      } else {
+        $('#to').html(from + data.length - 1);
+      }
     }
     SetupPageButtonsState();
 

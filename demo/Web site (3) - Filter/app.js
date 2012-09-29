@@ -47,7 +47,7 @@ var http = require('http').createServer(function handler(req, res) {
 }).listen(8888);
 
 //TODO Update this with your own socket.io installation path
-var io = require('c:/Program Files/nodejs/node_modules/socket.io').listen(http);
+var io = require('c:/Program Files (x86)/nodejs/node_modules/socket.io').listen(http);
 //var io = require('socket.io');
 
 function populateClient(client, startFrom, selectCount, filter) {

@@ -13,7 +13,7 @@ var http = require('http').createServer(function handler(req, res) {
   });
 }).listen(8888);
 
-var io = require('c:/Program Files/nodejs/node_modules/socket.io').listen(http);
+var io = require('c:/Program Files (x86)/nodejs/node_modules/socket.io').listen(http);
 
 io.sockets.on('connection', function (client) {
   console.log('Client connected.');

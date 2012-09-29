@@ -4,7 +4,7 @@ var db_helper = require("./db_helper.js");
 var delay = (Math.random() * 100) + 200; // "artificial" operations delay, to simulate a higher network response time
 var page_size = 10;
 
-var http = require('http').createServer(function handler(req, res) {
+var http = require('http').createServer(function (req, res) {
   switch (req.url) {
     case '/':
       fs.readFile(__dirname + '/index.html', function (err, data) {
@@ -36,7 +36,7 @@ var http = require('http').createServer(function handler(req, res) {
 }).listen(8888);
 
 //TODO Update this with your own socket.io installation path
-var io = require('c:/Program Files/nodejs/node_modules/socket.io').listen(http);
+var io = require('c:/Program Files (x86)/nodejs/node_modules/socket.io').listen(http);
 //var io = require('socket.io');
 
 function populateClient(client, startFrom, selectCount) {

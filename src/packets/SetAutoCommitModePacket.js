@@ -3,14 +3,14 @@ var DATA_TYPES = require('../constants/DataTypes'),
   ErrorMessages = require('../constants/ErrorMessages'),
   CAS = require('../constants/CASConstants');
 
-module.exports = SetAutoCommitMode;
+module.exports = SetAutoCommitModePacket;
 
 /**
  * Constructor
  * @param options
  * @constructor
  */
-function SetAutoCommitMode(options) {
+function SetAutoCommitModePacket(options) {
   options = options || {};
 
   this.casInfo = options.casInfo;
@@ -25,7 +25,7 @@ function SetAutoCommitMode(options) {
  * Write data
  * @param writer
  */
-SetAutoCommitMode.prototype.write = function (writer) {
+SetAutoCommitModePacket.prototype.write = function (writer) {
   var bufferLength = DATA_TYPES.DATA_LENGTH_SIZEOF + DATA_TYPES.CAS_INFO_SIZE +
     DATA_TYPES.BYTE_SIZEOF + 2 * DATA_TYPES.INT_SIZEOF + 2 * DATA_TYPES.INT_SIZEOF;
 
@@ -44,7 +44,7 @@ SetAutoCommitMode.prototype.write = function (writer) {
  * Read data
  * @param parser
  */
-SetAutoCommitMode.prototype.parse = function (parser) {
+SetAutoCommitModePacket.prototype.parse = function (parser) {
   var reponseLength = parser._parseInt();
   this.casInfo = parser._parseBytes(DATA_TYPES.CAS_INFO_SIZE);
 

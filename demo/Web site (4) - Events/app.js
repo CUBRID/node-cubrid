@@ -51,7 +51,7 @@ httpServer.on('close', function () {
 });
 
 //TODO Update this with your own socket.io installation path
-var io = require('c:/Program Files/nodejs/node_modules/socket.io').listen(httpServer);
+var io = require('c:/Program Files (x86)/nodejs/node_modules/socket.io').listen(httpServer);
 //var io = require('socket.io');
 
 function populateClient(client, startFrom, selectCount, filter) {

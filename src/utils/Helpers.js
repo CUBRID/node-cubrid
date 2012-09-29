@@ -26,7 +26,7 @@ function _emitSafeEvent(obj, successEvent, arg1, arg2) {
 }
 
 /**
- * Emit error event or success event
+ * Emit ERROR event or success event
  * @param obj
  * @param err
  * @param errorEvent
@@ -49,10 +49,6 @@ exports._emitEvent = function (obj, err, errorEvent, successEvent, arg1, arg2) {
  * @return {Boolean}
  */
 exports._validateInputBoolean = function (val) {
-  //TODO Validate:
-  //not null
-  //typeof == number(int) or boolean
-  //if numeric, then 0 or 1
   if (typeof val === 'boolean') {
     return true;
   } else {
@@ -70,11 +66,20 @@ exports._validateInputBoolean = function (val) {
  * @return {Boolean}
  */
 exports._validateInputTimeout = function (val) {
-  //TODO Validate:
-  //not null
-  //typeof == int
-  //>=0
   if (typeof val === 'undefined' || val === null || !(typeof val === 'number' && val % 1 === 0 && val >= 0)) {
+    return false;
+  }
+
+  return true;
+};
+
+/**
+ * Validate if the value is an accepted strict-positive "number" input
+ * @param val
+ * @return {Boolean}
+ */
+exports._validateInputPositive = function (val) {
+  if (typeof val === 'undefined' || val === null || !(typeof val === 'number' && val > 0)) {
     return false;
   }
 
@@ -87,10 +92,6 @@ exports._validateInputTimeout = function (val) {
  * @return {Boolean}
  */
 exports._validateInputString = function (str) {
-  //TODO Validate:
-  //not null
-  //typeof == string
-  //not empty string
   if (typeof str === 'undefined' || str === null || typeof str != 'string' || str.length === 0) {
     return false;
   }
@@ -104,11 +105,6 @@ exports._validateInputString = function (str) {
  * @return {Boolean}
  */
 exports._validateInputSQLString = function (sql) {
-  //TODO Validate:
-  //not null
-  //typeof == string
-  //not empty string
-  //length >=5
   if (typeof sql === 'undefined' || sql === null || typeof sql != 'string' || sql.length <= 5) {
     return false;
   }
