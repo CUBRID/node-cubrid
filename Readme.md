@@ -9,9 +9,9 @@ The <b>CUBRID</b> node.js driver is an open-source project with the goal of impl
 for the <b>CUBRID</b> database engine (www.cubrid.org).
 
 The driver is under constant development and the current release is the <b>1.0</b>, which features:
-- Rich database support: Connect, Query, Fetch, Execute, Commit, Rollback, DB Schema etc.
+- Rich database support: Connect, Query, Fetch, Execute, Commit, Rollback, and DB Schema etc.
 - Out of the box driver events model
-- <b>10.000</b>+ LOC, including the driver test code and demos
+- 10.000+ LOC, including the driver test code and demos
 - 50+ test cases
 - HTML documentation
 - User demos: E2E scenarios, web sites
@@ -39,7 +39,7 @@ The examples are located in the following project folders:
 - <b><i>\demo</i></b>
 - <b><i>\src\test</i></b>
 
-Here is a stadard coding example, using the driver events model:
+Here is a standard coding example, using the driver events model:
 
     CUBRIDClient.connect();
 
