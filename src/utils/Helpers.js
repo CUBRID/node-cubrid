@@ -141,7 +141,7 @@ Number.prototype.formatAsMoney = function (decimals, decimal_sep, thousands_sep)
  * @private
  */
 var _escapeString = function (val) {
-  val.replace(/[\0\n\r\b\t\\\'\"\x1a]/g, function (s) {
+  val = val.replace(/[\0\n\r\b\t\\'"\x1a]/g, function (s) {
     switch (s) {
       case "\0":
         return "\\0";
@@ -155,6 +155,10 @@ var _escapeString = function (val) {
         return "\\t";
       case "\x1a":
         return "\\Z";
+      case "\'":
+        return "''";
+      case "\"":
+        return '""';
       default:
         return "\\" + s;
     }
@@ -169,11 +173,17 @@ exports._escapeString = _escapeString;
  * Replaces '?' with values from an array; also, it performs string escaping.
  * @param sql
  * @param arrValues
+ * @param arrDelimiters
  * @return {*}
  * @private
  */
-exports._sqlFormat = function (sql, arrValues) {
+exports._sqlFormat = function (sql, arrValues, arrDelimiters) {
   arrValues = [].concat(arrValues);
+  if (arrDelimiters.length !== 0) {
+    arrDelimiters = [].concat(arrDelimiters);
+  } else {
+    arrDelimiters = ["'"];
+  }
 
   return sql.replace(/\?/g, function (match) {
     if (!arrValues.length) {
@@ -181,6 +191,7 @@ exports._sqlFormat = function (sql, arrValues) {
     }
 
     var val = arrValues.shift();
+    var delimiter = arrDelimiters.shift();
 
     if (val === undefined || val === null) {
       return 'NULL';
@@ -190,7 +201,7 @@ exports._sqlFormat = function (sql, arrValues) {
       return val + '';
     }
 
-    return "'" + _escapeString(val) + "'";
+    return delimiter + _escapeString(val) + delimiter;
   });
 };
 
@@ -301,6 +312,27 @@ exports._resolveErrorCode = function (errorCode) {
   for (var i = 0; i < ErrorMessages.CASErrorMsgId.length; i++) {
     if (errorCode == ErrorMessages.CASErrorMsgId[i][1]) {
       return ErrorMessages.CASErrorMsgId[i][0];
+    }
+  }
+};
+
+/**
+ * Returns the appropiate subfolder path for the packets definition that correspods
+ * to the current database engine version.
+ * Please note that you need to update this function any time the communication protocol changes.
+ * @param DBEngineVersion
+ * @return {String}
+ * @private
+ */
+exports._translateDBEngineVersionToPacketsFolder = function (DBEngineVersion) {
+  if (DBEngineVersion.startsWith('8.4.1')) {
+    return '8.4.1';
+  } else {
+    if (DBEngineVersion.startsWith('9.0')) {
+      return '9.0';
+    } else {
+      //default value
+      return '8.4.1';
     }
   }
 };

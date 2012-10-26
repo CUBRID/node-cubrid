@@ -221,6 +221,8 @@ ul.inheritsList
 	
 	<li><a href="../symbols/GetSchemaPacket.html">GetSchemaPacket</a></li>
 	
+	<li><a href="../symbols/LOBReadPacket.html">LOBReadPacket</a></li>
+	
 	<li><a href="../symbols/Number.html">Number</a></li>
 	
 	<li><a href="../symbols/OpenDatabasePacket.html">OpenDatabasePacket</a></li>
@@ -234,8 +236,6 @@ ul.inheritsList
 	<li><a href="../symbols/RollbackPacket.html">RollbackPacket</a></li>
 	
 	<li><a href="../symbols/SetAutoCommitModePacket.html">SetAutoCommitModePacket</a></li>
-	
-	<li><a href="../symbols/String.html">String</a></li>
 	
 </ul>
 <hr />
@@ -359,9 +359,18 @@ ul.inheritsList
 						<tr>
 							<td class="attributes">&nbsp;</td>
 							<td class="nameDescription">
-								<div class="fixedFont"><b><a href="../symbols/CUBRIDConnection.html#connectWithURL">connectWithURL</a></b>(callback, callback)
+								<div class="fixedFont"><b><a href="../symbols/CUBRIDConnection.html#execute">execute</a></b>(sql, callback)
 								</div>
-								<div class="description">Connect to database using an URL-type connection string</div>
+								<div class="description">Execute a SQL statement which does not return records</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/CUBRIDConnection.html#executeWithParams">executeWithParams</a></b>(sql, arrParamsValues, arrDelimiters, callback)
+								</div>
+								<div class="description">Execute sql statement with parameters</div>
 							</td>
 						</tr>
 					
@@ -395,6 +404,15 @@ ul.inheritsList
 						<tr>
 							<td class="attributes">&nbsp;</td>
 							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/CUBRIDConnection.html#lobRead">lobRead</a></b>(lobObject, pos, length, callback)
+								</div>
+								<div class="description">Read data lob object</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
 								<div class="fixedFont"><b><a href="../symbols/CUBRIDConnection.html#query">query</a></b>(sql, callback)
 								</div>
 								<div class="description">Execute query and retrieve rows results</div>
@@ -404,7 +422,7 @@ ul.inheritsList
 						<tr>
 							<td class="attributes">&nbsp;</td>
 							<td class="nameDescription">
-								<div class="fixedFont"><b><a href="../symbols/CUBRIDConnection.html#queryWithParams">queryWithParams</a></b>(sql, arrParamsValues, callback)
+								<div class="fixedFont"><b><a href="../symbols/CUBRIDConnection.html#queryWithParams">queryWithParams</a></b>(sql, arrParamsValues, arrDelimiters, callback)
 								</div>
 								<div class="description">Execute query with parameters</div>
 							</td>
@@ -745,15 +763,15 @@ ul.inheritsList
 
 					<hr />
 				
-					<a name="connectWithURL"> </a>
+					<a name="execute"> </a>
 					<div class="fixedFont">
 					
 					
-					<b>connectWithURL</b>(callback, callback)
+					<b>execute</b>(sql, callback)
 					
 					</div>
 					<div class="description">
-						Connect to database using an URL-type connection string
+						Execute a SQL statement which does not return records
 						
 						
 					</div>
@@ -765,7 +783,7 @@ ul.inheritsList
 							<dt class="heading">Parameters:</dt>
 							
 								<dt>
-									<b>callback</b>
+									<b>sql</b>
 									
 								</dt>
 								<dd></dd>
@@ -781,6 +799,67 @@ ul.inheritsList
 						
 						
 						
+						
+						
+						
+
+					<hr />
+				
+					<a name="executeWithParams"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{*}</span>
+					<b>executeWithParams</b>(sql, arrParamsValues, arrDelimiters, callback)
+					
+					</div>
+					<div class="description">
+						Execute sql statement with parameters
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<b>sql</b>
+									
+								</dt>
+								<dd></dd>
+							
+								<dt>
+									<b>arrParamsValues</b>
+									
+								</dt>
+								<dd></dd>
+							
+								<dt>
+									<b>arrDelimiters</b>
+									
+								</dt>
+								<dd></dd>
+							
+								<dt>
+									<b>callback</b>
+									
+								</dt>
+								<dd></dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{*}</span> </dd>
+							
+							</dl>
 						
 						
 						
@@ -907,6 +986,60 @@ ul.inheritsList
 
 					<hr />
 				
+					<a name="lobRead"> </a>
+					<div class="fixedFont">
+					
+					
+					<b>lobRead</b>(lobObject, pos, length, callback)
+					
+					</div>
+					<div class="description">
+						Read data lob object
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<b>lobObject</b>
+									
+								</dt>
+								<dd></dd>
+							
+								<dt>
+									<b>pos</b>
+									
+								</dt>
+								<dd></dd>
+							
+								<dt>
+									<b>length</b>
+									
+								</dt>
+								<dd></dd>
+							
+								<dt>
+									<b>callback</b>
+									
+								</dt>
+								<dd></dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+						
+						
+
+					<hr />
+				
 					<a name="query"> </a>
 					<div class="fixedFont">
 					
@@ -953,7 +1086,7 @@ ul.inheritsList
 					<div class="fixedFont">
 					
 					<span class="light">{*}</span>
-					<b>queryWithParams</b>(sql, arrParamsValues, callback)
+					<b>queryWithParams</b>(sql, arrParamsValues, arrDelimiters, callback)
 					
 					</div>
 					<div class="description">
@@ -976,6 +1109,12 @@ ul.inheritsList
 							
 								<dt>
 									<b>arrParamsValues</b>
+									
+								</dt>
+								<dd></dd>
+							
+								<dt>
+									<b>arrDelimiters</b>
 									
 								</dt>
 								<dd></dd>
@@ -1093,8 +1232,8 @@ ul.inheritsList
 		
 <!-- ============================== footer ================================= -->
 		<div class="fineprint" style="clear:both">
-			
-			Documentation generated by <a href="http://code.google.com/p/jsdoc-toolkit/" target="_blank">JsDoc Toolkit</a> 2.4.0 on Sat Sep 29 2012 18:21:19 GMT+0200 (CEST)
+			&copy;2012<br />
+			Documentation generated by <a href="http://code.google.com/p/jsdoc-toolkit/" target="_blank">JsDoc Toolkit</a> 2.4.0 on Fri Oct 26 2012 18:03:35 GMT+0200 (CEST)
 		</div>
 	</body>
 </html>

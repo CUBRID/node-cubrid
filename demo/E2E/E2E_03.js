@@ -15,7 +15,7 @@ ActionQueue.enqueue(
     },
 
     function (cb) {
-      console.log('Querying: [' + sql + ']...');
+      console.log('Executing query: [' + sql + ']...');
       client.query(sql, cb);
     },
 
@@ -39,7 +39,7 @@ ActionQueue.enqueue(
         function (callback) {
           client.fetch(returnedQueryHandle, function (err, result) {
             if (result !== null) {
-              console.log('Fetch results - Data [displaying only the first 5 rows]:');
+              console.log('Fetch more results - Data [displaying only the first 5 rows]:');
               var arr = Result2Array.RowsArray(result);
               for (var k = 0; k < 5; k++) {
                 console.log(arr[k].toString());

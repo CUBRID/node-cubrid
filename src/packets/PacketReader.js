@@ -152,11 +152,7 @@ PacketReader.prototype._parseNullTerminatedString = function (length) {
 
   var valueLen = length - 1; //get the actual null-terminated string length
   var buffer = this._buffer.slice(this._offset, this._offset + valueLen);
-  var value = '';
-
-  for (var i = 0; i < buffer.length; i++) {
-    value += String.fromCharCode(buffer[i]);
-  }
+  var value = buffer.toString();
 
   this._offset += valueLen;
   this._parseByte(); //read also the null-terminate
@@ -297,9 +293,19 @@ PacketReader.prototype._parseObject = function () {
  * @return {Buffer}
  */
 PacketReader.prototype._parseBlob = function (size) {
-  this._offset += size;
+  var packedLobHandle = this._parseBytes(size);
+  var lobSizeBuffer = packedLobHandle.slice(DATA_TYPES.INT_SIZEOF, DATA_TYPES.INT_SIZEOF + DATA_TYPES.LONG_SIZEOF);
+  var lobSize = 0;
 
-  return null; //Not implemented yet!
+  for (var i = DATA_TYPES.LONG_SIZEOF - 1; i >= 0; i--) {
+    lobSize += lobSizeBuffer[DATA_TYPES.LONG_SIZEOF - i - 1] * Math.pow(256, i);
+  }
+
+  return {
+    lobType : CAS.CUBRIDDataType.CCI_U_TYPE_BLOB, //Clob tyte
+    packedLobHandle: packedLobHandle,
+    lobLength : lobSize
+  }
 };
 
 /**
@@ -307,9 +313,19 @@ PacketReader.prototype._parseBlob = function (size) {
  * @return {String}
  */
 PacketReader.prototype._parseClob = function (size) {
-  this._offset += size;
+  var packedLobHandle = this._parseBytes(size);
+  var lobSizeBuffer = packedLobHandle.slice(DATA_TYPES.INT_SIZEOF, DATA_TYPES.INT_SIZEOF + DATA_TYPES.LONG_SIZEOF);
+  var lobSize = 0;
 
-  return null; //Not implemented yet!
+  for (var i = DATA_TYPES.LONG_SIZEOF - 1; i >= 0; i--) {
+    lobSize += lobSizeBuffer[DATA_TYPES.LONG_SIZEOF - i - 1] * Math.pow(256, i);
+  }
+
+  return {
+    lobType : CAS.CUBRIDDataType.CCI_U_TYPE_CLOB, //Clob tyte
+    packedLobHandle: packedLobHandle,
+    lobLength : lobSize
+  }
 };
 
 /**

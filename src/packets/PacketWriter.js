@@ -146,16 +146,15 @@ PacketWriter.prototype._writeNullTerminatedString = function (value) {
   value = value || '';
   value = value + '';
 
-  var count = DATA_TYPES.INT_SIZEOF + value.length + DATA_TYPES.BYTE_SIZEOF;
+  var stringLengthInBytes = Buffer.byteLength(value)
+  var count = DATA_TYPES.INT_SIZEOF + stringLengthInBytes + DATA_TYPES.BYTE_SIZEOF;
   this._allocate(count);
 
   //Write length
-  this._writeInt(value.length + 1);
+  this._writeInt(stringLengthInBytes + 1);
 
-  //Write string content
-  for (var i = 0; i < value.length; i++) {
-    this._buffer[this._offset++] = value.charCodeAt(i);
-  }
+  this._buffer.write(value, this._offset, stringLengthInBytes);
+  this._offset += stringLengthInBytes;
 
   //Write null-terminate
   this._buffer[this._offset++] = 0;

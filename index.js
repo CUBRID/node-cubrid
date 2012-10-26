@@ -1,10 +1,23 @@
-var CUBRIDConnection = require('./src/CUBRIDConnection');
+var _CUBRIDConnection = require('./src/CUBRIDConnection.js');
+var _Helpers = require('./src/utils/Helpers.js');
+var _Result2Array = require('./src/resultset/Result2Array.js');
 
 /**
- * Creates a new connection to the demodb database, using the defaut parameters
+ * Helper functions
+ * @type {*}
+ */
+exports.Helpers = _Helpers;
+/**
+ * Resultset utility functions
+ * @type {*}
+ */
+exports.Result2Array = _Result2Array;
+
+/**
+ * Creates a new connection to the demodb database, using the default parameters
  * @type {CUBRIDConnection}
  */
-exports.testClient = new CUBRIDConnection('localhost', 33000, 'public', '', 'demodb');
+exports.createDefaultCUBRIDDemodbConnection = new _CUBRIDConnection('localhost', 33000, 'public', '', 'demodb');
 
 /**
  * Creates a new connection
@@ -16,14 +29,6 @@ exports.testClient = new CUBRIDConnection('localhost', 33000, 'public', '', 'dem
  * @return {*}
  */
 exports.createCUBRIDConnection = function (brokerServer, brokerPort, user, password, database) {
-  return new CUBRIDConnection(brokerServer, brokerPort, user, password, database);
-};
-
-/**
- * Creates a new connection to the demodb database, with the default parameters
- * @return {*}
- */
-exports.createDefaultCUBRIDDemodbConnection = function () {
-  return this.createCUBRIDConnection('localhost', 33000, 'public', '', 'demodb');
+  return new _CUBRIDConnection(brokerServer, brokerPort, user, password, database);
 };
 

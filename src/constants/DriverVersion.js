@@ -12,5 +12,5 @@ exports.CAS_VER = CAS_PROTO_INDICATOR | CAS_PROTOCOL_VERSION;
  * Current driver version
  * @type {String}
  */
-exports.DRIVER_VER = '0.9';
+exports.DRIVER_VER = '1.0';
 

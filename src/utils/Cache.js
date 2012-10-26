@@ -39,8 +39,6 @@ var Cache = function (expireAfterSeconds) {
       _expire();
       if (!this.contains(key)) {
         this._set(key, value)
-      } else {
-        Helpers.logInfo('Value found in cache.');
       }
       return this.get(key);
     },

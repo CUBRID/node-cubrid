@@ -1,10 +1,10 @@
-var CUBRIDClient = require('./test_Setup').testClient,
+var CUBRIDClient = require('./test_Setup').createDefaultCUBRIDDemodbConnection,
   Helpers = require('../src/utils/Helpers'),
   Result2Array = require('../src/resultset/Result2Array'),
   assert = require('assert');
 
 global.schemaTypes = [CUBRIDClient.SCHEMA_TABLE, CUBRIDClient.SCHEMA_VIEW, CUBRIDClient.SCHEMA_ATTRIBUTE ];
-global.schemResults = [33, 16, 0];
+global.schemResults = [32, 16, 0];
 var i = 0;
 
 Helpers.logInfo(module.filename.toString() + ' started...');

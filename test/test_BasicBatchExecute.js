@@ -1,4 +1,4 @@
-var CUBRIDClient = require('./test_Setup').testClient,
+var CUBRIDClient = require('./test_Setup').createDefaultCUBRIDDemodbConnection,
   Helpers = require('../src/utils/Helpers'),
   assert = require('assert');
 

@@ -1,4 +1,4 @@
-var CUBRIDClient = require('./test_Setup').testClient,
+var CUBRIDClient = require('./test_Setup').createDefaultCUBRIDDemodbConnection,
   Helpers = require('../src/utils/Helpers'),
   Result2Array = require('../src/resultset/Result2Array'),
   assert = require('assert');
@@ -13,7 +13,7 @@ CUBRIDClient.connect(function (err) {
   if (err) {
     errorHandler(err);
   } else {
-    Helpers.logInfo('Connection connected');
+    Helpers.logInfo('Connected.');
     CUBRIDClient.batchExecuteNoQuery(['drop table if exists node_test', 'create table node_test(id int)'], function (err) {
       if (err) {
         errorHandler(err);

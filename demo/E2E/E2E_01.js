@@ -12,7 +12,7 @@ client.connect(function (err) {
       if (err) {
         throw err.message;
       } else {
-        console.log('CUBRID Engine version is: ' + result);
+        console.log('CUBRID engine version is: ' + result);
         console.log('Querying: [' + sql + ']...');
         client.query(sql, function (err, queryResults, queryHandle) {
           if (err) {

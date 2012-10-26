@@ -10,10 +10,9 @@
 
   "name" : "node-cubrid",
 
-  "description" : "This is a native Node.js driver for CUBRID (www.cubrid.org). \
-        It is developed entirely in JavaScript, so it doesn't require specific platform compilation.",
+  "description" : "This is a native Node.js driver for CUBRID (www.cubrid.org). It is developed entirely in JavaScript, so it doesn't require specific platform compilation.",
 
-  "version" : "Beta 1.0",
+  "version" : "1.0.0",
 
   "repository" : {
     "type" : "git",
@@ -26,6 +25,8 @@
       "url"  : "http://github.com/cubrid/node-cubrid/raw/master/LICENSE"
     }
   ],
+  
+  "main": "index.js",
 
   "keywords" : [
     "native",

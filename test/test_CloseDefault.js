@@ -1,4 +1,4 @@
-var CUBRIDClient = require('./test_Setup').testClient,
+var CUBRIDClient = require('./test_Setup').createDefaultCUBRIDDemodbConnection,
   Helpers = require('../src/utils/Helpers'),
   assert = require('assert');
 
@@ -9,8 +9,8 @@ CUBRIDClient.connect(function () {
   Helpers.logInfo('Executing query...');
   CUBRIDClient.query('select * from nation', function (err, result, queryHandle) {
     var foundQueryHandle = false;
-    for (var i = 0; i < CUBRIDClient._queriesHandleList.length; i++) {
-      if (CUBRIDClient._queriesHandleList[i].handle === queryHandle) {
+    for (var i = 0; i < CUBRIDClient._queriesPacketList.length; i++) {
+      if (CUBRIDClient._queriesPacketList[i].handle === queryHandle) {
         foundQueryHandle = true;
         break;
       }
@@ -21,8 +21,8 @@ CUBRIDClient.connect(function () {
     CUBRIDClient.close(function () {
       Helpers.logInfo('Connection closed.');
       foundQueryHandle = false;
-      for (var i = 0; i < CUBRIDClient._queriesHandleList.length; i++) {
-        if (CUBRIDClient._queriesHandleList[i].handle === queryHandle) {
+      for (var i = 0; i < CUBRIDClient._queriesPacketList.length; i++) {
+        if (CUBRIDClient._queriesPacketList[i].handle === queryHandle) {
           foundQueryHandle = true;
           break;
         }

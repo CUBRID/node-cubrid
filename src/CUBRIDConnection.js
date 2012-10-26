@@ -8,19 +8,23 @@ var Net = require('net'),
   PacketWriter = require('./packets/PacketWriter'),
   ActionQueue = require('./utils/ActionQueue'),
   Helpers = require('../src/utils/Helpers'),
-  Cache = require('../src/utils/Cache'),
-  ClientInfoExchangePacket = require('./packets/ClientInfoExchangePacket'),
-  OpenDatabasePacket = require('./packets/OpenDatabasePacket'),
-  GetEngineVersionPacket = require('./packets/GetEngineVersionPacket'),
-  ExecuteQueryPacket = require('./packets/ExecuteQueryPacket'),
-  GetSchemaPacket = require('./packets/GetSchemaPacket.js'),
-  CloseQueryPacket = require('./packets/CloseQueryPacket'),
-  BatchExecuteNoQueryPacket = require('./packets/BatchExecuteNoQueryPacket'),
-  CloseDatabasePacket = require('./packets/CloseDatabasePacket'),
-  FetchPacket = require('./packets/FetchPacket'),
-  SetAutoCommitModePacket = require('./packets/SetAutoCommitModePacket'),
-  RollbackPacket = require('./packets/RollbackPacket'),
-  CommitPacket = require('./packets/CommitPacket');
+  Cache = require('../src/utils/Cache');
+
+//8.4.1 protocol packets definition
+var _8_4_1 = '8.4.1';
+var ClientInfoExchangePacket = require('./packets/' + _8_4_1 + '/ClientInfoExchangePacket'),
+  OpenDatabasePacket = require('./packets/' + _8_4_1 + '/OpenDatabasePacket'),
+  GetEngineVersionPacket = require('./packets/' + _8_4_1 + '/GetEngineVersionPacket'),
+  ExecuteQueryPacket = require('./packets/' + _8_4_1 + '/ExecuteQueryPacket'),
+  GetSchemaPacket = require('./packets/' + _8_4_1 + '/GetSchemaPacket.js'),
+  CloseQueryPacket = require('./packets/' + _8_4_1 + '/CloseQueryPacket'),
+  BatchExecuteNoQueryPacket = require('./packets/' + _8_4_1 + '/BatchExecuteNoQueryPacket'),
+  CloseDatabasePacket = require('./packets/' + _8_4_1 + '/CloseDatabasePacket'),
+  FetchPacket = require('./packets/' + _8_4_1 + '/FetchPacket'),
+  SetAutoCommitModePacket = require('./packets/' + _8_4_1 + '/SetAutoCommitModePacket'),
+  RollbackPacket = require('./packets/' + _8_4_1 + '/RollbackPacket'),
+  CommitPacket = require('./packets/' + _8_4_1 + '/CommitPacket'),
+  LOBReadPacket = require('./packets/' + _8_4_1 + '/LOBReadPacket');
 
 module.exports = CUBRIDConnection;
 
@@ -83,6 +87,7 @@ function CUBRIDConnection(brokerServer, brokerPort, user, password, database, ca
   this.EVENT_ROLLBACK_COMPLETED = 'rollback';
   this.EVENT_QUERY_CLOSED = 'close query';
   this.EVENT_CONNECTION_CLOSED = 'close';
+  this.EVENT_LOB_READ_COMPLETED = 'lob read completed';
 
   //Auto-commit constants
   this.AUTOCOMMIT_ON = true;
@@ -95,8 +100,13 @@ function CUBRIDConnection(brokerServer, brokerPort, user, password, database, ca
 
   //Private variables
   this._CASInfo = [0, 0xFF, 0xFF, 0xFF];
-  this._queriesHandleList = new Array();
+  this._queriesPacketList = [];
   this._INVALID_RESPONSE_LENGTH = -1;
+  this._PREVENT_CONCURRENT_REQUESTS = true;
+  this._LOB_MAX_IO_LENGTH = 128 * 1024;
+
+  //Database engine version
+  this._DB_ENGINE_VER = '';
 
   //Uncomment the following lines if you will not always provide an 'error' listener in your consumer code,
   //to avoid any unexpected exception. Be aware that:
@@ -126,7 +136,7 @@ CUBRIDConnection.prototype._doGetBrokerPort = function (self, callback) {
 
   self._socket.on('error', function (err) {
     this.connectionOpened = false;
-    delete this._queriesHandleList;
+    delete this._queriesPacketList;
     callback.call(err);
   });
 
@@ -180,7 +190,7 @@ CUBRIDConnection.prototype._doDatabaseLogin = function (self, callback) {
 
   self._socket.on('error', function (err) {
     this.connectionOpened = false;
-    delete this._queriesHandleList;
+    delete this._queriesPacketList;
     callback.call(self, err);
   });
 
@@ -205,6 +215,50 @@ CUBRIDConnection.prototype._doDatabaseLogin = function (self, callback) {
         self.autoCommitMode = (self._CASInfo[3] & 0x01) ? self.AUTOCOMMIT_ON : self.AUTOCOMMIT_OFF;
       }
       callback.call(self, err);
+    }
+  });
+};
+
+/**
+ * Get the server database engine version
+ * @param callback
+ */
+CUBRIDConnection.prototype._getEngineVersion = function (self, callback) {
+  var err = null;
+  var responseData = new Buffer(0);
+  var expectedResponseLength = this._INVALID_RESPONSE_LENGTH;
+
+  var packetWriter = new PacketWriter();
+  var getEngineVersionPacket = new GetEngineVersionPacket(
+    {
+      casInfo : self._CASInfo
+    }
+  );
+
+  getEngineVersionPacket.write(packetWriter);
+  self._socket.write(packetWriter._buffer);
+
+  self._socket.on('data', function (data) {
+    responseData = Helpers._combineData(responseData, data);
+    if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH
+      && responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
+      expectedResponseLength = Helpers._getExpectedResponseLength(responseData);
+    }
+    if (responseData.length === expectedResponseLength) {
+      self._socket.removeAllListeners('data');
+      var packetReader = new PacketReader();
+      packetReader.write(data);
+      getEngineVersionPacket.parse(packetReader);
+      var errorCode = getEngineVersionPacket.errorCode;
+      var errorMsg = getEngineVersionPacket.errorMsg;
+      if (errorCode !== 0) {
+        err = new Error(errorCode + ':' + errorMsg);
+      } else {
+        self._DB_ENGINE_VER = getEngineVersionPacket.engineVersion;
+      }
+      if (callback && typeof(callback) === 'function') {
+        callback.call(self, err);
+      }
     }
   });
 };
@@ -244,17 +298,17 @@ CUBRIDConnection.prototype.connect = function (callback) {
 
       function (cb) {
         self._doDatabaseLogin(self, cb);
+      },
+
+      function (cb) {
+        self._getEngineVersion(self, cb);
       }
     ],
 
     function (err) {
       self.queryPending = false; //reset query execution status
       self.connectionPending = false;
-      if (typeof err != 'undefined' && err != null) {
-        self.connectionOpened = false;
-      } else {
-        self.connectionOpened = true;
-      }
+      self.connectionOpened = !(typeof err != 'undefined' && err != null);
       Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_CONNECTED);
       if (callback && typeof(callback) === 'function') {
         callback.call(self, err);
@@ -264,95 +318,14 @@ CUBRIDConnection.prototype.connect = function (callback) {
 };
 
 /**
- * Connect to database using an URL-type connection string
- * @param callback
- */
-CUBRIDConnection.prototype.connectWithURL = function (properties, callback) {
-  this.autoCommitMode = properties.autocommit || true;
-  this.althosts = properties.althosts || null;
-  this.login_timeout = properties.login_timeout || -1;
-  this.query_timeout = properties.query_timeout || -1;
-  this.disconnect_on_query_timeout = properties.disconnect_on_query_timeout || false;
-  this.alternative_hosts = properties.alternative_hosts || '';
-  this.time = properties.time || -1;
-  this.milli_sec = properties.milli_sec || -1;
-  this.autocommit = properties.autocommit || true;
-
-  var self = this;
-
-  //TODO
-  //...
-
-  if (callback && typeof(callback) === 'function') {
-    callback.call(self, new Error('Not implemented yet'));
-  }
-};
-
-/**
  * Get the server database engine version
  * @param callback
  */
 CUBRIDConnection.prototype.getEngineVersion = function (callback) {
-  var err = null;
-  var engineVersion = '';
-  var self = this;
-  var responseData = new Buffer(0);
-  var expectedResponseLength = this._INVALID_RESPONSE_LENGTH;
-
-  ActionQueue.enqueue(
-    [
-      function (cb) {
-        if (self.connectionOpened === false) {
-          self.connect(cb);
-        } else {
-          cb();
-        }
-      },
-
-      function (cb) {
-        var packetWriter = new PacketWriter();
-        var getEngineVersionPacket = new GetEngineVersionPacket(
-          {
-            casInfo : self._CASInfo
-          }
-        );
-
-        getEngineVersionPacket.write(packetWriter);
-        self._socket.write(packetWriter._buffer);
-
-        self._socket.on('data', function (data) {
-          responseData = Helpers._combineData(responseData, data);
-          if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH
-            && responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
-            expectedResponseLength = Helpers._getExpectedResponseLength(responseData);
-          }
-          if (responseData.length === expectedResponseLength) {
-            self._socket.removeAllListeners('data');
-            var packetReader = new PacketReader();
-            packetReader.write(data);
-            getEngineVersionPacket.parse(packetReader);
-            var errorCode = getEngineVersionPacket.errorCode;
-            var errorMsg = getEngineVersionPacket.errorMsg;
-            if (errorCode !== 0) {
-              err = new Error(errorCode + ':' + errorMsg);
-            } else {
-              engineVersion = getEngineVersionPacket.engineVersion;
-            }
-            if (cb && typeof(cb) === 'function') {
-              cb.call(self, err, engineVersion);
-            }
-          }
-        });
-      }
-    ],
-
-    function (err, engineVersion) {
-      Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_ENGINE_VERSION_AVAILABLE, engineVersion);
-      if (callback && typeof(callback) === 'function') {
-        callback.call(self, err, engineVersion);
-      }
-    }
-  );
+  Helpers._emitEvent(this, null, this.EVENT_ERROR, this.EVENT_ENGINE_VERSION_AVAILABLE, this._DB_ENGINE_VER);
+  if (callback && typeof(callback) === 'function') {
+    callback.call(this, null, this._DB_ENGINE_VER);
+  }
 };
 
 /**
@@ -370,7 +343,7 @@ CUBRIDConnection.prototype.batchExecuteNoQuery = function (sqls, callback) {
       //no commands to execute
       Helpers._emitEvent(self, null, null, self.EVENT_BATCH_COMMANDS_COMPLETED);
       if (callback && typeof(callback) === 'function') {
-        callback.call(this, null);
+        callback.call(self, null);
       }
       return;
     }
@@ -449,6 +422,44 @@ CUBRIDConnection.prototype.batchExecuteNoQuery = function (sqls, callback) {
 };
 
 /**
+ * Execute a SQL statement which does not return records
+ * @param sql
+ * @param callback
+ */
+CUBRIDConnection.prototype.execute = function (sql, callback) {
+  var self = this;
+  var err = null;
+
+  if (!Helpers._validateInputSQLString(sql)) {
+    err = new Error(ErrorMessages.ERROR_INPUT_VALIDATION);
+    Helpers._emitEvent(self, err, self.EVENT_ERROR, null);
+    if (callback && typeof(callback) === 'function') {
+      callback.call(self, err);
+    }
+    return null;
+  }
+
+  var arrSQL = [];
+  arrSQL.push(sql);
+
+  return this.batchExecuteNoQuery(arrSQL, callback);
+};
+
+/**
+ * Execute sql statement with parameters
+ * @param sql
+ * @param arrParamsValues
+ * @param arrDelimiters
+ * @param callback
+ * @return {*}
+ */
+CUBRIDConnection.prototype.executeWithParams = function (sql, arrParamsValues, arrDelimiters, callback) {
+  var formattedSQL = Helpers._sqlFormat(sql, arrParamsValues, arrDelimiters);
+
+  return this.execute(formattedSQL, callback);
+};
+
+/**
  * Execute query and retrieve rows results
  * @param sql
  * @param callback
@@ -457,7 +468,7 @@ CUBRIDConnection.prototype.query = function (sql, callback) {
   var err = null;
   var self = this;
 
-  if (self.queryPending == true) {
+  if (self.queryPending == true && self._PREVENT_CONCURRENT_REQUESTS) {
     err = new Error(ErrorMessages.ERROR_QUERY_ALREADY_PENDING);
     Helpers._emitEvent(self, err, self.EVENT_ERROR, null);
     if (callback && typeof(callback) === 'function') {
@@ -530,11 +541,11 @@ CUBRIDConnection.prototype.query = function (sql, callback) {
             if (errorCode !== 0) {
               err = new Error(errorCode + ':' + errorMsg);
             } else {
-              self._queriesHandleList.push(executeQueryPacket);
+              self._queriesPacketList.push(executeQueryPacket);
             }
             if (cb && typeof(cb) === 'function') {
               if (typeof err != 'undefined' && err != null) {
-                self.queryPending = false;
+//                self.queryPending = false;
               } else {
                 if (self._queryCache !== null) {
                   self._queryCache.getSet(sql, result);
@@ -548,9 +559,10 @@ CUBRIDConnection.prototype.query = function (sql, callback) {
     ],
 
     function (err, result, handle) {
-      if (typeof err != 'undefined' && err != null) {
-        self.queryPending = false;
-      }
+      self.queryPending = false;
+//      if (typeof err != 'undefined' && err != null) {
+//        self.queryPending = false;
+//      }
       Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_QUERY_DATA_AVAILABLE, result, handle);
       if (callback && typeof(callback) === 'function') {
         callback.call(self, err, result, handle);
@@ -563,11 +575,12 @@ CUBRIDConnection.prototype.query = function (sql, callback) {
  * Execute query with parameters
  * @param sql
  * @param arrParamsValues
+ * @param arrDelimiters
  * @param callback
  * @return {*}
  */
-CUBRIDConnection.prototype.queryWithParams = function (sql, arrParamsValues, callback) {
-  var formattedSQL = Helpers._sqlFormat(sql, arrParamsValues);
+CUBRIDConnection.prototype.queryWithParams = function (sql, arrParamsValues, arrDelimiters, callback) {
+  var formattedSQL = Helpers._sqlFormat(sql, arrParamsValues, arrDelimiters);
 
   return this.query(formattedSQL, callback);
 };
@@ -593,7 +606,7 @@ CUBRIDConnection.prototype.fetch = function (queryHandle, callback) {
       self._socket.removeAllListeners('data');
       var packetReader = new PacketReader();
       packetReader.write(responseData);
-      var result = fetchPacket.parse(packetReader, self._queriesHandleList[i]);
+      var result = fetchPacket.parse(packetReader, self._queriesPacketList[i]);
       var errorCode = fetchPacket.errorCode;
       var errorMsg = fetchPacket.errorMsg;
       if (errorCode !== 0) {
@@ -607,8 +620,8 @@ CUBRIDConnection.prototype.fetch = function (queryHandle, callback) {
   });
 
   var foundQueryHandle = false;
-  for (var i = 0; i < this._queriesHandleList.length; i++) {
-    if (this._queriesHandleList[i].handle === queryHandle) {
+  for (var i = 0; i < this._queriesPacketList.length; i++) {
+    if (this._queriesPacketList[i].handle === queryHandle) {
       foundQueryHandle = true;
       break;
     }
@@ -622,7 +635,7 @@ CUBRIDConnection.prototype.fetch = function (queryHandle, callback) {
       callback.call(self, err, null, null);
     }
   } else {
-    if (this._queriesHandleList[i].currentTupleCount === this._queriesHandleList[i].totalTupleCount) {
+    if (this._queriesPacketList[i].currentTupleCount === this._queriesPacketList[i].totalTupleCount) {
       self._socket.removeAllListeners('data');
       Helpers._emitEvent(self, null, null, self.EVENT_FETCH_NO_MORE_DATA_AVAILABLE, queryHandle);
       if (callback && typeof(callback) === 'function') {
@@ -635,7 +648,7 @@ CUBRIDConnection.prototype.fetch = function (queryHandle, callback) {
           casInfo : self._CASInfo
         }
       );
-      fetchPacket.write(packetWriter, this._queriesHandleList[i]);
+      fetchPacket.write(packetWriter, this._queriesPacketList[i]);
       self._socket.write(packetWriter._buffer);
     }
   }
@@ -663,8 +676,8 @@ CUBRIDConnection.prototype.closeQuery = function (queryHandle, callback) {
   self.queryPending = false;
 
   var foundQueryHandle = false;
-  for (var i = 0; i < this._queriesHandleList.length; i++) {
-    if (this._queriesHandleList[i].handle === queryHandle) {
+  for (var i = 0; i < this._queriesPacketList.length; i++) {
+    if (this._queriesPacketList[i].handle === queryHandle) {
       foundQueryHandle = true;
       break;
     }
@@ -704,9 +717,9 @@ CUBRIDConnection.prototype.closeQuery = function (queryHandle, callback) {
       if (errorCode !== 0) {
         err = new Error(errorCode + ':' + errorMsg);
       } else {
-        for (var i = 0; i < self._queriesHandleList.length; i++) {
-          if (self._queriesHandleList[i].handle === queryHandle) {
-            self._queriesHandleList.splice(i, 1);
+        for (var i = 0; i < self._queriesPacketList.length; i++) {
+          if (self._queriesPacketList[i].handle === queryHandle) {
+            self._queriesPacketList.splice(i, 1);
             break;
           }
         }
@@ -738,7 +751,7 @@ CUBRIDConnection.prototype.close = function (callback) {
     return;
   }
 
-  //reset status
+  //reset connection status
   self.queryPending = false;
   self.connectionPending = false;
   self.connectionOpened = false;
@@ -748,11 +761,11 @@ CUBRIDConnection.prototype.close = function (callback) {
       function (cb) {
         ActionQueue.while(
           function () {
-            return (self._queriesHandleList[0] !== null && self._queriesHandleList[0] !== undefined);
+            return (self._queriesPacketList[0] !== null && self._queriesPacketList[0] !== undefined);
           },
 
           function (callb) {
-            self.closeQuery(self._queriesHandleList[0].handle, callb);
+            self.closeQuery(self._queriesPacketList[0].handle, callb);
           },
 
           function (err) {
@@ -1098,4 +1111,86 @@ CUBRIDConnection.prototype.getSchema = function (schemaType, callback) {
     }
   );
 };
+
+/**
+ * Read data lob object
+ * @param lobObject
+ * @param pos
+ * @param length
+ * @param callback
+ */
+CUBRIDConnection.prototype.lobRead = function (lobObject, pos, length, callback) {
+  var err = null;
+  var self = this;
+  var responseData = new Buffer(0);
+  var expectedResponseLength = this._INVALID_RESPONSE_LENGTH;
+  var buffer;
+
+  pos--;
+  if (lobObject.lobLength < pos + length) {
+    err = new Error(ErrorMessages.ERROR_INVALID_LOB_POSITION);
+    if (typeof err != 'undefined' && err != null) {
+      Helpers.logError(ErrorMessages.ERROR_ON_CLOSE_QUERY_HANDLE + err);
+    }
+    callback.call(null);
+  }
+
+  var real_read_len;
+  var read_len;
+  var total_read_len = 0;
+
+  ActionQueue.while(
+    function () {
+      return length > 0;
+    },
+
+    function (cb) {
+      read_len = Math.min(length, self._LOB_MAX_IO_LENGTH);
+      var packetWriter = new PacketWriter();
+      var lobReadPacket = new LOBReadPacket(
+        {
+          casInfo : self._CASInfo
+        }
+      );
+      lobReadPacket.write(packetWriter, lobObject, pos, read_len);
+      self._socket.write(packetWriter._buffer);
+
+      self._socket.on('data', function (data) {
+        responseData = Helpers._combineData(responseData, data);
+        if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH
+          && responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
+          expectedResponseLength = Helpers._getExpectedResponseLength(responseData);
+        }
+        if (responseData.length === expectedResponseLength) {
+          self._socket.removeAllListeners('data');
+          var packetReader = new PacketReader();
+          packetReader.write(data);
+          real_read_len = lobReadPacket.parse(packetReader);
+          pos += real_read_len;
+          length -= real_read_len;
+          total_read_len += real_read_len;
+          if (real_read_len === 0) {
+            length = 0;
+          }
+          buffer = lobReadPacket.lobBuffer;
+          var errorCode = lobReadPacket.errorCode;
+          var errorMsg = lobReadPacket.errorMsg;
+          if (errorCode !== 0) {
+            err = new Error(errorCode + ':' + errorMsg);
+          }
+          if (cb && typeof(cb) === 'function') {
+            cb.call(self, err);
+          }
+        }
+      });
+    },
+
+    function (err) {
+      Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_LOB_READ_COMPLETED, buffer, total_read_len);
+      if (callback && typeof(callback) === 'function') {
+        callback.call(self, err, buffer, total_read_len);
+      }
+    });
+};
+
 

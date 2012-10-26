@@ -1,4 +1,4 @@
-var CUBRIDClient = require('./test_Setup').testClient,
+var CUBRIDClient = require('./test_Setup').createDefaultCUBRIDDemodbConnection,
   Helpers = require('../src/utils/Helpers'),
   Result2Array = require('../src/resultset/Result2Array'),
   assert = require('assert');
@@ -18,7 +18,7 @@ CUBRIDClient.connect(function (err) {
   } else {
     Helpers.logInfo('Connected.');
     Helpers.logInfo('Querying: ' + sql);
-    CUBRIDClient.queryWithParams(sql, arrValues, function (err, result, queryHandle) {
+    CUBRIDClient.queryWithParams(sql, arrValues, [], function (err, result, queryHandle) {
       if (err) {
         errorHandler(err);
       } else {

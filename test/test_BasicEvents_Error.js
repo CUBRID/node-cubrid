@@ -1,4 +1,4 @@
-var CUBRIDClient = require('./test_Setup').testClient,
+var CUBRIDClient = require('./test_Setup').createDefaultCUBRIDDemodbConnection,
   Helpers = require('../src/utils/Helpers'),
   assert = require('assert');
 
@@ -13,7 +13,7 @@ CUBRIDClient.connect(function () {
 
 CUBRIDClient.on(CUBRIDClient.EVENT_ERROR, function (err) {
   Helpers.logInfo('Error: ' + err.message);
-  assert(err.message == '-165:User "unknown_user" is invalid.');
+  assert(err.message == '-165:User "unknown_user" is invalid.' || err.message == 'The connection is already closed!');
   Helpers.logInfo('Test passed.');
 });
 

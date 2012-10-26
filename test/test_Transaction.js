@@ -1,4 +1,4 @@
-var CUBRIDClient = require('./test_Setup').testClient,
+var CUBRIDClient = require('./test_Setup').createDefaultCUBRIDDemodbConnection,
   ActionQueue = require('../src/utils/ActionQueue'),
   Helpers = require('../src/utils/Helpers'),
   Result2Array = require('../src/resultset/Result2Array'),
@@ -34,7 +34,7 @@ ActionQueue.enqueue(
       CUBRIDClient.closeQuery(queryHandle, cb)
     },
 
-    function (cb) {
+    function (queryHandle,cb) {
       CUBRIDClient.rollback(cb);
     },
 
@@ -47,7 +47,7 @@ ActionQueue.enqueue(
       CUBRIDClient.closeQuery(queryHandle, cb)
     },
 
-    function (cb) {
+    function (queryHandle,cb) {
       CUBRIDClient.batchExecuteNoQuery('drop table test_tran', cb);
     },
 

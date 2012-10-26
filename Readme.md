@@ -8,32 +8,38 @@ Introduction
 The <b>CUBRID</b> node.js driver is an open-source project with the goal of implementing a 100% native node.js driver
 for the <b>CUBRID</b> database engine (www.cubrid.org).
 
-The driver is under constant development and teh current release is the <b>Beta 1.0</b>, which features:
-- Connect, Query, Fetch, Execute, Commit, Rollback, DB Schema etc.
-- Events model
-- <b>9.000</b>+ LOC, including the test code
+The driver is under constant development and the current release is the <b>1.0</b>, which features:
+- Rich database support: Connect, Query, Fetch, Execute, Commit, Rollback, DB Schema etc.
+- Out of the box driver events model
+- <b>10.000</b>+ LOC, including the driver test code and demos
 - 50+ test cases
-- nodeunit support
-- Documentation
-- E2E scenarios
-- 5 Web sites demos
-- ...and many more!
+- HTML documentation
+- User demos: E2E scenarios, web sites
+- User tutorial
+...and many more!
 
 
 Installation
 =======================================================================================================
-The beta release does not feature a npm package installer; it will be available soon, in the upcoming stable release.
-For the moment, please download the driver code directly.
+The driver features a <b>npm</b> package installer.
+
+To install the driver, execute:
+ <b>>npm install node-cubrid</b>
+or
+ <b>>npm install -g node-cubrid</b>
+
+If you ever need to uninstall the driver, execute:
+ <b>>npm uninstall node-cubrid</b>
 
 
 Usage
 =======================================================================================================
-The code release contains many (unit and functional) test cases and demos which will show you how to use the driver.
+The driver code release contains many test cases and demos which will show you how to use the driver.
 The examples are located in the following project folders:
 - <b><i>\demo</i></b>
 - <b><i>\src\test</i></b>
 
-Here is a stadard coding example, using driver events model:
+Here is a stadard coding example, using the driver events model:
 
     CUBRIDClient.connect();
 
@@ -90,7 +96,7 @@ Here is a stadard coding example, using driver events model:
     });
 
 
-Here is another coding example, based on the <b>async</b> library (https://github.com/caolan/async):
+Here is another driver usage example, using the well-known <b>async</b> library (https://github.com/caolan/async):
 
     ActionQueue.enqueue(
       [
@@ -173,24 +179,25 @@ Or, if you prefer the standard callbacks "style":
     });
 
 
-<b>Once again, there are dozens of ready-to-use code examples and functional tests in the project,
+<b>Once again, there are dozens of ready-to-use coding examples featured in the project,
 that can give you a very fast startup.</b>
 
 
-TODOs
+What's next
 =======================================================================================================
-In the next code release (Stable 1.0, October 2012), we are targeting:
-- Create a npm installer
-- Additional functionality
-- Code improvements, optimizations and refactoring
-- More testing
-- A tutorial
+In the next code release (2.0), we will be targeting:
+- Additional database functionality (enhanced LOB support, more db schemas etc.)
+- New functionalities: integrated connection pool, queries queue, better caching etc.
+- Code improvements, optimizations
+- More examples
+
+And you are more than welcomed to suggest what we should improve or add - please let us know!
 
 
 Authors and Contributors
 =======================================================================================================
 The authors of this driver are members of the CUBRID API team - http://www.cubrid.org/wiki_apis.
-We welcome new contributors and we hope you will enjoy using and coding with CUBRID! :)
+We welcome any new contributors and we hope you will enjoy using and coding with CUBRID! :)
 
 
 Special thanks
@@ -201,18 +208,7 @@ for the code we have (re)used and for doing such a great job for the open-source
 -	https://github.com/felixge/node-mysql
 -	https://github.com/jeromeetienne/microcache.js
 
+...Stay tuned for the next releases! :)
 
-Project timeline
-=======================================================================================================
-Here are the scheduled releases for the project:
--	Milestone 1: Basic driver interfaces: connect, queries support (<b>COmpleted</b>)
--	Milestone 2: Technology preview release: ~80% functionality ready (<b>COmpleted</b>)
--	Milestone 3: Beta release (<b>Completed</b>)
--	Milestone 4: Stable release (scheduled for October 2012)
--	Milestone 5: Project additions: Tutorials, Documentation, Improvements etc.
-
-...Stay tuned! :)
-
- Thank you!
- 
+Thank you!
 

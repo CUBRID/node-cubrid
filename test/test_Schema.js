@@ -1,4 +1,4 @@
-var CUBRIDClient = require('./test_Setup').testClient,
+var CUBRIDClient = require('./test_Setup').createDefaultCUBRIDDemodbConnection,
   ActionQueue = require('../src/utils/ActionQueue'),
   Helpers = require('../src/utils/Helpers'),
   assert = require('assert');
@@ -18,7 +18,7 @@ ActionQueue.enqueue(
 
     function (result, callback) {
       Helpers.logInfo(JSON.stringify(result));
-      assert(result.length === 33);
+      assert(result.length === 32);
       callback();
     },
 

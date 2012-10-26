@@ -1,4 +1,4 @@
-var CUBRIDClient = require('./test_Setup').testClient,
+var CUBRIDClient = require('./test_Setup').createDefaultCUBRIDDemodbConnection,
   ActionQueue = require('../src/utils/ActionQueue'),
   Helpers = require('../src/utils/Helpers'),
   Result2Array = require('../src/resultset/Result2Array'),
@@ -77,7 +77,7 @@ ActionQueue.enqueue(
       CUBRIDClient.closeQuery(returnedQueryHandle, cb);
     },
 
-    function (cb) {
+    function (queryHandle,cb) {
       CUBRIDClient.close(cb);
     }
   ],

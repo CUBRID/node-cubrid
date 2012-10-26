@@ -10,7 +10,9 @@ exports.ERROR_QUERY_ALREADY_PENDING = 'Another query is already in progress! - d
 exports.ERROR_NO_ACTIVE_QUERY = 'No active query with this handle!';
 exports.ERROR_NO_ROLLBACK = 'AutoCommitMode is enabled! - denying rollback request.';
 exports.ERROR_ON_CLOSE_QUERY_HANDLE = 'Error closing request: ';
-exports.ERROR_INPUT_VALIDATION = 'Error validating input parameters.'
+exports.ERROR_INPUT_VALIDATION = 'Error validating input parameters.';
+exports.ERROR_INVALID_DATA_TYPE = 'Error:Invalid data type.';
+exports.ERROR_INVALID_LOB_POSITION = 'Error: Invalid LOB position';
 
 exports.CASErrorMsgId = [
   ['CAS_ER_DBMS' , -1000],

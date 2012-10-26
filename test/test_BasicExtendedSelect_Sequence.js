@@ -1,4 +1,4 @@
-var CUBRIDClient = require('./test_Setup').testClient,
+var CUBRIDClient = require('./test_Setup').createDefaultCUBRIDDemodbConnection,
   ActionQueue = require('../src/utils/ActionQueue'),
   Helpers = require('../src/utils/Helpers'),
   Result2Array = require('../src/resultset/Result2Array'),
@@ -40,7 +40,7 @@ ActionQueue.enqueue(
       Helpers.logInfo('Query closed.');
     },
 
-    function (cb) {
+    function (queryHandle,cb) {
       CUBRIDClient.close(cb);
       Helpers.logInfo('Connection closed.');
     }
