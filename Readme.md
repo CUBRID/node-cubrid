@@ -1,6 +1,6 @@
 <b>node-cubrid</b><br/>
 June-October, 2012<br/>
-http://www.cubrid.org<br/>
+http://www.cubrid.org
 
 
 Introduction

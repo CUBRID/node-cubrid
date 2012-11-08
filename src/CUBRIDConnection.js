@@ -446,7 +446,7 @@ CUBRIDConnection.prototype.execute = function (sql, callback) {
 };
 
 /**
- * Execute sql statement with parameters
+ * Execute sql statement with parameters. For each '?' in sql there should be a value in arrParamsValues and a delimiter in arrDelimiters.
  * @param sql
  * @param arrParamsValues
  * @param arrDelimiters
@@ -455,8 +455,11 @@ CUBRIDConnection.prototype.execute = function (sql, callback) {
  */
 CUBRIDConnection.prototype.executeWithParams = function (sql, arrParamsValues, arrDelimiters, callback) {
   var formattedSQL = Helpers._sqlFormat(sql, arrParamsValues, arrDelimiters);
-
-  return this.execute(formattedSQL, callback);
+  if (callback && typeof(callback) === 'function' && formattedSQL === '') {
+    callback.call(this, new Error(ErrorMessages.ERROR_DELIMITERS_ARRAY_LENGTH), null, null);
+  } else {
+    return this.execute(formattedSQL, callback);
+  }
 };
 
 /**
@@ -572,7 +575,7 @@ CUBRIDConnection.prototype.query = function (sql, callback) {
 };
 
 /**
- * Execute query with parameters
+ * Execute query with parameters. For each '?' in sql there should be a value in arrParamsValues and a delimiter in arrDelimiters.
  * @param sql
  * @param arrParamsValues
  * @param arrDelimiters
@@ -581,8 +584,11 @@ CUBRIDConnection.prototype.query = function (sql, callback) {
  */
 CUBRIDConnection.prototype.queryWithParams = function (sql, arrParamsValues, arrDelimiters, callback) {
   var formattedSQL = Helpers._sqlFormat(sql, arrParamsValues, arrDelimiters);
-
-  return this.query(formattedSQL, callback);
+  if (callback && typeof(callback) === 'function' && formattedSQL === '') {
+    callback.call(this, new Error(ErrorMessages.ERROR_DELIMITERS_ARRAY_LENGTH), null, null);
+  } else {
+    return this.query(formattedSQL, callback);
+  }
 };
 
 /**

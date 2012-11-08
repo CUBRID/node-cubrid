@@ -141,6 +141,10 @@ Number.prototype.formatAsMoney = function (decimals, decimal_sep, thousands_sep)
  * @private
  */
 var _escapeString = function (val) {
+  if(val === null)
+  {
+    return null;
+  }
   val = val.replace(/[\0\n\r\b\t\\'"\x1a]/g, function (s) {
     switch (s) {
       case "\0":
@@ -178,11 +182,17 @@ exports._escapeString = _escapeString;
  * @private
  */
 exports._sqlFormat = function (sql, arrValues, arrDelimiters) {
+  var defaultDelimiter;
   arrValues = [].concat(arrValues);
-  if (arrDelimiters.length !== 0) {
-    arrDelimiters = [].concat(arrDelimiters);
+  if (arrDelimiters.length === 0 || arrDelimiters === undefined) {
+    defaultDelimiter = '';
   } else {
-    arrDelimiters = ["'"];
+    if(arrDelimiters.length === arrValues.length)
+    {
+      arrDelimiters = [].concat(arrDelimiters);
+    } else {
+      return '';
+    }
   }
 
   return sql.replace(/\?/g, function (match) {
@@ -191,7 +201,14 @@ exports._sqlFormat = function (sql, arrValues, arrDelimiters) {
     }
 
     var val = arrValues.shift();
-    var delimiter = arrDelimiters.shift();
+
+    var delimiter;
+    if(defaultDelimiter === undefined)
+    {
+      delimiter = arrDelimiters.shift();
+    } else {
+      delimiter = defaultDelimiter;
+    }
 
     if (val === undefined || val === null) {
       return 'NULL';
