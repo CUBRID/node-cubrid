@@ -1,4 +1,4 @@
-var CUBRIDClient = require('.././test_Setup').createDefaultCUBRIDDemodbConnection,
+var CUBRIDClient = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection,
   ActionQueue = require('../../src/utils/ActionQueue'),
   Helpers = require('../../src/utils/Helpers'),
   Result2Array = require('../../src/resultset/Result2Array');
@@ -46,7 +46,7 @@ exports['test_Clob'] = function (test) {
     ],
 
     function (err) {
-      if (err == null) {
+      if (err === null) {
         Helpers.logInfo('Test passed.');
         test.done();
       } else {

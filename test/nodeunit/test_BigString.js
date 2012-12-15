@@ -55,16 +55,16 @@ exports['test_BigString'] = function (test) {
                             Helpers.logInfo('Test passed.');
                             test.done();
                           }
-                        })
+                        });
                       }
-                    })
+                    });
                   }
-                })
+                });
               }
-            })
+            });
           }
         }
-      )
+      );
     }
   });
 };

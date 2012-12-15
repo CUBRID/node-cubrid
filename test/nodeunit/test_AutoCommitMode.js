@@ -52,21 +52,21 @@ exports['test_AutoCommitMode'] = function (test) {
                                       test.done();
                                       Helpers.logInfo('Test passed.');
                                     }
-                                  })
+                                  });
                                 }
-                              })
+                              });
                             }
-                          })
+                          });
                         }
-                      })
+                      });
                     }
-                  })
+                  });
                 }
-              })
+              });
             }
-          })
+          });
         }
-      })
+      });
     }
   });
 };

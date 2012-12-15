@@ -1,4 +1,5 @@
-var Cache = require('../../src/utils/Cache');
+var Cache = require('../../src/utils/Cache'),
+  Helpers = require('../../src/utils/Helpers');
 
 exports['test_Cache'] = function (test) {
   test.expect(9);
@@ -28,7 +29,7 @@ exports['test_Cache'] = function (test) {
 
   setTimeout(function () {
       test.equal(cache2.contains(1), false);
-      console.log('Unit test ended OK.');
+      Helpers.logInfo('Unit test ended OK.');
       test.done();
     },
     4000

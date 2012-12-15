@@ -20,8 +20,7 @@ exports['test_ActionQueue'] = function (test) {
 
       function (data, callback) {
         setTimeout(callback(null, data + ',3'), 1000);
-      }
-      ,
+      },
 
       function (data, callback) {
         callback(null, data + ',4');
@@ -30,7 +29,7 @@ exports['test_ActionQueue'] = function (test) {
 
     function (err, results) {
       test.equal(results, '1,2,3,4');
-      console.log('Unit test ended OK.');
+      Helpers.logInfo('Unit test ended OK.');
     }
   );
 
@@ -51,7 +50,7 @@ exports['test_ActionQueue'] = function (test) {
         var endTime = (new Date()).getTime();
         // 5 seconds have passed?
         test.equal(endTime - startTime >= 5 * 1000, true);
-        console.log('Unit test ended OK.');
+        Helpers.logInfo('Unit test ended OK.');
         test.done();
       }
     }

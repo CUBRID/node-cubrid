@@ -42,11 +42,11 @@ exports['test_BasicSelect'] = function (test) {
                   Helpers.logInfo('Test passed.');
                   test.done();
                 }
-              })
+              });
             }
-          })
+          });
         }
-      })
+      });
     }
   });
 };

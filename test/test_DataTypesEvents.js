@@ -75,8 +75,8 @@ CUBRIDClient.on(CUBRIDClient.EVENT_QUERY_DATA_AVAILABLE, function (result, query
   assert(typeof(arr[0][3]) === 'object');
   assert(arr[0][4] === 'a');
   assert(typeof(arr[0][5]) === 'object');
-  assert(arr[0][6].toString().startsWith('2012-11-02') === true);
-  assert(arr[0][7].toString().startsWith('2012-11-02') === true);
+  assert(arr[0][6].toString() === '2012-11-02T00:00:00.000Z');
+  assert(arr[0][7].toString() === '2012-11-02T13:25:45.000Z');
   assert(arr[0][8] === 1.5);
   assert(arr[0][9] === 2.5);
   assert(arr[0][10] === 14);
@@ -85,8 +85,8 @@ CUBRIDClient.on(CUBRIDClient.EVENT_QUERY_DATA_AVAILABLE, function (result, query
   assert(arr[0][13] === '95');
   assert(arr[0][14] === 16);
   assert(arr[0][15] === 'varchar');
-  assert(arr[0][16].toString().startsWith('1899-12-31') === true);
-  assert(arr[0][17].toString().startsWith('2012-11-02') === true);
+  assert(arr[0][16].toString() === '1899-12-31T13:25:45.000Z');
+  assert(arr[0][17].toString() === '2012-11-02T13:25:45.000Z');
   assert(arr[0][18] === 'varchar');
 
   CUBRIDClient.batchExecuteNoQuery('drop table test_data_types', null);

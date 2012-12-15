@@ -19,7 +19,7 @@ CUBRIDClient.on(CUBRIDClient.EVENT_QUERY_DATA_AVAILABLE, function (result, query
   });
 });
 
-CUBRIDClient.on(CUBRIDClient.EVENT_QUERY_CLOSED, function (queryHandle) {
+CUBRIDClient.on(CUBRIDClient.EVENT_QUERY_CLOSED, function () {
   CUBRIDClient.close();
 });
 

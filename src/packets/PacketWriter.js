@@ -124,9 +124,9 @@ PacketWriter.prototype._writeFiller = function (bytesCount, fillerValue) {
   var fillerVal;
   this._allocate(bytesCount);
 
-  fillerValue = typeof fillerValue != 'undefined' ? fillerValue : 0x00;
+  fillerValue = typeof fillerValue !== 'undefined' ? fillerValue : 0x00;
 
-  if (typeof fillerValue == 'string') {
+  if (typeof fillerValue === 'string') {
     fillerVal = fillerValue.charCodeAt(0);
   } else {
     fillerVal = fillerValue & 0xFF;
@@ -146,7 +146,7 @@ PacketWriter.prototype._writeNullTerminatedString = function (value) {
   value = value || '';
   value = value + '';
 
-  var stringLengthInBytes = Buffer.byteLength(value)
+  var stringLengthInBytes = Buffer.byteLength(value);
   var count = DATA_TYPES.INT_SIZEOF + stringLengthInBytes + DATA_TYPES.BYTE_SIZEOF;
   this._allocate(count);
 
@@ -183,7 +183,7 @@ PacketWriter.prototype._writeFixedLengthString = function (value, fillerValue, f
     this._buffer[this._offset++] = value[i].charCodeAt(0);
   }
 
-  if (typeof fillerValue == 'string') {
+  if (typeof fillerValue === 'string') {
     fillerVal = fillerValue.charCodeAt(0);
   } else {
     fillerVal = fillerValue & 0xFF;

@@ -9,7 +9,7 @@ exports['test_Schema'] = function (test) {
   ActionQueue.enqueue(
     [
       function (callback) {
-        CUBRIDClient.brokerServer = 'localhost';
+//        CUBRIDClient.brokerServer = 'localhost';
         CUBRIDClient.connect(callback);
       },
 
@@ -19,7 +19,7 @@ exports['test_Schema'] = function (test) {
 
       function (result, callback) {
         Helpers.logInfo(JSON.stringify(result));
-        test.equal(result.length, 32);
+        test.ok(result.length === 32 || result.length === 33); //33 for 9.0
         callback();
       },
 
@@ -29,7 +29,7 @@ exports['test_Schema'] = function (test) {
 
       function (result, callback) {
         Helpers.logInfo(JSON.stringify(result));
-        test.equal(result.length, 16);
+        test.ok(result.length === 16 || result.length === 17); //17 for 9.0
         callback();
       },
 

@@ -10,21 +10,19 @@ var Net = require('net'),
   Helpers = require('../src/utils/Helpers'),
   Cache = require('../src/utils/Cache');
 
-//8.4.1 protocol packets definition
-var _8_4_1 = '8.4.1';
-var ClientInfoExchangePacket = require('./packets/' + _8_4_1 + '/ClientInfoExchangePacket'),
-  OpenDatabasePacket = require('./packets/' + _8_4_1 + '/OpenDatabasePacket'),
-  GetEngineVersionPacket = require('./packets/' + _8_4_1 + '/GetEngineVersionPacket'),
-  ExecuteQueryPacket = require('./packets/' + _8_4_1 + '/ExecuteQueryPacket'),
-  GetSchemaPacket = require('./packets/' + _8_4_1 + '/GetSchemaPacket.js'),
-  CloseQueryPacket = require('./packets/' + _8_4_1 + '/CloseQueryPacket'),
-  BatchExecuteNoQueryPacket = require('./packets/' + _8_4_1 + '/BatchExecuteNoQueryPacket'),
-  CloseDatabasePacket = require('./packets/' + _8_4_1 + '/CloseDatabasePacket'),
-  FetchPacket = require('./packets/' + _8_4_1 + '/FetchPacket'),
-  SetAutoCommitModePacket = require('./packets/' + _8_4_1 + '/SetAutoCommitModePacket'),
-  RollbackPacket = require('./packets/' + _8_4_1 + '/RollbackPacket'),
-  CommitPacket = require('./packets/' + _8_4_1 + '/CommitPacket'),
-  LOBReadPacket = require('./packets/' + _8_4_1 + '/LOBReadPacket');
+var ClientInfoExchangePacket = require('./packets/' + '/ClientInfoExchangePacket'),
+  OpenDatabasePacket = require('./packets/' + '/OpenDatabasePacket'),
+  GetEngineVersionPacket = require('./packets/' + '/GetEngineVersionPacket'),
+  ExecuteQueryPacket = require('./packets/' + '/ExecuteQueryPacket'),
+  GetSchemaPacket = require('./packets/' + '/GetSchemaPacket.js'),
+  CloseQueryPacket = require('./packets/' + '/CloseQueryPacket'),
+  BatchExecuteNoQueryPacket = require('./packets/' + '/BatchExecuteNoQueryPacket'),
+  CloseDatabasePacket = require('./packets/' + '/CloseDatabasePacket'),
+  FetchPacket = require('./packets/' + '/FetchPacket'),
+  SetAutoCommitModePacket = require('./packets/' + '/SetAutoCommitModePacket'),
+  RollbackPacket = require('./packets/' + '/RollbackPacket'),
+  CommitPacket = require('./packets/' + '/CommitPacket'),
+  LOBReadPacket = require('./packets/' + '/LOBReadPacket');
 
 module.exports = CUBRIDConnection;
 
@@ -196,8 +194,8 @@ CUBRIDConnection.prototype._doDatabaseLogin = function (self, callback) {
 
   self._socket.on('data', function (data) {
     responseData = Helpers._combineData(responseData, data);
-    if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH
-      && responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
+    if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH &&
+      responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
       expectedResponseLength = Helpers._getExpectedResponseLength(responseData);
     }
     if (responseData.length === expectedResponseLength) {
@@ -240,8 +238,8 @@ CUBRIDConnection.prototype._getEngineVersion = function (self, callback) {
 
   self._socket.on('data', function (data) {
     responseData = Helpers._combineData(responseData, data);
-    if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH
-      && responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
+    if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH &&
+      responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
       expectedResponseLength = Helpers._getExpectedResponseLength(responseData);
     }
     if (responseData.length === expectedResponseLength) {
@@ -269,9 +267,10 @@ CUBRIDConnection.prototype._getEngineVersion = function (self, callback) {
  */
 CUBRIDConnection.prototype.connect = function (callback) {
   var self = this;
+  var err = null;
 
-  if (self.connectionOpened == true) {
-    var err = new Error(ErrorMessages.ERROR_CONNECTION_ALREADY_OPENED);
+  if (self.connectionOpened === true) {
+    err = new Error(ErrorMessages.ERROR_CONNECTION_ALREADY_OPENED);
     Helpers._emitEvent(self, err, self.EVENT_ERROR, null);
     if (callback && typeof(callback) === 'function') {
       callback.call(self, err);
@@ -279,7 +278,7 @@ CUBRIDConnection.prototype.connect = function (callback) {
     return;
   }
 
-  if (self.connectionPending == true) {
+  if (self.connectionPending === true) {
     err = new Error(ErrorMessages.ERROR_CONNECTION_ALREADY_PENDING);
     Helpers._emitEvent(self, err, self.EVENT_ERROR, null);
     if (callback && typeof(callback) === 'function') {
@@ -308,7 +307,7 @@ CUBRIDConnection.prototype.connect = function (callback) {
     function (err) {
       self.queryPending = false; //reset query execution status
       self.connectionPending = false;
-      self.connectionOpened = !(typeof err != 'undefined' && err != null);
+      self.connectionOpened = !(typeof err !== 'undefined' && err !== null);
       Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_CONNECTED);
       if (callback && typeof(callback) === 'function') {
         callback.call(self, err);
@@ -339,7 +338,7 @@ CUBRIDConnection.prototype.batchExecuteNoQuery = function (sqls, callback) {
   var err = null;
 
   if (Array.isArray(sqls)) {
-    if (sqls.length == 0) {
+    if (sqls.length === 0) {
       //no commands to execute
       Helpers._emitEvent(self, null, null, self.EVENT_BATCH_COMMANDS_COMPLETED);
       if (callback && typeof(callback) === 'function') {
@@ -382,7 +381,8 @@ CUBRIDConnection.prototype.batchExecuteNoQuery = function (sqls, callback) {
           {
             SQLs           : sqlsArr,
             casInfo        : self._CASInfo,
-            autoCommitMode : self.autoCommitMode
+            autoCommitMode : self.autoCommitMode,
+            dbVersion      : self._DB_ENGINE_VER
           }
         );
         batchExecuteNoQueryPacket.write(packetWriter);
@@ -390,8 +390,8 @@ CUBRIDConnection.prototype.batchExecuteNoQuery = function (sqls, callback) {
 
         self._socket.on('data', function (data) {
           responseData = Helpers._combineData(responseData, data);
-          if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH
-            && responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
+          if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH &&
+            responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
             expectedResponseLength = Helpers._getExpectedResponseLength(responseData);
           }
           if (responseData.length === expectedResponseLength) {
@@ -401,8 +401,20 @@ CUBRIDConnection.prototype.batchExecuteNoQuery = function (sqls, callback) {
             batchExecuteNoQueryPacket.parse(packetReader);
             var errorCode = batchExecuteNoQueryPacket.errorCode;
             var errorMsg = batchExecuteNoQueryPacket.errorMsg;
-            if (errorCode !== 0) {
-              err = new Error(errorCode + ':' + errorMsg);
+            if (self._DB_ENGINE_VER.startsWith('8.4.3')) {
+              for (var i = 0; i < batchExecuteNoQueryPacket.arrResultsCode.length; i++) {
+                if (batchExecuteNoQueryPacket.arrResultsCode[i] < 0) {
+                  if (err === null) {
+                    err = [];
+                  }
+                  err.push(new Error(batchExecuteNoQueryPacket.arrResultsCode[i] +
+                    ':' + batchExecuteNoQueryPacket.arrResultsMsg[i]));
+                }
+              }
+            } else {
+              if (errorCode !== 0) {
+                err = new Error(errorCode + ':' + errorMsg);
+              }
             }
             if (cb && typeof(cb) === 'function') {
               cb.call(self, err);
@@ -446,7 +458,7 @@ CUBRIDConnection.prototype.execute = function (sql, callback) {
 };
 
 /**
- * Execute sql statement with parameters. For each '?' in sql there should be a value in arrParamsValues and a delimiter in arrDelimiters.
+ * Execute sql statement with parameters
  * @param sql
  * @param arrParamsValues
  * @param arrDelimiters
@@ -455,11 +467,9 @@ CUBRIDConnection.prototype.execute = function (sql, callback) {
  */
 CUBRIDConnection.prototype.executeWithParams = function (sql, arrParamsValues, arrDelimiters, callback) {
   var formattedSQL = Helpers._sqlFormat(sql, arrParamsValues, arrDelimiters);
-  if (callback && typeof(callback) === 'function' && formattedSQL === '') {
-    callback.call(this, new Error(ErrorMessages.ERROR_DELIMITERS_ARRAY_LENGTH), null, null);
-  } else {
-    return this.execute(formattedSQL, callback);
-  }
+  Helpers.logInfo('Formatted sql is: ' + formattedSQL);
+
+  return this.execute(formattedSQL, callback);
 };
 
 /**
@@ -471,7 +481,7 @@ CUBRIDConnection.prototype.query = function (sql, callback) {
   var err = null;
   var self = this;
 
-  if (self.queryPending == true && self._PREVENT_CONCURRENT_REQUESTS) {
+  if (self.queryPending === true && self._PREVENT_CONCURRENT_REQUESTS) {
     err = new Error(ErrorMessages.ERROR_QUERY_ALREADY_PENDING);
     Helpers._emitEvent(self, err, self.EVENT_ERROR, null);
     if (callback && typeof(callback) === 'function') {
@@ -505,7 +515,7 @@ CUBRIDConnection.prototype.query = function (sql, callback) {
 
       function (cb) {
         // Check if data is already in cache
-        if (self._queryCache != null) {
+        if (self._queryCache !== null) {
           if (self._queryCache.contains(sql)) {
             self.queryPending = false;
             //query handle set to null, to prevent further fetch (cache is intended only for small data)
@@ -522,7 +532,8 @@ CUBRIDConnection.prototype.query = function (sql, callback) {
           {
             sql            : sql,
             casInfo        : self._CASInfo,
-            autoCommitMode : self.autoCommitMode
+            autoCommitMode : self.autoCommitMode,
+            dbVersion      : self._DB_ENGINE_VER
           }
         );
         executeQueryPacket.write(packetWriter);
@@ -530,8 +541,8 @@ CUBRIDConnection.prototype.query = function (sql, callback) {
 
         self._socket.on('data', function (data) {
           responseData = Helpers._combineData(responseData, data);
-          if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH
-            && responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
+          if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH &&
+            responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
             expectedResponseLength = Helpers._getExpectedResponseLength(responseData);
           }
           if (responseData.length === expectedResponseLength) {
@@ -547,8 +558,8 @@ CUBRIDConnection.prototype.query = function (sql, callback) {
               self._queriesPacketList.push(executeQueryPacket);
             }
             if (cb && typeof(cb) === 'function') {
-              if (typeof err != 'undefined' && err != null) {
-//                self.queryPending = false;
+              if (typeof err !== 'undefined' && err !== null) {
+                //self.queryPending = false;
               } else {
                 if (self._queryCache !== null) {
                   self._queryCache.getSet(sql, result);
@@ -575,7 +586,7 @@ CUBRIDConnection.prototype.query = function (sql, callback) {
 };
 
 /**
- * Execute query with parameters. For each '?' in sql there should be a value in arrParamsValues and a delimiter in arrDelimiters.
+ * Execute query with parameters
  * @param sql
  * @param arrParamsValues
  * @param arrDelimiters
@@ -584,11 +595,9 @@ CUBRIDConnection.prototype.query = function (sql, callback) {
  */
 CUBRIDConnection.prototype.queryWithParams = function (sql, arrParamsValues, arrDelimiters, callback) {
   var formattedSQL = Helpers._sqlFormat(sql, arrParamsValues, arrDelimiters);
-  if (callback && typeof(callback) === 'function' && formattedSQL === '') {
-    callback.call(this, new Error(ErrorMessages.ERROR_DELIMITERS_ARRAY_LENGTH), null, null);
-  } else {
-    return this.query(formattedSQL, callback);
-  }
+  Helpers.logInfo('Formatted sql is: ' + formattedSQL);
+
+  return this.query(formattedSQL, callback);
 };
 
 /**
@@ -604,8 +613,8 @@ CUBRIDConnection.prototype.fetch = function (queryHandle, callback) {
 
   self._socket.on('data', function (data) {
     responseData = Helpers._combineData(responseData, data);
-    if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH
-      && responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
+    if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH &&
+      responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
       expectedResponseLength = Helpers._getExpectedResponseLength(responseData);
     }
     if (responseData.length === expectedResponseLength) {
@@ -651,7 +660,8 @@ CUBRIDConnection.prototype.fetch = function (queryHandle, callback) {
       var packetWriter = new PacketWriter();
       var fetchPacket = new FetchPacket(
         {
-          casInfo : self._CASInfo
+          casInfo    : self._CASInfo,
+          db_version : self._DB_ENGINE_VER
         }
       );
       fetchPacket.write(packetWriter, this._queriesPacketList[i]);
@@ -699,8 +709,9 @@ CUBRIDConnection.prototype.closeQuery = function (queryHandle, callback) {
     var packetWriter = new PacketWriter();
     var closeQueryPacket = new CloseQueryPacket(
       {
-        casInfo   : self._CASInfo,
-        reqHandle : queryHandle
+        casInfo    : self._CASInfo,
+        reqHandle  : queryHandle,
+        db_version : self._DB_ENGINE_VER
       }
     );
     closeQueryPacket.write(packetWriter);
@@ -709,8 +720,8 @@ CUBRIDConnection.prototype.closeQuery = function (queryHandle, callback) {
 
   self._socket.on('data', function (data) {
     responseData = Helpers._combineData(responseData, data);
-    if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH
-      && responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
+    if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH &&
+      responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
       expectedResponseLength = Helpers._getExpectedResponseLength(responseData);
     }
     if (responseData.length === expectedResponseLength) {
@@ -748,7 +759,7 @@ CUBRIDConnection.prototype.close = function (callback) {
   var responseData = new Buffer(0);
   var expectedResponseLength = this._INVALID_RESPONSE_LENGTH;
 
-  if (self.connectionOpened == false) {
+  if (self.connectionOpened === false) {
     err = new Error(ErrorMessages.ERROR_CONNECTION_ALREADY_CLOSED);
     Helpers._emitEvent(self, err, self.EVENT_ERROR, null);
     if (callback && typeof(callback) === 'function') {
@@ -776,7 +787,7 @@ CUBRIDConnection.prototype.close = function (callback) {
 
           function (err) {
             //log non-blocking error
-            if (typeof err != 'undefined' && err != null) {
+            if (typeof err !== 'undefined' && err !== null) {
               Helpers.logError(ErrorMessages.ERROR_ON_CLOSE_QUERY_HANDLE + err);
             }
             cb.call(null);
@@ -788,7 +799,8 @@ CUBRIDConnection.prototype.close = function (callback) {
         var packetWriter = new PacketWriter();
         var closeDatabasePacket = new CloseDatabasePacket(
           {
-            casInfo : self._CASInfo
+            casInfo    : self._CASInfo,
+            db_version : self._DB_ENGINE_VER
           }
         );
         closeDatabasePacket.write(packetWriter);
@@ -796,8 +808,8 @@ CUBRIDConnection.prototype.close = function (callback) {
 
         self._socket.on('data', function (data) {
           responseData = Helpers._combineData(responseData, data);
-          if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH
-            && responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
+          if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH &&
+            responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
             expectedResponseLength = Helpers._getExpectedResponseLength(responseData);
           }
           if (responseData.length === expectedResponseLength) {
@@ -872,7 +884,8 @@ CUBRIDConnection.prototype.rollback = function (callback) {
     var packetWriter = new PacketWriter();
     var rollbackPacket = new RollbackPacket(
       {
-        casInfo : self._CASInfo
+        casInfo    : self._CASInfo,
+        db_version : self._DB_ENGINE_VER
       }
     );
     rollbackPacket.write(packetWriter);
@@ -887,8 +900,8 @@ CUBRIDConnection.prototype.rollback = function (callback) {
 
   self._socket.on('data', function (data) {
     responseData = Helpers._combineData(responseData, data);
-    if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH
-      && responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
+    if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH &&
+      responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
       expectedResponseLength = Helpers._getExpectedResponseLength(responseData);
     }
     if (responseData.length === expectedResponseLength) {
@@ -923,7 +936,8 @@ CUBRIDConnection.prototype.commit = function (callback) {
     var packetWriter = new PacketWriter();
     var commitPacket = new CommitPacket(
       {
-        casInfo : self._CASInfo
+        casInfo    : self._CASInfo,
+        db_version : self._DB_ENGINE_VER
       }
     );
     commitPacket.write(packetWriter);
@@ -938,8 +952,8 @@ CUBRIDConnection.prototype.commit = function (callback) {
 
   self._socket.on('data', function (data) {
     responseData = Helpers._combineData(responseData, data);
-    if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH
-      && responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
+    if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH &&
+      responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
       expectedResponseLength = Helpers._getExpectedResponseLength(responseData);
     }
     if (responseData.length === expectedResponseLength) {
@@ -991,7 +1005,8 @@ function _toggleAutoCommitMode(self, autoCommitMode, callback) {
   var setAutoCommitModePacket = new SetAutoCommitModePacket(
     {
       casInfo        : self._CASInfo,
-      autoCommitMode : autoCommitMode
+      autoCommitMode : autoCommitMode,
+      dbVersion      : self._DB_ENGINE_VER
     }
   );
   setAutoCommitModePacket.write(packetWriter);
@@ -1049,7 +1064,8 @@ CUBRIDConnection.prototype.getSchema = function (schemaType, callback) {
         var getSchemaPacket = new GetSchemaPacket(
           {
             casInfo    : self._CASInfo,
-            schemaType : schemaType
+            schemaType : schemaType,
+            db_version : self._DB_ENGINE_VER
           }
         );
         getSchemaPacket.writeRequestSchema(packetWriter);
@@ -1057,8 +1073,8 @@ CUBRIDConnection.prototype.getSchema = function (schemaType, callback) {
 
         self._socket.on('data', function (data) {
           responseData = Helpers._combineData(responseData, data);
-          if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH
-            && responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
+          if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH &&
+            responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
             expectedResponseLength = Helpers._getExpectedResponseLength(responseData);
           }
           if (responseData.length === expectedResponseLength) {
@@ -1087,8 +1103,8 @@ CUBRIDConnection.prototype.getSchema = function (schemaType, callback) {
 
         self._socket.on('data', function (data) {
           responseData = Helpers._combineData(responseData, data);
-          if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH
-            && responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
+          if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH &&
+            responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
             expectedResponseLength = Helpers._getExpectedResponseLength(responseData);
           }
           if (responseData.length === expectedResponseLength) {
@@ -1135,7 +1151,7 @@ CUBRIDConnection.prototype.lobRead = function (lobObject, pos, length, callback)
   pos--;
   if (lobObject.lobLength < pos + length) {
     err = new Error(ErrorMessages.ERROR_INVALID_LOB_POSITION);
-    if (typeof err != 'undefined' && err != null) {
+    if (typeof err !== 'undefined' && err !== null) {
       Helpers.logError(ErrorMessages.ERROR_ON_CLOSE_QUERY_HANDLE + err);
     }
     callback.call(null);
@@ -1155,7 +1171,8 @@ CUBRIDConnection.prototype.lobRead = function (lobObject, pos, length, callback)
       var packetWriter = new PacketWriter();
       var lobReadPacket = new LOBReadPacket(
         {
-          casInfo : self._CASInfo
+          casInfo    : self._CASInfo,
+          db_version : self._DB_ENGINE_VER
         }
       );
       lobReadPacket.write(packetWriter, lobObject, pos, read_len);
@@ -1163,8 +1180,8 @@ CUBRIDConnection.prototype.lobRead = function (lobObject, pos, length, callback)
 
       self._socket.on('data', function (data) {
         responseData = Helpers._combineData(responseData, data);
-        if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH
-          && responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
+        if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH &&
+          responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
           expectedResponseLength = Helpers._getExpectedResponseLength(responseData);
         }
         if (responseData.length === expectedResponseLength) {

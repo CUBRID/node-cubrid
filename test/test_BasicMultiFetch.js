@@ -35,9 +35,9 @@ CUBRIDClient.connect(function (err) {
             Helpers.logInfo('Query result column data types: ' + Result2Array.ColumnTypesArray(result));
             Helpers.logInfo('Query results:');
             var arr = Result2Array.RowsArray(result);
-            assert(arr.length == 235);
-            assert(arr[0].toString().startsWith('2004,20021,14345,30116,NGR,B,2004-09-27T') == true);
-            assert(arr[arr.length - 1].toString().startsWith('2004,20317,14457,30124,ITA,G,2004-09-25T') == true);
+            assert(arr.length === 235);
+            assert(arr[0].toString().startsWith('2004,20021,14345,30116,NGR,B,2004-09-28T') === true);
+            assert(arr[arr.length - 1].toString().startsWith('2004,20317,14457,30124,ITA,G,2004-09-26T') === true);
             for (var j = 0; j < 1; j++) {
               Helpers.logInfo(arr[j].toString());
             }
@@ -55,7 +55,7 @@ CUBRIDClient.connect(function (err) {
                     if (result !== null) {
                       Helpers.logInfo('Fetch results:');
                       var arr = Result2Array.RowsArray(result);
-                      assert(arr.length == 241 || arr.length == 224);
+                      assert(arr.length === 241 || arr.length === 224);
                       for (var k = 0; k < 1; k++) {
                         Helpers.logInfo(arr[k].toString());
                       }
@@ -65,7 +65,7 @@ CUBRIDClient.connect(function (err) {
                     fetchResult = result;
                     callback.call(err);
                   }
-                })
+                });
               },
 
               function (err) {
@@ -84,16 +84,16 @@ CUBRIDClient.connect(function (err) {
                           Helpers.logInfo('Connection closed.');
                           Helpers.logInfo('Test passed.');
                         }
-                      })
+                      });
                     }
-                  })
+                  });
                 }
               }
-            )
+            );
           }
-        })
+        });
       }
-    })
+    });
   }
 });
 

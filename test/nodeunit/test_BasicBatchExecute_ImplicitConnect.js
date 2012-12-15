@@ -30,11 +30,11 @@ exports['test_BasiBatchExecute_ImplicitConnect'] = function (test) {
                   Helpers.logInfo('Test passed.');
                   test.done();
                 }
-              })
+              });
             }
-          })
+          });
         }
-      })
+      });
     }
   });
 };

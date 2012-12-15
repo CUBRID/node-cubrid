@@ -4,7 +4,7 @@ var CUBRIDClient = require('./test_Setup').createDefaultCUBRIDDemodbConnection,
 
 function errorHandler(err) {
   Helpers.logInfo(err.message);
-  assert(err.message == 'This socket is closed.');
+  assert(err.message === 'This socket is closed.');
   Helpers.logInfo('Test passed.');
 }
 
@@ -17,13 +17,13 @@ CUBRIDClient.connect(function (err) {
     Helpers.logInfo('Connected.');
     Helpers.logInfo('Querying: select * from nation');
     CUBRIDClient._socket.destroy();
-    CUBRIDClient.query('select * from nation', function (err, result, queryHandle) {
+    CUBRIDClient.query('select * from nation', function (err) {
       if (err) {
         errorHandler(err);
       } else {
         Helpers.logInfo('We should not get here!');
         CUBRIDClient.close(null);
       }
-    })
+    });
   }
 });

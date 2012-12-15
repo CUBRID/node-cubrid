@@ -45,6 +45,51 @@ exports.CASFunctionCode = {
   CAS_FC_PREPARE_AND_EXECUTE : 41
 };
 
+exports.CASFunctionCode900 = {
+  CAS_FC_END_TRAN            : 1,
+  CAS_FC_PREPARE             : 2,
+  CAS_FC_EXECUTE             : 3,
+  CAS_FC_GET_DB_PARAMETER    : 4,
+  CAS_FC_SET_DB_PARAMETER    : 5,
+  CAS_FC_CLOSE_REQ_HANDLE    : 6,
+  CAS_FC_CURSOR              : 7,
+  CAS_FC_FETCH               : 8,
+  CAS_FC_SCHEMA_INFO         : 9,
+  CAS_FC_OID_GET             : 10,
+  CAS_FC_OID_PUT             : 11,
+  CAS_FC_DEPRECATED1         : 12,
+  CAS_FC_DEPRECATED2         : 13,
+  CAS_FC_DEPRECATED3         : 14,
+  CAS_FC_GET_DB_VERSION      : 15,
+  CAS_FC_GET_CLASS_NUM_OBJS  : 16,
+  CAS_FC_OID_CMD             : 17,
+  CAS_FC_COLLECTION          : 18,
+  CAS_FC_NEXT_RESULT         : 19,
+  CAS_FC_EXECUTE_BATCH       : 20,
+  CAS_FC_EXECUTE_ARRAY       : 21,
+  CAS_FC_CURSOR_UPDATE       : 22,
+  CAS_FC_GET_ATTR_TYPE_STR   : 23,
+  CAS_FC_GET_QUERY_INFO      : 24,
+  CAS_FC_DEPRECATED4         : 25,
+  CAS_FC_SAVEPOINT           : 26,
+  CAS_FC_PARAMETER_INFO      : 27,
+  CAS_FC_XA_PREPARE          : 28,
+  CAS_FC_XA_RECOVER          : 29,
+  CAS_FC_XA_END_TRAN         : 30,
+  CAS_FC_CON_CLOSE           : 31,
+  CAS_FC_CHECK_CAS           : 32,
+  CAS_FC_MAKE_OUT_RS         : 33,
+  CAS_FC_GET_GENERATED_KEYS  : 34,
+  CAS_FC_LOB_NEW             : 35,
+  CAS_FC_LOB_WRITE           : 36,
+  CAS_FC_LOB_READ            : 37,
+  CAS_FC_END_SESSION         : 38,
+  CAS_FC_GET_ROW_COUNT       : 39,
+  CAS_FC_GET_LAST_INSERT_ID  : 40,
+  CAS_FC_CURSOR_CLOSE        : 41,
+  CAS_FC_PREPARE_AND_EXECUTE : 42
+};
+
 /**
  * Define CUBRID Statement types constants
  */

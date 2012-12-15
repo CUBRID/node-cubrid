@@ -52,21 +52,21 @@ exports['test_Rollback'] = function (test) {
                                       Helpers.logInfo('Test passed.');
                                       test.done();
                                     }
-                                  })
+                                  });
                                 }
-                              })
+                              });
                             }
-                          })
+                          });
                         }
-                      })
+                      });
                     }
-                  })
+                  });
                 }
-              })
+              });
             }
-          })
+          });
         }
-      })
+      });
     }
   });
 };

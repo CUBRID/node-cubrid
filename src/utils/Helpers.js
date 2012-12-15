@@ -16,7 +16,7 @@ function _emitSafeEvent(obj, successEvent, arg1, arg2) {
     if (typeof arg1 !== 'undefined' && typeof arg2 !== 'undefined') {
       obj.emit(successEvent, arg1, arg2);
     } else {
-      if (typeof arg1 != 'undefined') {
+      if (typeof arg1 !== 'undefined') {
         obj.emit(successEvent, arg1);
       } else {
         obj.emit(successEvent);
@@ -34,7 +34,7 @@ function _emitSafeEvent(obj, successEvent, arg1, arg2) {
  * @private
  */
 exports._emitEvent = function (obj, err, errorEvent, successEvent, arg1, arg2) {
-  if (typeof err != 'undefined' && err != null) {
+  if (typeof err !== 'undefined' && err !== null) {
     if (obj.listeners(errorEvent).length > 0) {
       obj.emit(errorEvent, err);
     }
@@ -92,7 +92,7 @@ exports._validateInputPositive = function (val) {
  * @return {Boolean}
  */
 exports._validateInputString = function (str) {
-  if (typeof str === 'undefined' || str === null || typeof str != 'string' || str.length === 0) {
+  if (typeof str === 'undefined' || str === null || typeof str !== 'string' || str.length === 0) {
     return false;
   }
 
@@ -105,7 +105,7 @@ exports._validateInputString = function (str) {
  * @return {Boolean}
  */
 exports._validateInputSQLString = function (sql) {
-  if (typeof sql === 'undefined' || sql === null || typeof sql != 'string' || sql.length <= 5) {
+  if (typeof sql === 'undefined' || sql === null || typeof sql !== 'string' || sql.length <= 5) {
     return false;
   }
 
@@ -141,10 +141,6 @@ Number.prototype.formatAsMoney = function (decimals, decimal_sep, thousands_sep)
  * @private
  */
 var _escapeString = function (val) {
-  if(val === null)
-  {
-    return null;
-  }
   val = val.replace(/[\0\n\r\b\t\\'"\x1a]/g, function (s) {
     switch (s) {
       case "\0":
@@ -182,17 +178,11 @@ exports._escapeString = _escapeString;
  * @private
  */
 exports._sqlFormat = function (sql, arrValues, arrDelimiters) {
-  var defaultDelimiter;
   arrValues = [].concat(arrValues);
-  if (arrDelimiters.length === 0 || arrDelimiters === undefined) {
-    defaultDelimiter = '';
+  if (arrDelimiters.length !== 0) {
+    arrDelimiters = [].concat(arrDelimiters);
   } else {
-    if(arrDelimiters.length === arrValues.length)
-    {
-      arrDelimiters = [].concat(arrDelimiters);
-    } else {
-      return '';
-    }
+    arrDelimiters = ["'"];
   }
 
   return sql.replace(/\?/g, function (match) {
@@ -201,14 +191,7 @@ exports._sqlFormat = function (sql, arrValues, arrDelimiters) {
     }
 
     var val = arrValues.shift();
-
-    var delimiter;
-    if(defaultDelimiter === undefined)
-    {
-      delimiter = arrDelimiters.shift();
-    } else {
-      delimiter = defaultDelimiter;
-    }
+    var delimiter = arrDelimiters.shift();
 
     if (val === undefined || val === null) {
       return 'NULL';
@@ -225,9 +208,9 @@ exports._sqlFormat = function (sql, arrValues, arrDelimiters) {
 /**
  * Verifies if a string starts with the specified value
  */
-if (typeof String.prototype.startsWith != 'function') {
+if (typeof String.prototype.startsWith !== 'function') {
   String.prototype.startsWith = function (str) {
-    return this.indexOf(str) == 0;
+    return this.indexOf(str) === 0;
   };
 }
 
@@ -244,14 +227,14 @@ exports._combineData = function (buffer, value) {
   buffer.copy(newBuffer, 0);
   if (Array.isArray(value)) {
     for (var i = 0; i < value.length; i++) {
-      if (typeof  value[i] == 'string') {
+      if (typeof  value[i] === 'string') {
         newBuffer[buffer.length + i] = value[i].charCodeAt(0);
       } else {
         newBuffer[buffer.length + i] = value[i];
       }
     }
   } else {
-    if (typeof value == 'Buffer') {
+    if (typeof value === 'Buffer') {
       value.copy(newBuffer, buffer.length);
     } else {
       new Buffer(value).copy(newBuffer, buffer.length);
@@ -327,7 +310,7 @@ exports._getExpectedResponseLength = function (buffer) {
  */
 exports._resolveErrorCode = function (errorCode) {
   for (var i = 0; i < ErrorMessages.CASErrorMsgId.length; i++) {
-    if (errorCode == ErrorMessages.CASErrorMsgId[i][1]) {
+    if (errorCode === ErrorMessages.CASErrorMsgId[i][1]) {
       return ErrorMessages.CASErrorMsgId[i][0];
     }
   }
@@ -345,11 +328,15 @@ exports._translateDBEngineVersionToPacketsFolder = function (DBEngineVersion) {
   if (DBEngineVersion.startsWith('8.4.1')) {
     return '8.4.1';
   } else {
-    if (DBEngineVersion.startsWith('9.0')) {
-      return '9.0';
+    if (DBEngineVersion.startsWith('8.4.3')) {
+      return '8.4.3';
     } else {
-      //default value
-      return '8.4.1';
+      if (DBEngineVersion.startsWith('9.0.0')) {
+        return '9.0.0';
+      } else {
+        //default value
+        return '8.4.1';
+      }
     }
   }
 };

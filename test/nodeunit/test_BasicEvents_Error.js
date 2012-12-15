@@ -9,7 +9,7 @@ exports['test_BasicEvents_Error'] = function (test) {
   var CUBRIDClient = new CUBRIDConnection('localhost', 33000, 'unknown_user', 'xyz', 'demodb');
 
   CUBRIDClient.connect(function (err) {
-    if (err != null) {
+    if (err !== null) {
       CUBRIDClient.close(function () {
       });
     }
@@ -17,8 +17,8 @@ exports['test_BasicEvents_Error'] = function (test) {
 
   CUBRIDClient.on(CUBRIDClient.EVENT_ERROR, function (err) {
     Helpers.logInfo('Error: ' + err.message);
-    test.ok(err.message == '-165:User "unknown_user" is invalid.' || err.message == 'The connection is already closed!');
-    if (err.message == 'The connection is already closed!') {
+    test.ok(err.message === '-165:User "unknown_user" is invalid.' || err.message === 'The connection is already closed!');
+    if (err.message === 'The connection is already closed!') {
       Helpers.logInfo('Test passed.');
       test.done();
     }

@@ -38,15 +38,15 @@ exports['test_BatchExecuteVariant'] = function (test) {
                           Helpers.logInfo('Test passed.');
                           test.done();
                         }
-                      })
+                      });
                     }
-                  })
+                  });
                 }
-              })
+              });
             }
-          })
+          });
         }
-      })
+      });
     }
   });
 };

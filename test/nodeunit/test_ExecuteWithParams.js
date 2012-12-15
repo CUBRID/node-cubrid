@@ -43,15 +43,15 @@ exports['test_ExecuteWithParams'] = function (test) {
                           Helpers.logInfo('Test passed.');
                           test.done();
                         }
-                      })
+                      });
                     }
-                  })
+                  });
                 }
-              })
+              });
             }
-          })
+          });
         }
-      })
+      });
     }
   });
 };

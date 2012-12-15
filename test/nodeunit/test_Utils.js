@@ -1,7 +1,8 @@
 var GetResultsArray = require('./../../src/resultset/Result2Array').RowsArray,
   GetResultsColumnNamesArray = require('./../../src/resultset/Result2Array').ColumnNamesArray,
   GetResultsColumnTypesArray = require('./../../src/resultset/Result2Array').ColumnTypesArray,
-  GetResultsCount = require('./../../src/resultset/Result2Array').TotalRowsCount;
+  GetResultsCount = require('./../../src/resultset/Result2Array').TotalRowsCount,
+  Helpers = require('../../src/utils/Helpers');
 
 var json_str = '{"ColumnNames":["s_name","f_name"],' +
   '"ColumnDataTypes":["char","string"],' +
@@ -17,6 +18,6 @@ exports['test_Utils'] = function (test) {
   test.equal(GetResultsColumnTypesArray(json_str).toString(), 'char,string');
   test.equal(GetResultsCount(json_str), 99);
 
-  console.log('Unit test ended OK.');
+  Helpers.logInfo('Unit test ended OK.');
   test.done();
 };

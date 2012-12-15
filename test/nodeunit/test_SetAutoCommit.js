@@ -32,11 +32,11 @@ exports['test_SetAutoCommit'] = function (test) {
                   Helpers.logInfo('Test passed.');
                   test.done();
                 }
-              })
+              });
             }
           });
         }
-      })
+      });
     }
   });
 };

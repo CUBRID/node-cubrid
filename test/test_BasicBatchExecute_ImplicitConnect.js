@@ -28,11 +28,11 @@ CUBRIDClient.batchExecuteNoQuery(['drop table if exists node_test', 'create tabl
                 Helpers.logInfo('Connection closed.');
                 Helpers.logInfo('Test passed.');
               }
-            })
+            });
           }
-        })
+        });
       }
-    })
+    });
   }
 });
 

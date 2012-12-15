@@ -44,13 +44,13 @@ function A() {
                 } else {
                   Helpers.logInfo('Connection closed [A].');
                 }
-              })
+              });
             }
-          })
+          });
         }
       }), 3000);
     }
-  })
+  });
 }
 
 function B() {
@@ -79,13 +79,13 @@ function B() {
                 } else {
                   Helpers.logInfo('Connection closed [B].');
                 }
-              })
+              });
             }
-          })
+          });
         }
-      })
+      });
     }
-  })
+  });
 }
 
 function C() {

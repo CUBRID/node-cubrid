@@ -1,10 +1,9 @@
-var CUBRIDClient = require('.././test_Setup').createDefaultCUBRIDDemodbConnection,
+var CUBRIDClient = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection,
   ActionQueue = require('../../src/utils/ActionQueue'),
   Helpers = require('../../src/utils/Helpers'),
   Result2Array = require('../../src/resultset/Result2Array');
 
 exports['test_Blob'] = function (test) {
-  test.expect(5122);
   Helpers.logInfo(module.filename.toString() + ' started...');
 
   ActionQueue.enqueue(
@@ -54,11 +53,14 @@ exports['test_Blob'] = function (test) {
     ],
 
     function (err) {
-      if (err == null) {
+      if (err === null) {
         Helpers.logInfo('Test passed.');
         test.done();
       } else {
-        throw err.message;
+        Helpers.logError(err);
+        CUBRIDClient.close(function () {
+          test.done();
+        });
       }
     }
   );

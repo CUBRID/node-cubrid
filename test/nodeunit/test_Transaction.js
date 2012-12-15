@@ -19,7 +19,7 @@ exports['test_Transaction'] = function (test) {
       },
 
       function (cb) {
-        CUBRIDClient.beginTransaction(cb)
+        CUBRIDClient.beginTransaction(cb);
       },
 
       function (cb) {
@@ -32,7 +32,7 @@ exports['test_Transaction'] = function (test) {
 
       function (result, queryHandle, cb) {
         test.ok(Result2Array.TotalRowsCount(result) === 1);
-        CUBRIDClient.closeQuery(queryHandle, cb)
+        CUBRIDClient.closeQuery(queryHandle, cb);
       },
 
       function (queryHandle, cb) {
@@ -45,7 +45,7 @@ exports['test_Transaction'] = function (test) {
 
       function (result, queryHandle, cb) {
         test.ok(Result2Array.TotalRowsCount(result) === null);
-        CUBRIDClient.closeQuery(queryHandle, cb)
+        CUBRIDClient.closeQuery(queryHandle, cb);
       },
 
       function (queryHandle, cb) {
@@ -67,7 +67,7 @@ exports['test_Transaction'] = function (test) {
     ],
 
     function (err) {
-      if (err == null) {
+      if (err === null) {
         Helpers.logInfo('Connection closed.');
         Helpers.logInfo('Test passed.');
         test.done();

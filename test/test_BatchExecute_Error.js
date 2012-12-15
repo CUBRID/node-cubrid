@@ -18,7 +18,13 @@ CUBRIDClient.connect(function (err) {
     sqlsArr.push('create table node_test(id xyz)');
     sqlsArr.push('create table node_test(id abc)');
     CUBRIDClient.batchExecuteNoQuery(sqlsArr, function (err) {
-      assert(err.message == '-494:Semantic: xyz is not defined. create class node_test ( id xyz ) ');
+      if (err instanceof Array) { //Driver version in 8.4.3
+        assert(err[0].message === '-494:Semantic: xyz is not defined. create class node_test ( id xyz ) ');
+        assert(err[1].message === '-494:Semantic: abc is not defined. create class node_test ( id abc ) ');
+      } else {
+        assert(err.message === '-494:Semantic: xyz is not defined. create class node_test ( id xyz ) ' ||
+          err.message === '-494:Semantic: before \'  xyz)\'\nxyz is not defined. create class node_test ( id xyz ) ');
+      }
       CUBRIDClient.close(function (err) {
         if (err) {
           errorHandler(err);
@@ -26,8 +32,8 @@ CUBRIDClient.connect(function (err) {
           Helpers.logInfo('Connection closed.');
           Helpers.logInfo('Test passed.');
         }
-      })
-    })
+      });
+    });
   }
 });
 

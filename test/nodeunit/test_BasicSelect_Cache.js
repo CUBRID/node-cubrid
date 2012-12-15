@@ -26,7 +26,7 @@ exports['test_BasicSelect_Cache'] = function (test) {
           test.ok(Result2Array.TotalRowsCount(result) === 8653);
           CUBRIDClient.closeQuery(queryHandle, function (err) {
             if (err) {
-              errorHandler(err)
+              errorHandler(err);
             } else {
               //Repeat query - results expected to come from cache this time
               var startTime2 = (new Date()).getTime();
@@ -53,15 +53,15 @@ exports['test_BasicSelect_Cache'] = function (test) {
                           Helpers.logInfo('Test passed.');
                           test.done();
                         }
-                      })
+                      });
                     }
-                  })
+                  });
                 }
-              })
+              });
             }
-          })
+          });
         }
-      })
+      });
     }
   });
 };

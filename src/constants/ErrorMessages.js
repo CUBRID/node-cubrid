@@ -1,5 +1,5 @@
 /**
- * Define CUBRID error messages
+ * Define CUBRID and Driver error messages
  */
 
 exports.ERROR_NEW_BROKER_PORT = 'Error receiving a new connection port!';
@@ -13,7 +13,6 @@ exports.ERROR_ON_CLOSE_QUERY_HANDLE = 'Error closing request: ';
 exports.ERROR_INPUT_VALIDATION = 'Error validating input parameters.';
 exports.ERROR_INVALID_DATA_TYPE = 'Error:Invalid data type.';
 exports.ERROR_INVALID_LOB_POSITION = 'Error: Invalid LOB position';
-exports.ERROR_DELIMITERS_ARRAY_LENGTH = 'Error: The length of the delimiters array does not match the number of parameters.';
 
 exports.CASErrorMsgId = [
   ['CAS_ER_DBMS' , -1000],

@@ -38,9 +38,9 @@ exports['test_BasicSelect_ImplicitConnect'] = function (test) {
               Helpers.logInfo('Test passed.');
               test.done();
             }
-          })
+          });
         }
-      })
+      });
     }
   });
 };

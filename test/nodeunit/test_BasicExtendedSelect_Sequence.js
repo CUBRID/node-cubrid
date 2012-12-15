@@ -48,7 +48,7 @@ exports['test_BasicExtendedSelect_Sequence'] = function (test) {
     ],
 
     function (err) {
-      if (err == null) {
+      if (err === null) {
         Helpers.logInfo('Test passed.');
         test.done();
       } else {

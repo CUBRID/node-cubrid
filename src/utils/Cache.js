@@ -11,7 +11,7 @@ var Cache = function (expireAfterSeconds) {
   var createdTime = (new Date()).getTime();
 
   var _expire = function () {
-    if (typeof expireAfterSeconds != 'undefined' && expireAfterSeconds > 0) {
+    if (typeof expireAfterSeconds !== 'undefined' && expireAfterSeconds > 0) {
       if ((new Date()).getTime() - createdTime >= expireAfterSeconds * 1000) {
         _values = {};
         createdTime = (new Date()).getTime();
@@ -38,7 +38,7 @@ var Cache = function (expireAfterSeconds) {
     getSet   : function (key, value) {
       _expire();
       if (!this.contains(key)) {
-        this._set(key, value)
+        this._set(key, value);
       }
       return this.get(key);
     },
@@ -48,10 +48,10 @@ var Cache = function (expireAfterSeconds) {
     clear    : function () {
       _values = {};
     }
-  }
+  };
 };
 
-if (typeof module != 'undefined' && ('exports' in module)) {
+if (typeof module !== 'undefined' && ('exports' in module)) {
   module.exports = Cache;
 }
 

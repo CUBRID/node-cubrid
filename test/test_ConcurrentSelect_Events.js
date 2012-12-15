@@ -57,7 +57,7 @@ CUBRIDClient.on(CUBRIDClient.EVENT_QUERY_CLOSED, function (queryHandle) {
   Helpers.logInfo('Closing connection...');
 
   global.queriesClosed++;
-  if (global.queriesOpened == global.queriesClosed) {
+  if (global.queriesOpened === global.queriesClosed) {
     setTimeout(function () {
       if (CUBRIDClient.connectionOpened) {
         CUBRIDClient.close();

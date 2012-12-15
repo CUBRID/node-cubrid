@@ -26,7 +26,7 @@ exports['test_Schema_Events'] = function (test) {
   CUBRIDClient.on(CUBRIDClient.EVENT_SCHEMA_DATA_AVAILABLE, function (result) {
     Helpers.logInfo('Schema data received.');
     Helpers.logInfo(JSON.stringify(result));
-    test.equal(result.length, global.schemaResults[i - 1]);
+    test.ok(result.length === global.schemaResults[i - 1] || result.length === global.schemaResults[i - 1] + 1); //+1 for 9.0
     if (i < 3) {
       CUBRIDClient.getSchema(global.schemaTypes[i], null);
       i++;

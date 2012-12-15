@@ -97,16 +97,16 @@ exports['test_DataTypes'] = function (test) {
                             Helpers.logInfo('Test passed.');
                             test.done();
                           }
-                        })
+                        });
                       }
-                    })
+                    });
                   }
-                })
+                });
               }
-            })
+            });
           }
         }
-      )
+      );
     }
   });
 };

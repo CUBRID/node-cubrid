@@ -30,7 +30,7 @@ exports['test_ConnectCollision'] = function (test) {
     CUBRIDClient.connect(function (err) {
       if (err) {
         Helpers.logInfo('Error: ' + err.message);
-        test.ok(err.message == 'A connection is already in progress! - denying current connection request.');
+        test.ok(err.message === 'A connection is already in progress! - denying current connection request.');
       } else {
         CUBRIDClient.close(null);
       }

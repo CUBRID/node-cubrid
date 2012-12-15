@@ -32,11 +32,11 @@ test1.on(test1.EVENT_SUCCESS, function (messaje) {
 exports['test_EmitEvent'] = function (test) {
   test.expect(2);
   testing = test;
-  console.log('Unit test ' + module.filename.toString() + ' started...');
+  Helpers.logInfo('Unit test ' + module.filename.toString() + ' started...');
   test1.increment();
   test2.increment();
 
-  console.log('Unit test ended OK.');
+  Helpers.logInfo('Unit test ended OK.');
   test.done();
 };
 

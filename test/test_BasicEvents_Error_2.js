@@ -11,7 +11,7 @@ CUBRIDClient.connect(null);
 
 CUBRIDClient.on(CUBRIDClient.EVENT_ERROR, function (err) {
   Helpers.logInfo('Error: ' + err.message);
-  assert(err.message == '-165:User "unknown_user" is invalid.');
+  assert(err.message === '-165:User "unknown_user" is invalid.');
   Helpers.logInfo('Test passed.');
 });
 

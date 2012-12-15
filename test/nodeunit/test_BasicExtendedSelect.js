@@ -34,8 +34,8 @@ exports['test_BasicExtendedSelect'] = function (test) {
               Helpers.logInfo('Query results:');
               var arr = Result2Array.RowsArray(result);
               test.equal(arr.length, 235);
-              test.equal(arr[0].toString().startsWith('2004,20021,14345,30116,NGR,B,2004-09-27T'), true);
-              test.equal(arr[arr.length - 1].toString().startsWith('2004,20317,14457,30124,ITA,G,2004-09-25T'), true);
+              test.equal(arr[0].toString().startsWith('2004,20021,14345,30116,NGR,B,2004-09-28T'), true);
+              test.equal(arr[arr.length - 1].toString().startsWith('2004,20317,14457,30124,ITA,G,2004-09-26T'), true);
               for (var j = 0; j < 1; j++) {
                 Helpers.logInfo(arr[j].toString());
               }
@@ -47,8 +47,8 @@ exports['test_BasicExtendedSelect'] = function (test) {
                     Helpers.logInfo('Fetch results:');
                     var arr = Result2Array.RowsArray(result);
                     test.equal(arr.length, 241);
-                    test.equal(arr[0].toString().startsWith('2004,20317,14375,30124,GRE,S,2004-09-25T'), true);
-                    test.equal(arr[arr.length - 1].toString().startsWith('2004,20060,14340,30125,JPN,B,2004-09-24T'), true);
+                    test.equal(arr[0].toString().startsWith('2004,20317,14375,30124,GRE,S,2004-09-26T'), true);
+                    test.equal(arr[arr.length - 1].toString().startsWith('2004,20060,14340,30125,JPN,B,2004-09-25T'), true);
                     for (var k = 0; k < 1; k++) {
                       Helpers.logInfo(arr[k].toString());
                     }
@@ -68,11 +68,11 @@ exports['test_BasicExtendedSelect'] = function (test) {
                           Helpers.logInfo('Test passed.');
                           test.done();
                         }
-                      })
+                      });
                     }
-                  })
+                  });
                 }
-              })
+              });
             }
           });
         }

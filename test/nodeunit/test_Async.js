@@ -1,7 +1,7 @@
 var CUBRIDClient = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection,
 //TODO Update this with your own async installation path
   Async = require('c:/Program Files (x86)/nodejs/node_modules/async/index.js'),
-//Async = require('C:/Documents and Settings/Ovidiu/node_modules/async/index.js'),
+  //Async = require('C:/Documents and Settings/Ovidiu/node_modules/async/index.js'),
   Helpers = require('../../src/utils/Helpers'),
   Result2Array = require('../../src/resultset/Result2Array');
 
@@ -36,8 +36,8 @@ exports['test_Async'] = function (test) {
         Helpers.logInfo('Query results:');
         var arr = Result2Array.RowsArray(result);
         test.equal(arr.length, 235);
-        test.equal(arr[0].toString().startsWith('2004,20021,14345,30116,NGR,B,2004-09-27T'), true);
-        test.equal(arr[arr.length - 1].toString().startsWith('2004,20317,14457,30124,ITA,G,2004-09-25T'), true);
+        test.equal(arr[0].toString().startsWith('2004,20021,14345,30116,NGR,B,2004-09-28T'), true);
+        test.equal(arr[arr.length - 1].toString().startsWith('2004,20317,14457,30124,ITA,G,2004-09-26T'), true);
         for (var j = 0; j < 1; j++) {
           Helpers.logInfo(arr[j].toString());
         }
@@ -62,7 +62,7 @@ exports['test_Async'] = function (test) {
                 fetchResult = result;
                 callback.call(err);
               }
-            )
+            );
           },
 
           function (err) {
@@ -72,7 +72,7 @@ exports['test_Async'] = function (test) {
               cb.call(err);
             }
           }
-        )
+        );
       },
 
       function (cb) {
@@ -85,7 +85,7 @@ exports['test_Async'] = function (test) {
     ],
 
     function (err) {
-      if (err == null) {
+      if (err === null) {
         Helpers.logInfo('Test passed.');
         test.done();
       } else {

@@ -36,8 +36,8 @@ Async.waterfall(
       Helpers.logInfo('Query results:');
       var arr = Result2Array.RowsArray(result);
       assert(arr.length === 235);
-      assert(arr[0].toString().startsWith('2004,20021,14345,30116,NGR,B,2004-09-27T') == true);
-      assert(arr[arr.length - 1].toString().startsWith('2004,20317,14457,30124,ITA,G,2004-09-25T') == true);
+      assert(arr[0].toString().startsWith('2004,20021,14345,30116,NGR,B,2004-09-28T') === true);
+      assert(arr[arr.length - 1].toString().startsWith('2004,20317,14457,30124,ITA,G,2004-09-26T') === true);
       for (var j = 0; j < 1; j++) {
         Helpers.logInfo(arr[j].toString());
       }
@@ -62,7 +62,7 @@ Async.waterfall(
               fetchResult = result;
               callback.call(err);
             }
-          )
+          );
         },
 
         function (err) {
@@ -72,7 +72,7 @@ Async.waterfall(
             cb.call(err);
           }
         }
-      )
+      );
     },
 
     function (cb) {
@@ -85,7 +85,7 @@ Async.waterfall(
   ],
 
   function (err) {
-    if (err == null) {
+    if (err === null) {
       Helpers.logInfo('Test passed.');
     } else {
       throw 'Error executing test!';

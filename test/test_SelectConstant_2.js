@@ -41,11 +41,11 @@ CUBRIDClient.connect(function (err) {
                 Helpers.logInfo('Connection closed.');
                 Helpers.logInfo('Test passed.');
               }
-            })
+            });
           }
-        })
+        });
       }
-    })
+    });
   }
 });
 

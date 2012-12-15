@@ -28,7 +28,7 @@ exports.setup = function (callback) {
     'Eleanor Karat'
   ];
 
-  var sqls = new Array();
+  var sqls = [];
   sqls.push('drop table if exists employees');
   sqls.push('create table employees( \
     id int not null auto_increment, \

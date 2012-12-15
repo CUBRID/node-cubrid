@@ -1,6 +1,6 @@
 <b>node-cubrid</b><br/>
-June-October, 2012<br/>
-http://www.cubrid.org
+June-December, 2012<br/>
+http://www.cubrid.org<br/>
 
 
 Introduction
@@ -8,15 +8,32 @@ Introduction
 The <b>CUBRID</b> node.js driver is an open-source project with the goal of implementing a 100% native node.js driver
 for the <b>CUBRID</b> database engine (www.cubrid.org).
 
-The driver is under constant development and the current release is the <b>1.0</b>, which features:
-- Rich database support: Connect, Query, Fetch, Execute, Commit, Rollback, and DB Schema etc.
+The driver is under constant development and the current release is the <b>1.1</b>, which features:
+- Full compatibility with 8.4.1, 8.4.3 and 9.0.0 (beta) CUBRID engine releases
+- Rich database support: Connect, Query, Fetch, Execute, Commit, Rollback, DB Schema etc.
 - Out of the box driver events model
-- 10.000+ LOC, including the driver test code and demos
+- <b>10.000</b>+ LOC, including the driver test code and demos
 - 50+ test cases
 - HTML documentation
 - User demos: E2E scenarios, web sites
-- User tutorial
+- User tutorials
 ...and many more!
+
+
+Releases
+=======================================================================================================
+<b>1.1</b>
+ - Released in December, 2012
+ - Added compatibility with CUBRID 8.4.3 stable release
+ - Added compatibility with CUBRID 9.0.0 beta release
+ - Code quality improvements (based on SHint/JSLint code analysis)
+ - Issues fixing
+ - New test cases
+ - New tutorial
+
+<b>1.0</b>
+ - Released in October, 2012
+ - Compatible with CUBRID 8.4.1 stable release
 
 
 Installation
@@ -39,7 +56,7 @@ The examples are located in the following project folders:
 - <b><i>\demo</i></b>
 - <b><i>\src\test</i></b>
 
-Here is a standard coding example, using the driver events model:
+Here is a stadard coding example, using the driver events model:
 
     CUBRIDClient.connect();
 
@@ -179,19 +196,20 @@ Or, if you prefer the standard callbacks "style":
     });
 
 
-<b>Once again, there are dozens of ready-to-use coding examples featured in the project,
+<b>Once again, remember that there are dozens of ready-to-use coding examples featured in the project,
 that can give you a very fast startup.</b>
 
 
 What's next
 =======================================================================================================
-In the next code release (2.0), we will be targeting:
+In the next driver release (2.0), we will be targeting:
+- Compatibility with the 9.0.0 CUBRID engine stable release
 - Additional database functionality (enhanced LOB support, more db schemas etc.)
 - New functionalities: integrated connection pool, queries queue, better caching etc.
 - Code improvements, optimizations
 - More examples
 
-And you are more than welcomed to suggest what we should improve or add - please let us know!
+...And you are more than welcomed to suggest what we should improve or add - please let us know! :)
 
 
 Authors and Contributors
@@ -208,7 +226,7 @@ for the code we have (re)used and for doing such a great job for the open-source
 -	https://github.com/felixge/node-mysql
 -	https://github.com/jeromeetienne/microcache.js
 
-...Stay tuned for the next releases! :)
+...Stay tuned for the next great driver releases! :)
 
 Thank you!
 

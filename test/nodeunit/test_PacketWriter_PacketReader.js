@@ -1,5 +1,6 @@
 var PacketReader = require('../../src/packets/PacketReader'),
-  PacketWriter = require('../../src/packets/PacketWriter');
+  PacketWriter = require('../../src/packets/PacketWriter'),
+  Helpers = require('../../src/utils/Helpers');
 
 var test;
 var bValue = 0xEF; //=239
@@ -87,9 +88,9 @@ function testDate(year, month, day) {
   packetReader.write(packetWriter._toBuffer());
 
   var newValue = packetReader._parseDate();
-  test.equal(newValue.getFullYear(), year);
-  test.equal(newValue.getMonth(), month);
-  test.equal(newValue.getDate(), day);
+  test.equal(newValue.getUTCFullYear(), year);
+  test.equal(newValue.getUTCMonth(), month);
+  test.equal(newValue.getUTCDate(), day);
 }
 
 function testTime(hour, min, sec) {
@@ -99,9 +100,9 @@ function testTime(hour, min, sec) {
   packetReader.write(packetWriter._toBuffer());
 
   var newValue = packetReader._parseTime();
-  test.equal(newValue.getHours(), hour);
-  test.equal(newValue.getMinutes(), min);
-  test.equal(newValue.getSeconds(), sec);
+  test.equal(newValue.getUTCHours(), hour);
+  test.equal(newValue.getUTCMinutes(), min);
+  test.equal(newValue.getUTCSeconds(), sec);
 }
 
 function testDateTime(year, month, day, hour, min, sec, msec) {
@@ -111,13 +112,13 @@ function testDateTime(year, month, day, hour, min, sec, msec) {
   packetReader.write(packetWriter._toBuffer());
 
   var newValue = packetReader._parseDateTime();
-  test.equal(newValue.getFullYear(), year);
-  test.equal(newValue.getMonth(), month);
-  test.equal(newValue.getDate(), day);
-  test.equal(newValue.getHours(), hour);
-  test.equal(newValue.getMinutes(), min);
-  test.equal(newValue.getSeconds(), sec);
-  test.equal(newValue.getMilliseconds(), msec);
+  test.equal(newValue.getUTCFullYear(), year);
+  test.equal(newValue.getUTCMonth(), month);
+  test.equal(newValue.getUTCDate(), day);
+  test.equal(newValue.getUTCHours(), hour);
+  test.equal(newValue.getUTCMinutes(), min);
+  test.equal(newValue.getUTCSeconds(), sec);
+  test.equal(newValue.getUTCMilliseconds(), msec);
 }
 
 function testTimestamp(year, month, day, hour, min, sec) {
@@ -127,12 +128,12 @@ function testTimestamp(year, month, day, hour, min, sec) {
   packetReader.write(packetWriter._toBuffer());
 
   var newValue = packetReader._parseTimeStamp();
-  test.equal(newValue.getFullYear(), year);
-  test.equal(newValue.getMonth(), month);
-  test.equal(newValue.getDate(), day);
-  test.equal(newValue.getHours(), hour);
-  test.equal(newValue.getMinutes(), min);
-  test.equal(newValue.getSeconds(), sec);
+  test.equal(newValue.getUTCFullYear(), year);
+  test.equal(newValue.getUTCMonth(), month);
+  test.equal(newValue.getUTCDate(), day);
+  test.equal(newValue.getUTCHours(), hour);
+  test.equal(newValue.getUTCMinutes(), min);
+  test.equal(newValue.getUTCSeconds(), sec);
 }
 
 function testString(value) {
@@ -262,7 +263,7 @@ function testObject() {
 exports['test_PacketWriter_PachetReader'] = function (testing) {
   test = testing;
   test.expect(42);
-  console.log('Unit test ' + module.filename.toString() + ' started...');
+  Helpers.logInfo('Unit test ' + module.filename.toString() + ' started...');
 
   //Test integer-types
   testByte(bValue);
@@ -301,6 +302,6 @@ exports['test_PacketWriter_PachetReader'] = function (testing) {
   testNumeric(1.5);
   testObject();
 
-  console.log('Unit test ended OK.');
+  Helpers.logInfo('Unit test ended OK.');
   test.done();
 };

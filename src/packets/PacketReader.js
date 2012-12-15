@@ -36,9 +36,7 @@ PacketReader.prototype._append = function (newBuffer) {
   var bytesRemaining = this._bytesRemaining();
   var newLength = bytesRemaining + newBuffer.length;
 
-  var combinedBuffer = (this._offset > newLength)
-    ? oldBuffer.slice(0, newLength)
-    : new Buffer(newLength);
+  var combinedBuffer = (this._offset > newLength) ? oldBuffer.slice(0, newLength) : new Buffer(newLength);
 
   oldBuffer.copy(combinedBuffer, 0, this._offset);
   newBuffer.copy(combinedBuffer, bytesRemaining);
@@ -173,7 +171,10 @@ PacketReader.prototype._parseDate = function () {
   var sec = 0;
   var msec = 0;
 
-  return new Date(year, month, day, hour, min, sec, msec);
+  var date = new Date();
+  date.setUTCFullYear(year, month, day);
+  date.setUTCHours(hour, min, sec, msec);
+  return date;
 };
 
 /**
@@ -189,7 +190,10 @@ PacketReader.prototype._parseDateTime = function () {
   var sec = this._parseShort();
   var msec = this._parseShort();
 
-  return new Date(year, month, day, hour, min, sec, msec);
+  var date = new Date();
+  date.setUTCFullYear(year, month, day);
+  date.setUTCHours(hour, min, sec, msec);
+  return date;
 };
 
 /**
@@ -205,7 +209,9 @@ PacketReader.prototype._parseTime = function () {
   var sec = this._parseShort();
   var msec = 0;
 
-  return new Date(year, month, day, hour, min, sec, msec);
+  var date = new Date(year, month, day, hour, min, sec, msec);
+  date.setUTCHours(hour, min, sec, msec);
+  return date;
 };
 
 /**
@@ -221,7 +227,10 @@ PacketReader.prototype._parseTimeStamp = function () {
   var sec = this._parseShort();
   var msec = 0;
 
-  return new Date(year, month, day, hour, min, sec, msec);
+  var date = new Date();
+  date.setUTCFullYear(year, month, day);
+  date.setUTCHours(hour, min, sec, msec);
+  return date;
 };
 
 /**
@@ -302,10 +311,10 @@ PacketReader.prototype._parseBlob = function (size) {
   }
 
   return {
-    lobType : CAS.CUBRIDDataType.CCI_U_TYPE_BLOB, //Clob tyte
-    packedLobHandle: packedLobHandle,
-    lobLength : lobSize
-  }
+    lobType         : CAS.CUBRIDDataType.CCI_U_TYPE_BLOB, //BLOB type
+    packedLobHandle : packedLobHandle,
+    lobLength       : lobSize
+  };
 };
 
 /**
@@ -322,10 +331,10 @@ PacketReader.prototype._parseClob = function (size) {
   }
 
   return {
-    lobType : CAS.CUBRIDDataType.CCI_U_TYPE_CLOB, //Clob tyte
-    packedLobHandle: packedLobHandle,
-    lobLength : lobSize
-  }
+    lobType         : CAS.CUBRIDDataType.CCI_U_TYPE_CLOB, //CLOB type
+    packedLobHandle : packedLobHandle,
+    lobLength       : lobSize
+  };
 };
 
 /**

@@ -18,7 +18,7 @@ ActionQueue.enqueue(
     },
 
     function (cb) {
-      CUBRIDClient.beginTransaction(cb)
+      CUBRIDClient.beginTransaction(cb);
     },
 
     function (cb) {
@@ -31,7 +31,7 @@ ActionQueue.enqueue(
 
     function (result, queryHandle, cb) {
       assert(Result2Array.TotalRowsCount(result) === 1);
-      CUBRIDClient.closeQuery(queryHandle, cb)
+      CUBRIDClient.closeQuery(queryHandle, cb);
     },
 
     function (queryHandle,cb) {
@@ -44,7 +44,7 @@ ActionQueue.enqueue(
 
     function (result, queryHandle, cb) {
       assert(Result2Array.TotalRowsCount(result) === null);
-      CUBRIDClient.closeQuery(queryHandle, cb)
+      CUBRIDClient.closeQuery(queryHandle, cb);
     },
 
     function (queryHandle,cb) {
@@ -66,7 +66,7 @@ ActionQueue.enqueue(
   ],
 
   function (err) {
-    if (err == null) {
+    if (err === null) {
       Helpers.logInfo('Connection closed.');
       Helpers.logInfo('Test passed.');
     } else {

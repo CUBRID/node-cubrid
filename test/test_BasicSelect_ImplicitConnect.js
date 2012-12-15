@@ -36,9 +36,9 @@ CUBRIDClient.query('select * from nation', function (err, result, queryHandle) {
             Helpers.logInfo('Connection closed.');
             Helpers.logInfo('Test passed.');
           }
-        })
+        });
       }
-    })
+    });
   }
 });
 

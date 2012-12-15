@@ -1,4 +1,4 @@
-var CUBRIDClient = require('.././test_Setup').createDefaultCUBRIDDemodbConnection,
+var CUBRIDClient = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection,
   ActionQueue = require('../../src/utils/ActionQueue'),
   Helpers = require('../../src/utils/Helpers'),
   Result2Array = require('../../src/resultset/Result2Array');
@@ -30,8 +30,8 @@ exports['test_Encoding_Russian'] = function (test) {
 
       function (result, queryHandle, cb) {
         var arr = Result2Array.RowsArray(result);
-        test.ok(arr[0][0] == testData);
-        CUBRIDClient.closeQuery(queryHandle, cb)
+        test.ok(arr[0][0] === testData);
+        CUBRIDClient.closeQuery(queryHandle, cb);
       },
 
       function (queryHandle, cb) {
@@ -44,7 +44,7 @@ exports['test_Encoding_Russian'] = function (test) {
     ],
 
     function (err) {
-      if (err == null) {
+      if (err === null) {
         Helpers.logInfo('Connection closed.');
         Helpers.logInfo('Test passed.');
         test.done();

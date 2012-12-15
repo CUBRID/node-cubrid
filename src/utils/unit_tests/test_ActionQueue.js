@@ -16,8 +16,7 @@ ActionQueue.enqueue(
     },
     function (data, callback) {
       setTimeout(callback(null, data + ',3'), 1000);
-    }
-    ,
+    },
     function (data, callback) {
       callback(null, data + ',4');
     }

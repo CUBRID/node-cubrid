@@ -25,7 +25,7 @@ CUBRIDClient.on(CUBRIDClient.EVENT_CONNECTED, function () {
 CUBRIDClient.on(CUBRIDClient.EVENT_SCHEMA_DATA_AVAILABLE, function (result) {
   Helpers.logInfo('Schema data received.');
   Helpers.logInfo(JSON.stringify(result));
-  assert(result.length === global.schemResults[i - 1]);
+  assert(result.length === global.schemResults[i - 1] || result.length === global.schemResults[i - 1] + 1); //33 for 9.0
   if (i < 3) {
     CUBRIDClient.getSchema(global.schemaTypes[i], null);
     i++;

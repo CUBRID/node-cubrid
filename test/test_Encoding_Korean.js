@@ -29,8 +29,8 @@ ActionQueue.enqueue(
 
     function (result, queryHandle, cb) {
       var arr = Result2Array.RowsArray(result);
-      assert(arr[0][0] == testData);
-      CUBRIDClient.closeQuery(queryHandle, cb)
+      assert(arr[0][0] === testData);
+      CUBRIDClient.closeQuery(queryHandle, cb);
     },
 
     function (queryHandle, cb) {
@@ -43,7 +43,7 @@ ActionQueue.enqueue(
   ],
 
   function (err) {
-    if (err == null) {
+    if (err === null) {
       Helpers.logInfo('Connection closed.');
       Helpers.logInfo('Test passed.');
     } else {

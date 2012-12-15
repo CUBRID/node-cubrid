@@ -43,11 +43,11 @@ exports['test_SelectConstant_02'] = function (test) {
                   Helpers.logInfo('Test passed.');
                   test.done();
                 }
-              })
+              });
             }
-          })
+          });
         }
-      })
+      });
     }
   });
 };

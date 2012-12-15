@@ -5,25 +5,25 @@
  * @constructor
  */
 exports.RowsArray = function (jsonData) {
-  if (typeof  jsonData == 'undefined' || jsonData == null || jsonData.length == 0) {
+  if (typeof  jsonData === 'undefined' || jsonData === null || jsonData.length === 0) {
     return null;
   }
 
   try {
     var fullArray = JSON.parse(jsonData);
-    var arr = new Array();
+    var arr = [];
 
-    var rowsCount = fullArray['ColumnValues'].length;
+    var rowsCount = fullArray.ColumnValues.length;
     if (rowsCount <= 0) {
       return null;
     } else {
       for (var i = 0; i < rowsCount; i++) {
-        arr[i] = fullArray['ColumnValues'][i];
+        arr[i] = fullArray.ColumnValues[i];
       }
     }
     return arr;
   }
-  catch (ex) {
+  catch (ignored) {
     return null;
   }
 };
@@ -35,7 +35,7 @@ exports.RowsArray = function (jsonData) {
  * @constructor
  */
 exports.ColumnNamesArray = function (jsonData) {
-  if (typeof  jsonData == 'undefined' || jsonData == null || jsonData.length == 0) {
+  if (typeof  jsonData === 'undefined' || jsonData === null || jsonData.length === 0) {
     return null;
   }
 
@@ -44,14 +44,14 @@ exports.ColumnNamesArray = function (jsonData) {
   try {
     fullArray = JSON.parse(jsonData);
 
-    var rowsCount = fullArray['ColumnNames'].length;
+    var rowsCount = fullArray.ColumnNames.length;
     if (rowsCount <= 0) {
       return null;
     } else {
-      return fullArray['ColumnNames'];
+      return fullArray.ColumnNames;
     }
   }
-  catch (ex) {
+  catch (ignored) {
     return null;
   }
 };
@@ -63,7 +63,7 @@ exports.ColumnNamesArray = function (jsonData) {
  * @constructor
  */
 exports.ColumnTypesArray = function (jsonData) {
-  if (typeof  jsonData == 'undefined' || jsonData == null || jsonData.length == 0) {
+  if (typeof  jsonData === 'undefined' || jsonData === null || jsonData.length === 0) {
     return null;
   }
 
@@ -72,14 +72,14 @@ exports.ColumnTypesArray = function (jsonData) {
   try {
     fullArray = JSON.parse(jsonData);
 
-    var rowsCount = fullArray['ColumnDataTypes'].length;
+    var rowsCount = fullArray.ColumnDataTypes.length;
     if (rowsCount <= 0) {
       return null;
     } else {
-      return fullArray['ColumnDataTypes'];
+      return fullArray.ColumnDataTypes;
     }
   }
-  catch (ex) {
+  catch (ignored) {
     return null;
   }
 };
@@ -92,7 +92,7 @@ exports.ColumnTypesArray = function (jsonData) {
  * @constructor
  */
 exports.TotalRowsCount = function (jsonData) {
-  if (typeof  jsonData == 'undefined' || jsonData == null || jsonData.length == 0) {
+  if (typeof  jsonData === 'undefined' || jsonData === null || jsonData.length === 0) {
     return null;
   }
 
@@ -101,14 +101,14 @@ exports.TotalRowsCount = function (jsonData) {
   try {
     fullArray = JSON.parse(jsonData);
 
-    var rowsCount = fullArray['RowsCount'];
+    var rowsCount = fullArray.RowsCount;
     if (rowsCount <= 0) {
       return null;
     } else {
-      return fullArray['RowsCount'];
+      return fullArray.RowsCount;
     }
   }
-  catch (ex) {
+  catch (ignored) {
     return null;
   }
 };

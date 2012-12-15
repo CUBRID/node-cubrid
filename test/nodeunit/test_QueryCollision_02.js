@@ -25,10 +25,10 @@ exports['test_QueryCollision_02'] = function (test) {
         });
         self.emit('return', ret);
       }
-    })
+    });
   };
 
-  getSingleValue.prototype = new events.EventEmitter;
+  getSingleValue.prototype = new events.EventEmitter();
 
   try {
     var getMyValue = new getSingleValue('select count(*) from game', CUBRIDclient);
@@ -39,8 +39,11 @@ exports['test_QueryCollision_02'] = function (test) {
   }
 
   getMyValue.on('return', function (result) {
-    test.ok(result == 8653);
-    CUBRIDclient.close();
+    test.ok(result === 8653);
+    setTimeout(function(){
+      CUBRIDclient.close(function () {
+      });
+    }, 100);
   });
 
   getMyValue.on('error', function (err) {
@@ -64,7 +67,7 @@ exports['test_QueryCollision_02'] = function (test) {
   }
   catch (ex) {
     Helpers.logInfo(ex.message);
-    test.ok(ex.message == "Another query is already in progress! - denying current query request.");
+    test.ok(ex.message === "Another query is already in progress! - denying current query request.");
     Helpers.logInfo('Test 2 passed.');
   }
 };

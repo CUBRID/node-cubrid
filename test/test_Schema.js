@@ -18,7 +18,7 @@ ActionQueue.enqueue(
 
     function (result, callback) {
       Helpers.logInfo(JSON.stringify(result));
-      assert(result.length === 32);
+      assert(result.length === 32 || result.length === 33); //33 for 9.0
       callback();
     },
 

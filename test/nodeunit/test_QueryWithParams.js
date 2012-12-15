@@ -40,11 +40,11 @@ exports['test_QueryWithParams'] = function (test) {
                   Helpers.logInfo('Test passed.');
                   test.done();
                 }
-              })
+              });
             }
-          })
+          });
         }
-      })
+      });
     }
   });
 };

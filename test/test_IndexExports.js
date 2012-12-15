@@ -1,4 +1,4 @@
-var CUBRIDClient = require('../index').createDefaultCUBRIDDemodbConnection,
+var CUBRIDClient = require('./test_Setup').createDefaultCUBRIDDemodbConnection,
   Helpers = require('../index').Helpers,
   Result2Array = require('../index').Result2Array,
   assert = require('assert');
@@ -40,11 +40,11 @@ CUBRIDClient.connect(function (err) {
                 Helpers.logInfo('Connection closed.');
                 Helpers.logInfo('Test passed.');
               }
-            })
+            });
           }
-        })
+        });
       }
-    })
+    });
   }
 });
 

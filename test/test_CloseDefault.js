@@ -16,7 +16,7 @@ CUBRIDClient.connect(function () {
       }
     }
 
-    assert(foundQueryHandle == true);
+    assert(foundQueryHandle === true);
 
     CUBRIDClient.close(function () {
       Helpers.logInfo('Connection closed.');
@@ -28,7 +28,7 @@ CUBRIDClient.connect(function () {
         }
       }
 
-      assert(foundQueryHandle == false);
+      assert(foundQueryHandle === false);
 
       Helpers.logInfo('Test passed.');
     });

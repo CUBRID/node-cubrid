@@ -27,9 +27,9 @@ exports['test_Connect'] = function (test) {
               Helpers.logInfo('Test passed.');
               test.done();
             }
-          })
+          });
         }
-      })
+      });
     }
   });
 };

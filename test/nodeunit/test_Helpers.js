@@ -68,7 +68,7 @@ exports['test_Helpers'] = function (test) {
   test.equal(Helpers._validateInputSQLString('a'), false);
   test.equal(Helpers._validateInputSQLString('qwerty'), true);
 
-  console.log('Unit test ended OK.');
+  Helpers.logInfo('Unit test ended OK.');
   test.done();
 };
 

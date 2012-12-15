@@ -13,7 +13,7 @@ exports['test_BasicEvents_Error_2'] = function (test) {
 
   CUBRIDClient.on(CUBRIDClient.EVENT_ERROR, function (err) {
     Helpers.logInfo('Error: ' + err.message);
-    test.ok(err.message == '-165:User "unknown_user" is invalid.');
+    test.ok(err.message === '-165:User "unknown_user" is invalid.');
     Helpers.logInfo('Test passed.');
     test.done();
   });

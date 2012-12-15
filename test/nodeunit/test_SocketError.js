@@ -7,7 +7,7 @@ exports['test_SocketError'] = function (test) {
 
   function errorHandler(err) {
     Helpers.logInfo(err.message);
-    test.ok(err.message == 'This socket is closed.');
+    test.ok(err.message === 'This socket is closed.');
     Helpers.logInfo('Test passed.');
     test.done();
   }
@@ -26,7 +26,7 @@ exports['test_SocketError'] = function (test) {
           Helpers.logInfo('We should not get here!');
           CUBRIDClient.close(null);
         }
-      })
+      });
     }
   });
 };

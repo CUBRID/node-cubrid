@@ -3,9 +3,8 @@ var CUBRIDClient = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbCo
   Result2Array = require('../../src/resultset/Result2Array');
 
 exports['test_BasicEvents'] = function (test) {
-  console.log('Unit test ' + module.filename.toString() + ' started...');
+  Helpers.logInfo('Unit test ' + module.filename.toString() + ' started...');
   test.expect(0);
-  Helpers.logInfo(module.filename.toString() + ' started...');
 
   CUBRIDClient.connect(function () {
     CUBRIDClient.close(function () {

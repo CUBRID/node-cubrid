@@ -152,7 +152,7 @@ $(document).ready(function () {
   });
 
   $('#delete').click(function () {
-    var data = new Array();
+    var data = [];
     $("input:checkbox[name=employee]:checked").each(function () {
       data.push($(this).val());
     });

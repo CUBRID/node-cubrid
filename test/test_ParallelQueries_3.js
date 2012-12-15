@@ -39,13 +39,13 @@ function RunQueryInSeparateConnection(i) {
                     executed++;
                     Helpers.logInfo('Functions completed: ' + executed + ' out of 10 scheduled.');
                   }
-                })
+                });
               }
-            })
+            });
           }
         });
       }
-    })
+    });
   }, Math.random() * 1000);
 }
 

@@ -11,7 +11,7 @@ var pool = generic_pool.Pool({
   create            : function (callback) {
     var CUBRIDClient = new CUBRIDConnection('localhost', 33000, 'public', '', 'demodb');
     CUBRIDClient.connect(function (err) {
-      if (err == null) {
+      if (err === null) {
         Helpers.logInfo('Connection opened.');
       }
       callback(err, CUBRIDClient);
@@ -58,7 +58,7 @@ pool.acquire(function (err, client) {
       }
     });
   }
-}, 0);
+}, 1);
 
 pool.acquire(function (err, client) {
   if (err) {

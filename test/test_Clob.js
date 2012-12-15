@@ -45,7 +45,7 @@ ActionQueue.enqueue(
   ],
 
   function (err) {
-    if (err == null) {
+    if (err === null) {
       Helpers.logInfo('Test passed.');
     } else {
       throw err.message;

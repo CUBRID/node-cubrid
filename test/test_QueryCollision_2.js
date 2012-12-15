@@ -24,10 +24,10 @@ var getSingleValue = function (sql, client) {
       });
       self.emit('return', ret);
     }
-  })
+  });
 };
 
-getSingleValue.prototype = new events.EventEmitter;
+getSingleValue.prototype = new events.EventEmitter();
 
 try {
   var getMyValue = new getSingleValue('select count(*) from game', CUBRIDclient);
@@ -37,9 +37,11 @@ try {
 }
 
 getMyValue.on('return', function (result) {
-  assert(result == 8653);
-  CUBRIDclient.close(function () {
-  });
+  assert(result === 8653);
+  setTimeout(function(){
+    CUBRIDclient.close(function () {
+    });
+  }, 100);
 });
 
 getMyValue.on('error', function (err) {
@@ -58,6 +60,6 @@ try {
     throw 'We should not get here!';
   });
 } catch (ex) {
-  assert(ex.message == "Another query is already in progress! - denying current query request.");
+  assert(ex.message === "Another query is already in progress! - denying current query request.");
   Helpers.logInfo('Test 2 passed.');
 }

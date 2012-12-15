@@ -27,7 +27,7 @@ exports['test_CloseDefault'] = function (test) {
             }
           }
 
-          test.ok(foundQueryHandle == true);
+          test.ok(foundQueryHandle === true);
 
           CUBRIDClient.close(function (err) {
             if (err) {
@@ -42,7 +42,7 @@ exports['test_CloseDefault'] = function (test) {
                 }
               }
 
-              test.ok(foundQueryHandle == false);
+              test.ok(foundQueryHandle === false);
 
               Helpers.logInfo('Test passed.');
               test.done();
