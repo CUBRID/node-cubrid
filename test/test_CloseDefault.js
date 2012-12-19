@@ -10,7 +10,7 @@ CUBRIDClient.connect(function () {
   CUBRIDClient.query('select * from nation', function (err, result, queryHandle) {
     var foundQueryHandle = false;
     for (var i = 0; i < CUBRIDClient._queriesPacketList.length; i++) {
-      if (CUBRIDClient._queriesPacketList[i].handle === queryHandle) {
+      if (CUBRIDClient._queriesPacketList[i].queryHandle === queryHandle) {
         foundQueryHandle = true;
         break;
       }
@@ -34,5 +34,3 @@ CUBRIDClient.connect(function () {
     });
   });
 });
-
-

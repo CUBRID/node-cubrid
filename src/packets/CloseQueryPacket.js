@@ -1,5 +1,6 @@
 var DATA_TYPES = require('../constants/DataTypes'),
   ErrorMessages = require('../constants/ErrorMessages'),
+  Helpers = require('../utils/Helpers.js'),
   CAS = require('../constants/CASConstants');
 
 module.exports = CloseQueryPacket;
@@ -54,12 +55,7 @@ CloseQueryPacket.prototype.parse = function (parser) {
     this.errorCode = parser._parseInt();
     this.errorMsg = parser._parseNullTerminatedString(reponseLength - 2 * DATA_TYPES.INT_SIZEOF);
     if (this.errorMsg.length === 0) {
-      for (var i = 0; i < ErrorMessages.CASErrorMsgId.length; i++) {
-        if (this.errorCode === ErrorMessages.CASErrorMsgId[i][1]) {
-          this.errorMsg = ErrorMessages.CASErrorMsgId[i][0];
-          break;
-        }
-      }
+      this.errorMsg = Helpers._resolveErrorCode(this.errorCode);
     }
   }
 

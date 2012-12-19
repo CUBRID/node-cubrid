@@ -31,10 +31,11 @@ function ExecuteQueryPacket(options) {
   this.columnCount = 0; //Number of columns
   this.infoArray = new ColumnMetaData(); //Column meta data
   this.resultInfos = new ResultInfo(); //Result info
-  this.handle = 0; //Query handle
+  this.queryHandle = 0; //Query handle
   this.currentTupleCount = 0; //Current number of returned tuples
   this.tupleCount = 0; //Number of tuples
 
+  this.responseCode = 0; //Response code
   this.errorCode = 0; //Error code
   this.errorMsg = ''; //Error message
 }
@@ -95,14 +96,15 @@ ExecuteQueryPacket.prototype.parse = function (parser) {
   var reponseLength = parser._parseInt();
   this.casInfo = parser._parseBytes(DATA_TYPES.CAS_INFO_SIZE);
 
-  this.handle = parser._parseInt();
-  if (this.handle < 0) {
+  this.responseCode = parser._parseInt();
+  if (this.responseCode < 0) {
     this.errorCode = parser._parseInt();
     this.errorMsg = parser._parseNullTerminatedString(reponseLength - 2 * DATA_TYPES.INT_SIZEOF);
     if (this.errorMsg.length === 0) {
       this.errorMsg = Helpers._resolveErrorCode(this.errorCode);
     }
   } else {
+    this.queryHandle = this.responseCode;
     this.resultCacheLifetime = parser._parseInt();
     this.statementType = parser._parseByte();
     this.bindCount = parser._parseInt();

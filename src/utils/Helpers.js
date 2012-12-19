@@ -315,30 +315,3 @@ exports._resolveErrorCode = function (errorCode) {
     }
   }
 };
-
-/**
- * Returns the appropiate subfolder path for the packets definition that correspods
- * to the current database engine version.
- * Please note that you need to update this function any time the communication protocol changes.
- * @param DBEngineVersion
- * @return {String}
- * @private
- */
-exports._translateDBEngineVersionToPacketsFolder = function (DBEngineVersion) {
-  if (DBEngineVersion.startsWith('8.4.1')) {
-    return '8.4.1';
-  } else {
-    if (DBEngineVersion.startsWith('8.4.3')) {
-      return '8.4.3';
-    } else {
-      if (DBEngineVersion.startsWith('9.0.0')) {
-        return '9.0.0';
-      } else {
-        //default value
-        return '8.4.1';
-      }
-    }
-  }
-};
-
-

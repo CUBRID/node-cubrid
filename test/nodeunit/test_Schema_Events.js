@@ -2,12 +2,10 @@ var CUBRIDClient = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbCo
   Helpers = require('../../src/utils/Helpers'),
   Result2Array = require('../../src/resultset/Result2Array');
 
-global.schemaTypes = [CUBRIDClient.SCHEMA_TABLE, CUBRIDClient.SCHEMA_VIEW, CUBRIDClient.SCHEMA_ATTRIBUTE ];
-global.schemaResults = [32, 16, 0];
-var i = 0;
+var currentSchemaToReceive = 0;
 
 exports['test_Schema_Events'] = function (test) {
-  test.expect(3);
+  test.expect(2);
   Helpers.logInfo(module.filename.toString() + ' started...');
 
   CUBRIDClient.connect();
@@ -19,17 +17,37 @@ exports['test_Schema_Events'] = function (test) {
 
   CUBRIDClient.on(CUBRIDClient.EVENT_CONNECTED, function () {
     Helpers.logInfo('Connected.');
-    CUBRIDClient.getSchema(global.schemaTypes[i], null);
-    i++;
+    CUBRIDClient.getSchema(CUBRIDClient.SCHEMA_TABLE, null);
+    currentSchemaToReceive = CUBRIDClient.SCHEMA_TABLE;
   });
 
   CUBRIDClient.on(CUBRIDClient.EVENT_SCHEMA_DATA_AVAILABLE, function (result) {
     Helpers.logInfo('Schema data received.');
-    Helpers.logInfo(JSON.stringify(result));
-    test.ok(result.length === global.schemaResults[i - 1] || result.length === global.schemaResults[i - 1] + 1); //+1 for 9.0
-    if (i < 3) {
-      CUBRIDClient.getSchema(global.schemaTypes[i], null);
-      i++;
+    for (var i = 0; i < result.length; i++) {
+      Helpers.logInfo(result[i]);
+    }
+    if (CUBRIDClient._DB_ENGINE_VER.startsWith('8.4')) {
+      if (currentSchemaToReceive === CUBRIDClient.SCHEMA_TABLE) {
+        test.ok(result.length === 32);
+      } else {
+        if (currentSchemaToReceive === CUBRIDClient.SCHEMA_VIEW) {
+          test.ok(result.length === 16);
+        }
+      }
+    } else {
+      if (CUBRIDClient._DB_ENGINE_VER.startsWith('9.0')) {
+        if (currentSchemaToReceive === CUBRIDClient.SCHEMA_TABLE) {
+          test.ok(result.length === 33);
+        } else {
+          if (currentSchemaToReceive === CUBRIDClient.SCHEMA_VIEW) {
+            test.ok(result.length === 17);
+          }
+        }
+      }
+    }
+    if (currentSchemaToReceive === CUBRIDClient.SCHEMA_TABLE) {
+      CUBRIDClient.getSchema(CUBRIDClient.SCHEMA_VIEW, null);
+      currentSchemaToReceive = CUBRIDClient.SCHEMA_VIEW;
     } else {
       CUBRIDClient.close();
     }

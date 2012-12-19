@@ -37,7 +37,7 @@ FetchPacket.prototype.write = function (writer, queryPacket) {
 
   writer._writeByte(CAS.CASFunctionCode.CAS_FC_FETCH);
   writer._writeInt(DATA_TYPES.INT_SIZEOF); //int sizeof
-  writer._writeInt(queryPacket.handle); //serverHandler
+  writer._writeInt(queryPacket.queryHandle); //serverHandler
   writer._writeInt(DATA_TYPES.INT_SIZEOF); //int sizeof
   writer._writeInt(queryPacket.currentTupleCount + 1); //Start position (= current cursor position + 1)
   writer._writeInt(DATA_TYPES.INT_SIZEOF); //int sizeof

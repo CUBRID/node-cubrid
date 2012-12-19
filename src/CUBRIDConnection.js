@@ -94,7 +94,6 @@ function CUBRIDConnection(brokerServer, brokerPort, user, password, database, ca
   //Database schema variables
   this.SCHEMA_TABLE = CASConstants.CUBRIDSchemaType.CCI_SCH_CLASS;
   this.SCHEMA_VIEW = CASConstants.CUBRIDSchemaType.CCI_SCH_VCLASS;
-  this.SCHEMA_ATTRIBUTE = CASConstants.CUBRIDSchemaType.CCI_SCH_ATTRIBUTE;
 
   //Private variables
   this._CASInfo = [0, 0xFF, 0xFF, 0xFF];
@@ -565,7 +564,7 @@ CUBRIDConnection.prototype.query = function (sql, callback) {
                   self._queryCache.getSet(sql, result);
                 }
               }
-              cb.call(self, err, result, executeQueryPacket.handle);
+              cb.call(self, err, result, executeQueryPacket.queryHandle);
             }
           }
         });
@@ -636,7 +635,7 @@ CUBRIDConnection.prototype.fetch = function (queryHandle, callback) {
 
   var foundQueryHandle = false;
   for (var i = 0; i < this._queriesPacketList.length; i++) {
-    if (this._queriesPacketList[i].handle === queryHandle) {
+    if (this._queriesPacketList[i].queryHandle === queryHandle) {
       foundQueryHandle = true;
       break;
     }
@@ -693,7 +692,7 @@ CUBRIDConnection.prototype.closeQuery = function (queryHandle, callback) {
 
   var foundQueryHandle = false;
   for (var i = 0; i < this._queriesPacketList.length; i++) {
-    if (this._queriesPacketList[i].handle === queryHandle) {
+    if (this._queriesPacketList[i].queryHandle === queryHandle) {
       foundQueryHandle = true;
       break;
     }
@@ -735,7 +734,7 @@ CUBRIDConnection.prototype.closeQuery = function (queryHandle, callback) {
         err = new Error(errorCode + ':' + errorMsg);
       } else {
         for (var i = 0; i < self._queriesPacketList.length; i++) {
-          if (self._queriesPacketList[i].handle === queryHandle) {
+          if (self._queriesPacketList[i].queryHandle === queryHandle) {
             self._queriesPacketList.splice(i, 1);
             break;
           }
@@ -782,7 +781,7 @@ CUBRIDConnection.prototype.close = function (callback) {
           },
 
           function (callb) {
-            self.closeQuery(self._queriesPacketList[0].handle, callb);
+            self.closeQuery(self._queriesPacketList[0].queryHandle, callb);
           },
 
           function (err) {
@@ -892,6 +891,7 @@ CUBRIDConnection.prototype.rollback = function (callback) {
     self._socket.write(packetWriter._buffer);
   } else {
     self._socket.removeAllListeners('data');
+    err = new Error(ErrorMessages.ERROR_NO_ROLLBACK);
     Helpers._emitEvent(self, err, self.EVENT_ERROR, null);
     if (callback && typeof(callback) === 'function') {
       callback.call(self, err);
@@ -944,6 +944,7 @@ CUBRIDConnection.prototype.commit = function (callback) {
     self._socket.write(packetWriter._buffer);
   } else {
     self._socket.removeAllListeners('data');
+    err = new Error(ErrorMessages.ERROR_NO_COMMIT);
     Helpers._emitEvent(self, err, self.EVENT_ERROR, null);
     if (callback && typeof(callback) === 'function') {
       callback.call(self, err);

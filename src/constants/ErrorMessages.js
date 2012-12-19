@@ -9,10 +9,13 @@ exports.ERROR_CONNECTION_ALREADY_CLOSED = 'The connection is already closed!';
 exports.ERROR_QUERY_ALREADY_PENDING = 'Another query is already in progress! - denying current query request.';
 exports.ERROR_NO_ACTIVE_QUERY = 'No active query with this handle!';
 exports.ERROR_NO_ROLLBACK = 'AutoCommitMode is enabled! - denying rollback request.';
+exports.ERROR_NO_COMMIT = 'AutoCommitMode is enabled! - denying commit request.';
 exports.ERROR_ON_CLOSE_QUERY_HANDLE = 'Error closing request: ';
 exports.ERROR_INPUT_VALIDATION = 'Error validating input parameters.';
 exports.ERROR_INVALID_DATA_TYPE = 'Error:Invalid data type.';
+exports.ERROR_INVALID_SCHEMA_TYPE = 'Error:Invalid schema type.';
 exports.ERROR_INVALID_LOB_POSITION = 'Error: Invalid LOB position';
+exports.ERROR_INVALID_LOB_TYPE = 'Error: Invalid LOB type';
 
 exports.CASErrorMsgId = [
   ['CAS_ER_DBMS' , -1000],

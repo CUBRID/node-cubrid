@@ -34,12 +34,16 @@ GetSchemaPacket.prototype.writeRequestSchema = function (writer) {
   writer._writeInt(bufferLength - DATA_TYPES.DATA_LENGTH_SIZEOF - DATA_TYPES.CAS_INFO_SIZE);
   writer._writeBytes(DATA_TYPES.CAS_INFO_SIZE, this.casInfo);
   writer._writeByte(CAS.CASFunctionCode.CAS_FC_SCHEMA_INFO);
+
   writer._writeInt(DATA_TYPES.INT_SIZEOF);
   writer._writeInt(this.schemaType);
-  writer._writeInt(DATA_TYPES.BYTE_SIZEOF - 1);
-  writer._writeInt(DATA_TYPES.BYTE_SIZEOF - 1);
+
+  writer._writeInt(0); // null; this is where restrictions should go - arg1: tableNamePattern
+
+  writer._writeInt(0); // null; this is where restrictions should go - arg2: columnNamePattern
+
   writer._writeInt(DATA_TYPES.BYTE_SIZEOF);
-  writer._writeByte(1); //TODO Document this value
+  writer._writeByte(3); // flag; TODO Document this value
 
   return writer;
 };

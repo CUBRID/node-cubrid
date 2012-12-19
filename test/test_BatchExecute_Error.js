@@ -22,8 +22,11 @@ CUBRIDClient.connect(function (err) {
         assert(err[0].message === '-494:Semantic: xyz is not defined. create class node_test ( id xyz ) ');
         assert(err[1].message === '-494:Semantic: abc is not defined. create class node_test ( id abc ) ');
       } else {
-        assert(err.message === '-494:Semantic: xyz is not defined. create class node_test ( id xyz ) ' ||
-          err.message === '-494:Semantic: before \'  xyz)\'\nxyz is not defined. create class node_test ( id xyz ) ');
+        if (CUBRIDClient._DB_ENGINE_VER.startsWith('9.0')) {
+          assert(err.message === '-494:Semantic: before \'  xyz)\'\nxyz is not defined. create class node_test ( id xyz ) ');
+        } else {
+          assert(err.message === '-494:Semantic: xyz is not defined. create class node_test ( id xyz ) ');
+        }
       }
       CUBRIDClient.close(function (err) {
         if (err) {

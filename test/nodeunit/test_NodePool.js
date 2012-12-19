@@ -1,8 +1,8 @@
 var Helpers = require('../../src/utils/Helpers'),
 //TODO Update this with your own node-pool installation path
-  //generic_pool = require('generic-pool'),
+  generic_pool = require('generic-pool'),
   generic_pool = require('c:/Program Files (x86)/nodejs/node_modules/generic-pool'),
-  CUBRIDConnection = require('../../src/CUBRIDConnection'),
+  //CUBRIDConnection = require('../../src/CUBRIDConnection'),
   Result2Array = require('../../src/resultset/Result2Array');
 
 exports['test_NodePool'] = function (test) {
@@ -61,7 +61,7 @@ exports['test_NodePool'] = function (test) {
         }
       });
     }
-  }, 0);
+  }, 1);
 
   pool.acquire(function (err, client) {
     if (err) {

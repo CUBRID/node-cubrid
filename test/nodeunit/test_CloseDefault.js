@@ -21,7 +21,7 @@ exports['test_CloseDefault'] = function (test) {
         } else {
           var foundQueryHandle = false;
           for (var i = 0; i < CUBRIDClient._queriesPacketList.length; i++) {
-            if (CUBRIDClient._queriesPacketList[i].handle === queryHandle) {
+            if (CUBRIDClient._queriesPacketList[i].queryHandle === queryHandle) {
               foundQueryHandle = true;
               break;
             }

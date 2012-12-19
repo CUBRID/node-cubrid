@@ -16,7 +16,7 @@ function LOBReadPacket(options) {
   this.casInfo = options.casInfo;
   this.dbVersion = options.dbVersion;
 
-  this.lobBuffer = '';
+  this.lobBuffer = null;
   this.lobHandle = '';
 
   this.responseCode = 0;
@@ -70,7 +70,11 @@ LOBReadPacket.prototype.parse = function (parser) {
     if (this.lobHandle.lobType === CAS.CUBRIDDataType.CCI_U_TYPE_BLOB) {
       this.lobBuffer = parser._parseBytes(this.responseCode);
     } else {
-      this.lobBuffer = parser._parseString(this.responseCode);
+      if (this.lobHandle.lobType === CAS.CUBRIDDataType.CCI_U_TYPE_CLOB) {
+        this.lobBuffer = parser._parseString(this.responseCode);
+      } else {
+        Helpers.logInfo(ErrorMessages.ERROR_INVALID_LOB_TYPE); //log non-blocking error
+      }
     }
     return this.responseCode;
   }

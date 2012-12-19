@@ -8,7 +8,6 @@ Helpers.logInfo(module.filename.toString() + ' started...');
 ActionQueue.enqueue(
   [
     function (callback) {
-      CUBRIDClient.brokerServer = 'localhost';
       CUBRIDClient.connect(callback);
     },
 
@@ -17,8 +16,18 @@ ActionQueue.enqueue(
     },
 
     function (result, callback) {
-      Helpers.logInfo(JSON.stringify(result));
-      assert(result.length === 32 || result.length === 33); //33 for 9.0
+      Helpers.logInfo('Schema tables results:');
+      for (var i = 0; i < result.length; i++) {
+        Helpers.logInfo(result[i]);
+      }
+      if (CUBRIDClient._DB_ENGINE_VER.startsWith('8.4')) {
+        assert(result.length === 32);
+      }
+      else {
+        if (CUBRIDClient._DB_ENGINE_VER.startsWith('9.0')) {
+          assert(result.length === 33);
+        }
+      }
       callback();
     },
 
@@ -27,18 +36,18 @@ ActionQueue.enqueue(
     },
 
     function (result, callback) {
-      Helpers.logInfo(JSON.stringify(result));
-      assert(result.length === 16);
-      callback();
-    },
-
-    function (callback) {
-      CUBRIDClient.getSchema(CUBRIDClient.SCHEMA_ATTRIBUTE, callback);
-    },
-
-    function (result, callback) {
-      Helpers.logInfo(JSON.stringify(result));
-      assert(result.length === 0);
+      Helpers.logInfo('Schema views results:');
+      for (var i = 0; i < result.length; i++) {
+        Helpers.logInfo(result[i]);
+      }
+      if (CUBRIDClient._DB_ENGINE_VER.startsWith('8.4')) {
+        assert(result.length === 16);
+      }
+      else {
+        if (CUBRIDClient._DB_ENGINE_VER.startsWith('9.0')) {
+          assert(result.length === 17);
+        }
+      }
       callback();
     },
 
