@@ -164,7 +164,7 @@ PacketReader.prototype._parseNullTerminatedString = function (length) {
  */
 PacketReader.prototype._parseDate = function () {
   var year = this._parseShort();
-  var month = this._parseShort();
+  var month = this._parseShort() - 1;
   var day = this._parseShort();
   var hour = 0;
   var min = 0;
@@ -183,7 +183,7 @@ PacketReader.prototype._parseDate = function () {
  */
 PacketReader.prototype._parseDateTime = function () {
   var year = this._parseShort();
-  var month = this._parseShort();
+  var month = this._parseShort() - 1;
   var day = this._parseShort();
   var hour = this._parseShort();
   var min = this._parseShort();
@@ -220,7 +220,7 @@ PacketReader.prototype._parseTime = function () {
  */
 PacketReader.prototype._parseTimeStamp = function () {
   var year = this._parseShort();
-  var month = this._parseShort();
+  var month = this._parseShort() - 1;
   var day = this._parseShort();
   var hour = this._parseShort();
   var min = this._parseShort();

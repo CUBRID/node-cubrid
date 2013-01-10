@@ -89,7 +89,7 @@ function testDate(year, month, day) {
 
   var newValue = packetReader._parseDate();
   test.equal(newValue.getUTCFullYear(), year);
-  test.equal(newValue.getUTCMonth(), month);
+  test.equal(newValue.getUTCMonth(), month - 1);
   test.equal(newValue.getUTCDate(), day);
 }
 
@@ -113,7 +113,7 @@ function testDateTime(year, month, day, hour, min, sec, msec) {
 
   var newValue = packetReader._parseDateTime();
   test.equal(newValue.getUTCFullYear(), year);
-  test.equal(newValue.getUTCMonth(), month);
+  test.equal(newValue.getUTCMonth(), month - 1);
   test.equal(newValue.getUTCDate(), day);
   test.equal(newValue.getUTCHours(), hour);
   test.equal(newValue.getUTCMinutes(), min);
@@ -129,7 +129,7 @@ function testTimestamp(year, month, day, hour, min, sec) {
 
   var newValue = packetReader._parseTimeStamp();
   test.equal(newValue.getUTCFullYear(), year);
-  test.equal(newValue.getUTCMonth(), month);
+  test.equal(newValue.getUTCMonth(), month - 1);
   test.equal(newValue.getUTCDate(), day);
   test.equal(newValue.getUTCHours(), hour);
   test.equal(newValue.getUTCMinutes(), min);

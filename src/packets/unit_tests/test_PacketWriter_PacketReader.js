@@ -87,9 +87,9 @@ function testDate(year, month, day) {
   packetReader.write(packetWriter._toBuffer());
 
   var newValue = packetReader._parseDate();
-  assert.equal(newValue.getFullYear(), year);
-  assert.equal(newValue.getMonth(), month);
-  assert.equal(newValue.getDate(), day);
+  assert.equal(newValue.getUTCFullYear(), year);
+  assert.equal(newValue.getUTCMonth(), month - 1);
+  assert.equal(newValue.getUTCDate(), day);
 }
 
 function testTime(hour, min, sec) {
@@ -99,9 +99,9 @@ function testTime(hour, min, sec) {
   packetReader.write(packetWriter._toBuffer());
 
   var newValue = packetReader._parseTime();
-  assert.equal(newValue.getHours(), hour);
-  assert.equal(newValue.getMinutes(), min);
-  assert.equal(newValue.getSeconds(), sec);
+  assert.equal(newValue.getUTCHours(), hour);
+  assert.equal(newValue.getUTCMinutes(), min);
+  assert.equal(newValue.getUTCSeconds(), sec);
 }
 
 function testDateTime(year, month, day, hour, min, sec, msec) {
@@ -111,13 +111,13 @@ function testDateTime(year, month, day, hour, min, sec, msec) {
   packetReader.write(packetWriter._toBuffer());
 
   var newValue = packetReader._parseDateTime();
-  assert.equal(newValue.getFullYear(), year);
-  assert.equal(newValue.getMonth(), month);
-  assert.equal(newValue.getDate(), day);
-  assert.equal(newValue.getHours(), hour);
-  assert.equal(newValue.getMinutes(), min);
-  assert.equal(newValue.getSeconds(), sec);
-  assert.equal(newValue.getMilliseconds(), msec);
+  assert.equal(newValue.getUTCFullYear(), year);
+  assert.equal(newValue.getUTCMonth(), month - 1);
+  assert.equal(newValue.getUTCDate(), day);
+  assert.equal(newValue.getUTCHours(), hour);
+  assert.equal(newValue.getUTCMinutes(), min);
+  assert.equal(newValue.getUTCSeconds(), sec);
+  assert.equal(newValue.getUTCMilliseconds(), msec);
 }
 
 function testTimestamp(year, month, day, hour, min, sec) {
@@ -127,12 +127,12 @@ function testTimestamp(year, month, day, hour, min, sec) {
   packetReader.write(packetWriter._toBuffer());
 
   var newValue = packetReader._parseTimeStamp();
-  assert.equal(newValue.getFullYear(), year);
-  assert.equal(newValue.getMonth(), month);
-  assert.equal(newValue.getDate(), day);
-  assert.equal(newValue.getHours(), hour);
-  assert.equal(newValue.getMinutes(), min);
-  assert.equal(newValue.getSeconds(), sec);
+  assert.equal(newValue.getUTCFullYear(), year);
+  assert.equal(newValue.getUTCMonth(), month - 1);
+  assert.equal(newValue.getUTCDate(), day);
+  assert.equal(newValue.getUTCHours(), hour);
+  assert.equal(newValue.getUTCMinutes(), min);
+  assert.equal(newValue.getUTCSeconds(), sec);
 }
 
 function testString(value) {

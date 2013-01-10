@@ -35,8 +35,8 @@ exports['test_BasicMultiFetch_Sequence'] = function (test) {
         Helpers.logInfo('Query results:');
         var arr = Result2Array.RowsArray(result);
         test.ok(arr.length === 235);
-        test.ok(arr[0].toString().startsWith('2004,20021,14345,30116,NGR,B,2004-09-28T') === true);
-        test.ok(arr[arr.length - 1].toString().startsWith('2004,20317,14457,30124,ITA,G,2004-09-26T') === true);
+        test.ok(arr[0].toString().startsWith('2004,20021,14345,30116,NGR,B,2004-08-28T') === true);
+        test.ok(arr[arr.length - 1].toString().startsWith('2004,20317,14457,30124,ITA,G,2004-08-26T') === true);
         for (var j = 0; j < 1; j++) {
           Helpers.logInfo(arr[j].toString());
         }

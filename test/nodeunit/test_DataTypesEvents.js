@@ -77,8 +77,8 @@ exports['test_DataTypesEvents'] = function (test) {
     test.ok(typeof(arr[0][3]) === 'object');
     test.ok(arr[0][4] === 'a');
     test.ok(typeof(arr[0][5]) === 'object');
-    test.ok(arr[0][6].toString().startsWith('2012-11-02') === true);
-    test.ok(arr[0][7].toString().startsWith('2012-11-02') === true);
+    test.ok(arr[0][6].toString().startsWith('2012-10-02') === true);
+    test.ok(arr[0][7].toString().startsWith('2012-10-02') === true);
     test.ok(arr[0][8] === 1.5);
     test.ok(arr[0][9] === 2.5);
     test.ok(arr[0][10] === 14);
@@ -88,7 +88,7 @@ exports['test_DataTypesEvents'] = function (test) {
     test.ok(arr[0][14] === 16);
     test.ok(arr[0][15] === 'varchar');
     test.ok(arr[0][16].toString().startsWith('1899-12-31') === true);
-    test.ok(arr[0][17].toString().startsWith('2012-11-02') === true);
+    test.ok(arr[0][17].toString().startsWith('2012-10-02') === true);
     test.ok(arr[0][18] === 'varchar');
 
     CUBRIDClient.batchExecuteNoQuery('drop table test_data_types', null);
