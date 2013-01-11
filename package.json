@@ -12,7 +12,7 @@
 
   "description" : "This is a native Node.js driver for CUBRID (www.cubrid.org). It is developed entirely in JavaScript, so it doesn't require specific platform compilation.",
 
-  "version" : "1.1.0",
+  "version" : "1.1.1",
 
   "repository" : {
     "type" : "git",

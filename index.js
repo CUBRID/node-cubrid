@@ -1,6 +1,7 @@
 var _CUBRIDConnection = require('./src/CUBRIDConnection.js');
 var _Helpers = require('./src/utils/Helpers.js');
 var _Result2Array = require('./src/resultset/Result2Array.js');
+var _ActionQueue = require('.src/utils/ActionQueue.js');
 
 /**
  * Helper functions
@@ -12,12 +13,18 @@ exports.Helpers = _Helpers;
  * @type {*}
  */
 exports.Result2Array = _Result2Array;
-
+/**
+ * ActionQueue utility functions
+ * @type {*}
+ */
+exports.ActionQueue = _ActionQueue;
 /**
  * Creates a new connection to the demodb database, using the default parameters
  * @type {CUBRIDConnection}
  */
-exports.createDefaultCUBRIDDemodbConnection = new _CUBRIDConnection('localhost', 33000, 'public', '', 'demodb');
+exports.createDefaultCUBRIDDemodbConnection = function () {
+  return new _CUBRIDConnection('localhost', 33000, 'public', '', 'demodb');
+};
 
 /**
  * Creates a new connection
