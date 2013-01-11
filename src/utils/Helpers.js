@@ -182,7 +182,11 @@ exports._sqlFormat = function (sql, arrValues, arrDelimiters) {
   if (arrDelimiters.length !== 0) {
     arrDelimiters = [].concat(arrDelimiters);
   } else {
-    arrDelimiters = ["'"];
+    arrDelimiters = [];
+
+    for (var i = arrValues.length; i > 0; --i) {
+      arrDelimiters.push("'");
+    }
   }
 
   return sql.replace(/\?/g, function (match) {
@@ -197,7 +201,7 @@ exports._sqlFormat = function (sql, arrValues, arrDelimiters) {
       return 'NULL';
     }
 
-    if (typeof val === 'number') {
+    if (!isNaN(parseFloat(val)) && isFinite(val) && delimiter !== "'" && delimiter !== '"') {
       return val + '';
     }
 
