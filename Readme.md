@@ -22,6 +22,15 @@ The driver is under constant development and the current release is the <b>1.1</
 
 Releases
 =======================================================================================================
+<b>1.1.1</b>
+ - Released in January, 2013
+ - Added ActionQueue direct export from the node-cubrid module
+ - Added createDefaultCUBRIDDemodbConnection function wrapper
+ - Added a function that returns an array of objects where column names from the query result are keys
+ - Fixed incorrect Datetime type parsing
+ - Fixed the delimiters and number datatype handling in the _sqlFormat function
+ - Updated test cases suite to provide fixes coverage
+ 
 <b>1.1</b>
  - Released in December, 2012
  - Added compatibility with CUBRID 8.4.3 stable release

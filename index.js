@@ -1,7 +1,7 @@
 var _CUBRIDConnection = require('./src/CUBRIDConnection.js');
 var _Helpers = require('./src/utils/Helpers.js');
 var _Result2Array = require('./src/resultset/Result2Array.js');
-var _ActionQueue = require('.src/utils/ActionQueue.js');
+var _ActionQueue = require('./src/utils/ActionQueue.js');
 
 /**
  * Helper functions

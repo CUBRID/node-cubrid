@@ -113,3 +113,36 @@ exports.TotalRowsCount = function (jsonData) {
   }
 };
 
+/**
+ * Returns an array of objects where column names are keys
+ * @param jsonData
+ * @return {*}
+ * @constructor
+ */
+exports.ObjectsArray = function(jsonData) {
+  if (typeof  jsonData === 'undefined' || jsonData === null || jsonData.length === 0) {
+    return null;
+  }
+
+  try {
+    var fullArray = JSON.parse(jsonData);
+    var arr = [];
+
+    var rowsCount = fullArray.ColumnValues.length;
+    var colCount = fullArray.ColumnNames.length;
+    if (rowsCount <= 0) {
+      return null;
+    } else {
+      for (var i = 0; i < rowsCount; i++) {
+        arr[i] = {};
+        for(var j = 0; j < colCount; j++) {
+          arr[i][fullArray.ColumnNames[j]] = fullArray.ColumnValues[i][j];
+        }
+      }
+    }
+    return arr;
+  }
+  catch (ignored) {
+    return null;
+  }
+};
