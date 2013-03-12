@@ -4,10 +4,15 @@ var PacketReader = require('../../PacketReader'),
   CAS = require('../../../constants/CASConstants');
 
 exports['test_GetSchemaPacket'] = function (test) {
-  test.expect(16);
+  test.expect(29);
+  console.log('Unit test ' + module.filename.toString() + ' started...');
   var packetReader = new PacketReader();
   var packetWriter = new PacketWriter();
-  var options = {casInfo : [0, 255, 255, 255], schemaType : CAS.CUBRIDSchemaType.CCI_SCH_CLASS};
+  var options = {
+    casInfo          : [0, 255, 255, 255],
+    tableNamePattern : null,
+    schemaType       : CAS.CUBRIDSchemaType.CCI_SCH_CLASS,
+    dbVersion        : '8.4.1'};
   var getSchemaPacket = new GetSchemaPacket(options);
 
   getSchemaPacket.writeRequestSchema(packetWriter);
@@ -22,7 +27,7 @@ exports['test_GetSchemaPacket'] = function (test) {
   test.equal(packetWriter._toBuffer()[16], CAS.CUBRIDSchemaType.CCI_SCH_CLASS);
   test.equal(packetWriter._toBuffer()[21], 0);
   test.equal(packetWriter._toBuffer()[28], 1);
-  test.equal(packetWriter._toBuffer()[29], 1);
+  test.equal(packetWriter._toBuffer()[29], 3);
 
   packetReader.write(new Buffer([0, 0, 0, 0, 0, 255, 255, 255, 0, 0, 0, 1]));
 
@@ -52,9 +57,9 @@ exports['test_GetSchemaPacket'] = function (test) {
   test.equal(packetWriter._toBuffer()[8], CAS.CASFunctionCode.CAS_FC_FETCH);
   test.equal(packetWriter._toBuffer()[16], 1);
   test.equal(packetWriter._toBuffer()[24], 1);
-  test.equal(packetWriter._toBuffer()[32], 100);
+  test.equal(packetWriter._toBuffer()[32], 0);
   test.equal(packetWriter._toBuffer()[37], 0);
   test.equal(packetWriter._toBuffer()[45], 0);
   console.log('Unit test ended OK.');
   test.done();
-}
+};

@@ -15,7 +15,7 @@ CUBRIDClient.on(CUBRIDClient.EVENT_ERROR, function (err) {
 
 CUBRIDClient.on(CUBRIDClient.EVENT_CONNECTED, function () {
   Helpers.logInfo('Connected.');
-  CUBRIDClient.getSchema(CUBRIDClient.SCHEMA_TABLE, null);
+  CUBRIDClient.getSchema(CUBRIDClient.SCHEMA_TABLE, null, null);
   currentSchemaToReceive = CUBRIDClient.SCHEMA_TABLE;
 });
 
@@ -44,7 +44,7 @@ CUBRIDClient.on(CUBRIDClient.EVENT_SCHEMA_DATA_AVAILABLE, function (result) {
     }
   }
   if (currentSchemaToReceive === CUBRIDClient.SCHEMA_TABLE) {
-    CUBRIDClient.getSchema(CUBRIDClient.SCHEMA_VIEW, null);
+    CUBRIDClient.getSchema(CUBRIDClient.SCHEMA_VIEW, null, null);
     currentSchemaToReceive = CUBRIDClient.SCHEMA_VIEW;
   } else {
     CUBRIDClient.close();

@@ -36,15 +36,15 @@ FetchPacket.prototype.write = function (writer, queryPacket) {
   writer._writeBytes(DATA_TYPES.CAS_INFO_SIZE, this.casInfo);
 
   writer._writeByte(CAS.CASFunctionCode.CAS_FC_FETCH);
-  writer._writeInt(DATA_TYPES.INT_SIZEOF); //int sizeof
+  writer._writeInt(DATA_TYPES.INT_SIZEOF);
   writer._writeInt(queryPacket.queryHandle); //serverHandler
-  writer._writeInt(DATA_TYPES.INT_SIZEOF); //int sizeof
+  writer._writeInt(DATA_TYPES.INT_SIZEOF);
   writer._writeInt(queryPacket.currentTupleCount + 1); //Start position (= current cursor position + 1)
-  writer._writeInt(DATA_TYPES.INT_SIZEOF); //int sizeof
+  writer._writeInt(DATA_TYPES.INT_SIZEOF);
   writer._writeInt(100); //Fetch size; 0 = default; recommended = 100
-  writer._writeInt(DATA_TYPES.BYTE_SIZEOF); //byte sizeof
+  writer._writeInt(DATA_TYPES.BYTE_SIZEOF);
   writer._writeByte(0); //Is case sensitive
-  writer._writeInt(DATA_TYPES.INT_SIZEOF); //int sizeof
+  writer._writeInt(DATA_TYPES.INT_SIZEOF);
   writer._writeInt(0); //Is the ResultSet index...?
 
   return writer;

@@ -18,7 +18,7 @@ CUBRIDClient.connect(function (err) {
       if (err) {
         errorHandler(err);
       } else {
-        CUBRIDClient.setAutoCommitMode(false, function () {
+        CUBRIDClient.setAutoCommitMode(false, function (err) {
           if (err) {
             errorHandler(err);
           } else {
@@ -26,7 +26,7 @@ CUBRIDClient.connect(function (err) {
               if (err) {
                 errorHandler(err);
               } else {
-                CUBRIDClient.rollback(function () {
+                CUBRIDClient.rollback(function (err) {
                   if (err) {
                     errorHandler(err);
                   } else {
@@ -35,7 +35,7 @@ CUBRIDClient.connect(function (err) {
                         errorHandler(err);
                       } else {
                         assert(Result2Array.TotalRowsCount(result) !== 1, 'Didn\'t rollback!!!');
-                        CUBRIDClient.setAutoCommitMode(true, function () {
+                        CUBRIDClient.setAutoCommitMode(true, function (err) {
                           if (err) {
                             errorHandler(err);
                           } else {

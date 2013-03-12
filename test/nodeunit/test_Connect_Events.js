@@ -27,6 +27,7 @@ exports['test_Connect_Events'] = function (test) {
 
   CUBRIDClient.on(CUBRIDClient.EVENT_CONNECTION_CLOSED, function () {
     Helpers.logInfo('Connection closed');
+    Helpers.logInfo('Test passed');
     CUBRIDClient.removeAllListeners();
     test.done();
   });

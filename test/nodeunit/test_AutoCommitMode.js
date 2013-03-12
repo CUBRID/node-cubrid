@@ -19,7 +19,7 @@ exports['test_AutoCommitMode'] = function (test) {
         if (err) {
           errorHandler(err);
         } else {
-          CUBRIDClient.setAutoCommitMode(false, function () {
+          CUBRIDClient.setAutoCommitMode(false, function (err) {
             if (err) {
               errorHandler(err);
             } else {
@@ -27,7 +27,7 @@ exports['test_AutoCommitMode'] = function (test) {
                 if (err) {
                   errorHandler(err);
                 } else {
-                  CUBRIDClient.commit(function () {
+                  CUBRIDClient.commit(function (err) {
                     if (err) {
                       errorHandler(err);
                     } else {
@@ -36,7 +36,7 @@ exports['test_AutoCommitMode'] = function (test) {
                           errorHandler(err);
                         } else {
                           test.equal(Result2Array.TotalRowsCount(result), 1, 'Didn\'t commit!!!');
-                          CUBRIDClient.setAutoCommitMode(true, function () {
+                          CUBRIDClient.setAutoCommitMode(true, function (err) {
                             if (err) {
                               errorHandler(err);
                             } else {

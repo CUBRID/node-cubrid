@@ -18,7 +18,7 @@ CUBRIDClient.connect(function (err) {
   } else {
     Helpers.logInfo('Connected.');
     Helpers.logInfo('Querying: ' + sql);
-    CUBRIDClient.queryWithParams(sql, arrValues, [], function (err, result, queryHandle) {
+    CUBRIDClient.queryWithParams(sql, arrValues, ["'"], function (err, result, queryHandle) {
       if (err) {
         errorHandler(err);
       } else {

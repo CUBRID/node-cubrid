@@ -192,7 +192,7 @@ exports.CUBRIDDataType = {
 /**
  * Convert data type number to data type name
  */
-exports.getCUBRIDDataType = function (type) {
+exports.getCUBRIDDataTypeName = function (type) {
   switch (type) {
     case this.CUBRIDDataType.CCI_U_TYPE_CHAR:
       return 'Char';
@@ -244,6 +244,67 @@ exports.getCUBRIDDataType = function (type) {
       return 'Resultset';
     default:
       return 'UNKNOWN';
+  }
+};
+
+/**
+ * Convert data type name to data type number
+ */
+exports.getCUBRIDDataTypeNumber = function (type) {
+  type = type.toLowerCase();
+  switch (type) {
+    case 'char':
+      return this.CUBRIDDataType.CCI_U_TYPE_CHAR;
+    case 'varchar':
+      return this.CUBRIDDataType.CCI_U_TYPE_STRING;
+    case 'nchar':
+      return this.CUBRIDDataType.CCI_U_TYPE_NCHAR;
+    case 'string':
+      return this.CUBRIDDataType.CCI_U_TYPE_STRING;
+    case 'varnchar':
+      return this.CUBRIDDataType.CCI_U_TYPE_VARNCHAR;
+    case 'short':
+      return this.CUBRIDDataType.CCI_U_TYPE_SHORT;
+    case 'int':
+      return this.CUBRIDDataType.CCI_U_TYPE_INT;
+    case 'bigint':
+      return this.CUBRIDDataType.CCI_U_TYPE_BIGINT;
+    case 'float':
+      return this.CUBRIDDataType.CCI_U_TYPE_FLOAT;
+    case 'double':
+      return this.CUBRIDDataType.CCI_U_TYPE_DOUBLE;
+    case 'monetary':
+      return this.CUBRIDDataType.CCI_U_TYPE_MONETARY;
+    case 'numeric':
+      return this.CUBRIDDataType.CCI_U_TYPE_NUMERIC;
+    case 'date':
+      return this.CUBRIDDataType.CCI_U_TYPE_DATE;
+    case 'time':
+      return this.CUBRIDDataType.CCI_U_TYPE_TIME;
+    case 'datetime':
+      return this.CUBRIDDataType.CCI_U_TYPE_DATETIME;
+    case 'timestamp':
+      return this.CUBRIDDataType.CCI_U_TYPE_TIMESTAMP;
+    case 'object':
+      return this.CUBRIDDataType.CCI_U_TYPE_OBJECT;
+    case 'bit':
+      return this.CUBRIDDataType.CCI_U_TYPE_BIT;
+    case 'varbit':
+      return this.CUBRIDDataType.CCI_U_TYPE_VARBIT;
+    case 'set':
+      return this.CUBRIDDataType.CCI_U_TYPE_SET;
+    case 'multiset':
+      return this.CUBRIDDataType.CCI_U_TYPE_MULTISET;
+    case 'sequence':
+      return this.CUBRIDDataType.CCI_U_TYPE_SEQUENCE;
+    case 'blob':
+      return this.CUBRIDDataType.CCI_U_TYPE_BLOB;
+    case 'clob':
+      return this.CUBRIDDataType.CCI_U_TYPE_CLOB;
+    case 'resultset':
+      return this.CUBRIDDataType.CCI_U_TYPE_RESULTSET;
+    default:
+      return this.CUBRIDDataType.CCI_U_TYPE_UNKNOWN;
   }
 };
 
@@ -376,3 +437,18 @@ exports.CCIExecutionOption = {
   CCI_EXEC_HOLDABLE        : 0x20
 };
 
+/**
+ * Define CUBRID Schema pattern match flags
+ */
+exports.CCISchemaPatternMatchFlag = {
+  CCI_CLASS_NAME_PATTERN_MATCH : 0X01,
+  CCI_ATTR_NAME_PATTERN_MATCH  : 0X02
+};
+
+/**
+ * Define CUBRID LOB types
+ */
+exports.CCILOBType = {
+  CCI_LOB_TYPE_BLOB : 33,
+  CCI_LOB_TYPE_CLOB  : 34
+};

@@ -1,5 +1,5 @@
 /**
- * Define CUBRID and Driver error messages
+ * Define CUBRID internal error messages and custom driver error messages
  */
 
 exports.ERROR_NEW_BROKER_PORT = 'Error receiving a new connection port!';
@@ -16,6 +16,10 @@ exports.ERROR_INVALID_DATA_TYPE = 'Error:Invalid data type.';
 exports.ERROR_INVALID_SCHEMA_TYPE = 'Error:Invalid schema type.';
 exports.ERROR_INVALID_LOB_POSITION = 'Error: Invalid LOB position';
 exports.ERROR_INVALID_LOB_TYPE = 'Error: Invalid LOB type';
+exports.ERROR_CONNECTION_TIMEOUT = 'Connection timeout!';
+exports.ERROR_CONNECTION_CLOSED = 'Connection not opened!';
+exports.ERROR_QUERIES_IN_PROGRESS = 'Can\'t close the connection - there are queries in execution!';
+exports.ERROR_QUERY_NOT_FOUND = 'Query not found in queue!';
 
 exports.CASErrorMsgId = [
   ['CAS_ER_DBMS' , -1000],

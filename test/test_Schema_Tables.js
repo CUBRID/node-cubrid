@@ -13,7 +13,7 @@ ActionQueue.enqueue(
     },
 
     function (callback) {
-      CUBRIDClient.getSchema(CUBRIDClient.SCHEMA_TABLE, callback);
+      CUBRIDClient.getSchema(CUBRIDClient.SCHEMA_TABLE, null, callback);
     },
 
     function (result, callback) {

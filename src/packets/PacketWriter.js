@@ -1,4 +1,5 @@
-var DATA_TYPES = require('./../constants/DataTypes');
+var DATA_TYPES = require('./../constants/DataTypes'),
+  CAS = require('../constants/CASConstants');
 
 module.exports = PacketWriter;
 
@@ -271,6 +272,54 @@ PacketWriter.prototype._writeTimestamp = function (year, month, day, hour, min, 
   this._writeShort(min);
   this._writeShort(sec);
   this._writeShort(0);
+};
+
+/**
+ * Write a Object value to the internal buffer
+ * @param value
+ */
+PacketWriter.prototype._writeObject = function (value) {
+  this._writeByte(0); //not supported
+};
+
+/**
+ * Write a Sequence value to the internal buffer
+ * @param value
+ */
+PacketWriter.prototype._writeSequence = function (value) {
+  this._writeByte(0); //not supported
+};
+
+/**
+ * Write a ResultSet value to the internal buffer
+ * @param value
+ */
+PacketWriter.prototype._writeResultSet = function (value) {
+  this._writeByte(0); //not supported
+};
+
+
+/**
+ * Write a Blob object value to the internal buffer
+ * @param value
+ */
+PacketWriter.prototype._writeBlob = function (value) {
+  this._writeInt(value.packedLobHandle.length);
+  this._writeInt(CAS.CCILOBType.CCI_LOB_TYPE_BLOB);
+  this._writeLong(value.lobLength);
+  this._writeNullTerminatedString(value.fileLocator);
+};
+
+
+/**
+ * Write a Clob object value to the internal buffer
+ * @param value
+ */
+PacketWriter.prototype._writeClob = function (value) {
+  this._writeInt(value.packedLobHandle.length);
+  this._writeInt(CAS.CCILOBType.CCI_LOB_TYPE_CLOB);
+  this._writeLong(value.lobLength);
+  this._writeNullTerminatedString(value.fileLocator);
 };
 
 /**

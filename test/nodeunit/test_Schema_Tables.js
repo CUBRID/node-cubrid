@@ -14,7 +14,7 @@ exports['test_Schema_Tables'] = function (test) {
       },
 
       function (callback) {
-        CUBRIDClient.getSchema(CUBRIDClient.SCHEMA_TABLE, callback);
+        CUBRIDClient.getSchema(CUBRIDClient.SCHEMA_TABLE, null, callback);
       },
 
       function (result, callback) {
@@ -26,7 +26,7 @@ exports['test_Schema_Tables'] = function (test) {
           test.ok(result.length === 32);
         }
         else {
-          if (CUBRIDClient._DB_ENGINE_VER.startsWith('9.0')) {
+          if (CUBRIDClient._DB_ENGINE_VER.startsWith('9')) {
             test.ok(result.length === 33);
           }
         }

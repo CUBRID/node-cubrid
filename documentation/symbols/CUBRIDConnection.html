@@ -211,17 +211,25 @@ ul.inheritsList
 	
 	<li><a href="../symbols/exports.ColumnTypesArray.html">exports.ColumnTypesArray</a></li>
 	
+	<li><a href="../symbols/exports.ObjectsArray.html">exports.ObjectsArray</a></li>
+	
 	<li><a href="../symbols/exports.RowsArray.html">exports.RowsArray</a></li>
 	
 	<li><a href="../symbols/exports.TotalRowsCount.html">exports.TotalRowsCount</a></li>
 	
 	<li><a href="../symbols/FetchPacket.html">FetchPacket</a></li>
 	
+	<li><a href="../symbols/GetDbParameterPacket.html">GetDbParameterPacket</a></li>
+	
 	<li><a href="../symbols/GetEngineVersionPacket.html">GetEngineVersionPacket</a></li>
 	
 	<li><a href="../symbols/GetSchemaPacket.html">GetSchemaPacket</a></li>
 	
+	<li><a href="../symbols/LOBNewPacket.html">LOBNewPacket</a></li>
+	
 	<li><a href="../symbols/LOBReadPacket.html">LOBReadPacket</a></li>
+	
+	<li><a href="../symbols/LOBWritePacket.html">LOBWritePacket</a></li>
 	
 	<li><a href="../symbols/Number.html">Number</a></li>
 	
@@ -231,11 +239,15 @@ ul.inheritsList
 	
 	<li><a href="../symbols/PacketWriter.html">PacketWriter</a></li>
 	
+	<li><a href="../symbols/PrepareAndExecutePacket.html">PrepareAndExecutePacket</a></li>
+	
 	<li><a href="../symbols/ResultInfo.html">ResultInfo</a></li>
 	
 	<li><a href="../symbols/RollbackPacket.html">RollbackPacket</a></li>
 	
 	<li><a href="../symbols/SetAutoCommitModePacket.html">SetAutoCommitModePacket</a></li>
+	
+	<li><a href="../symbols/SetDbParameterPacket.html">SetDbParameterPacket</a></li>
 	
 	<li><a href="../symbols/String.html">String</a></li>
 	
@@ -259,7 +271,7 @@ ul.inheritsList
 				
 				
 				
-					<br /><i>Defined in: </i> <a href="../symbols/src/src_CUBRIDConnection.js.html">CUBRIDConnection.js</a>.
+					<br /><i>Defined in: </i> <a href="../symbols/src/nodejs_branches_2.0_src_CUBRIDConnection.js.html">CUBRIDConnection.js</a>.
 				
 			</p>
 
@@ -307,6 +319,24 @@ ul.inheritsList
 						<tr>
 							<td class="attributes">&nbsp;</td>
 							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/CUBRIDConnection.html#addNonQuery">addNonQuery</a></b>(sql, callback)
+								</div>
+								<div class="description">Add a non-query (direct SQL execute statement) to the queries queue</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/CUBRIDConnection.html#addQuery">addQuery</a></b>(sql, callback)
+								</div>
+								<div class="description">Add a query to the queries queue</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
 								<div class="fixedFont"><b><a href="../symbols/CUBRIDConnection.html#batchExecuteNoQuery">batchExecuteNoQuery</a></b>(sqls, callback)
 								</div>
 								<div class="description">Execute SQL statements in batch mode</div>
@@ -345,7 +375,7 @@ ul.inheritsList
 							<td class="nameDescription">
 								<div class="fixedFont"><b><a href="../symbols/CUBRIDConnection.html#commit">commit</a></b>(callback)
 								</div>
-								<div class="description">CommitPacket transaction</div>
+								<div class="description">Commit transaction</div>
 							</td>
 						</tr>
 					
@@ -379,9 +409,36 @@ ul.inheritsList
 						<tr>
 							<td class="attributes">&nbsp;</td>
 							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/CUBRIDConnection.html#executeWithTypedParams">executeWithTypedParams</a></b>(sql, arrParamsValues, arrParamsDataTypes, callback)
+								</div>
+								<div class="description">Execute sql statement with typed parameters</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
 								<div class="fixedFont"><b><a href="../symbols/CUBRIDConnection.html#fetch">fetch</a></b>(queryHandle, callback)
 								</div>
 								<div class="description">Fetch query next rows results</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/CUBRIDConnection.html#getConnectionTimeout">getConnectionTimeout</a></b>()
+								</div>
+								<div class="description">Returns the connection timeout</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/CUBRIDConnection.html#getDatabaseParameter">getDatabaseParameter</a></b>(parameter, callback)
+								</div>
+								<div class="description">Get a database parameter</div>
 							</td>
 						</tr>
 					
@@ -397,18 +454,45 @@ ul.inheritsList
 						<tr>
 							<td class="attributes">&nbsp;</td>
 							<td class="nameDescription">
-								<div class="fixedFont"><b><a href="../symbols/CUBRIDConnection.html#getSchema">getSchema</a></b>(schemaType, callback)
+								<div class="fixedFont"><b><a href="../symbols/CUBRIDConnection.html#getSchema">getSchema</a></b>(schemaType, tableNameFilter, callback)
 								</div>
-								<div class="description">Get databases schema information</div>
+								<div class="description">Get database schema information</div>
 							</td>
 						</tr>
 					
 						<tr>
 							<td class="attributes">&nbsp;</td>
 							<td class="nameDescription">
-								<div class="fixedFont"><b><a href="../symbols/CUBRIDConnection.html#lobRead">lobRead</a></b>(lobObject, pos, length, callback)
+								<div class="fixedFont"><b><a href="../symbols/CUBRIDConnection.html#lobNew">lobNew</a></b>(lobType, callback)
 								</div>
-								<div class="description">Read data lob object</div>
+								<div class="description">Create a new LOB object</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/CUBRIDConnection.html#lobRead">lobRead</a></b>(lobObject, position, length, callback)
+								</div>
+								<div class="description">Read a LOB object from the database</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/CUBRIDConnection.html#lobWrite">lobWrite</a></b>(lobObject, position, dataBuffer, callback)
+								</div>
+								<div class="description">Write data to a LOB object</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/CUBRIDConnection.html#queriesQueueIsEmpty">queriesQueueIsEmpty</a></b>()
+								</div>
+								<div class="description">Return true if there are pending queries in the queries queue</div>
 							</td>
 						</tr>
 					
@@ -433,9 +517,18 @@ ul.inheritsList
 						<tr>
 							<td class="attributes">&nbsp;</td>
 							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/CUBRIDConnection.html#queryWithTypedParams">queryWithTypedParams</a></b>(sql, arrParamsValues, arrParamsDataTypes, callback)
+								</div>
+								<div class="description">Execute query with typed parameters</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
 								<div class="fixedFont"><b><a href="../symbols/CUBRIDConnection.html#rollback">rollback</a></b>(callback)
 								</div>
-								<div class="description">RollbackPacket transaction</div>
+								<div class="description">Rollback transaction</div>
 							</td>
 						</tr>
 					
@@ -445,6 +538,33 @@ ul.inheritsList
 								<div class="fixedFont"><b><a href="../symbols/CUBRIDConnection.html#setAutoCommitMode">setAutoCommitMode</a></b>(autoCommitMode, callback)
 								</div>
 								<div class="description">Set session auto-commit mode</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/CUBRIDConnection.html#setConnectionTimeout">setConnectionTimeout</a></b>(timeout)
+								</div>
+								<div class="description">Set connection timeout value.</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/CUBRIDConnection.html#setDatabaseParameter">setDatabaseParameter</a></b>(parameter, value, callback)
+								</div>
+								<div class="description">Set a database parameter</div>
+							</td>
+						</tr>
+					
+						<tr>
+							<td class="attributes">&nbsp;</td>
+							<td class="nameDescription">
+								<div class="fixedFont"><b><a href="../symbols/CUBRIDConnection.html#setEnforceOldQueryProtocol">setEnforceOldQueryProtocol</a></b>(enforceOldProtocol)
+								</div>
+								<div class="description">Set the protocol to be used for queries execution.</div>
 							</td>
 						</tr>
 					
@@ -536,6 +656,90 @@ ul.inheritsList
 				<div class="sectionTitle">
 					Method Detail
 				</div>
+				
+					<a name="addNonQuery"> </a>
+					<div class="fixedFont">
+					
+					
+					<b>addNonQuery</b>(sql, callback)
+					
+					</div>
+					<div class="description">
+						Add a non-query (direct SQL execute statement) to the queries queue
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<b>sql</b>
+									
+								</dt>
+								<dd>SQL command to execute</dd>
+							
+								<dt>
+									<b>callback</b>
+									
+								</dt>
+								<dd></dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+						
+						
+
+					<hr />
+				
+					<a name="addQuery"> </a>
+					<div class="fixedFont">
+					
+					
+					<b>addQuery</b>(sql, callback)
+					
+					</div>
+					<div class="description">
+						Add a query to the queries queue
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<b>sql</b>
+									
+								</dt>
+								<dd>SQL query to execute</dd>
+							
+								<dt>
+									<b>callback</b>
+									
+								</dt>
+								<dd></dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+						
+						
+
+					<hr />
 				
 					<a name="batchExecuteNoQuery"> </a>
 					<div class="fixedFont">
@@ -701,7 +905,7 @@ ul.inheritsList
 					
 					</div>
 					<div class="description">
-						CommitPacket transaction
+						Commit transaction
 						
 						
 					</div>
@@ -868,6 +1072,67 @@ ul.inheritsList
 
 					<hr />
 				
+					<a name="executeWithTypedParams"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{*}</span>
+					<b>executeWithTypedParams</b>(sql, arrParamsValues, arrParamsDataTypes, callback)
+					
+					</div>
+					<div class="description">
+						Execute sql statement with typed parameters
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<b>sql</b>
+									
+								</dt>
+								<dd></dd>
+							
+								<dt>
+									<b>arrParamsValues</b>
+									
+								</dt>
+								<dd></dd>
+							
+								<dt>
+									<b>arrParamsDataTypes</b>
+									
+								</dt>
+								<dd></dd>
+							
+								<dt>
+									<b>callback</b>
+									
+								</dt>
+								<dd></dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{*}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
 					<a name="fetch"> </a>
 					<div class="fixedFont">
 					
@@ -892,6 +1157,80 @@ ul.inheritsList
 									
 								</dt>
 								<dd></dd>
+							
+								<dt>
+									<b>callback</b>
+									
+								</dt>
+								<dd></dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+						
+						
+
+					<hr />
+				
+					<a name="getConnectionTimeout"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{<a href="../symbols/Number.html">Number</a>}</span>
+					<b>getConnectionTimeout</b>()
+					
+					</div>
+					<div class="description">
+						Returns the connection timeout
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{<a href="../symbols/Number.html">Number</a>}</span> (.msec)</dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
+					<a name="getDatabaseParameter"> </a>
+					<div class="fixedFont">
+					
+					
+					<b>getDatabaseParameter</b>(parameter, callback)
+					
+					</div>
+					<div class="description">
+						Get a database parameter
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<b>parameter</b>
+									
+								</dt>
+								<dd>id</dd>
 							
 								<dt>
 									<b>callback</b>
@@ -950,11 +1289,11 @@ ul.inheritsList
 					<div class="fixedFont">
 					
 					
-					<b>getSchema</b>(schemaType, callback)
+					<b>getSchema</b>(schemaType, tableNameFilter, callback)
 					
 					</div>
 					<div class="description">
-						Get databases schema information
+						Get database schema information
 						
 						
 					</div>
@@ -967,6 +1306,54 @@ ul.inheritsList
 							
 								<dt>
 									<b>schemaType</b>
+									
+								</dt>
+								<dd></dd>
+							
+								<dt>
+									<b>tableNameFilter</b>
+									
+								</dt>
+								<dd></dd>
+							
+								<dt>
+									<b>callback</b>
+									
+								</dt>
+								<dd></dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+						
+						
+
+					<hr />
+				
+					<a name="lobNew"> </a>
+					<div class="fixedFont">
+					
+					
+					<b>lobNew</b>(lobType, callback)
+					
+					</div>
+					<div class="description">
+						Create a new LOB object
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<b>lobType</b>
 									
 								</dt>
 								<dd></dd>
@@ -992,11 +1379,11 @@ ul.inheritsList
 					<div class="fixedFont">
 					
 					
-					<b>lobRead</b>(lobObject, pos, length, callback)
+					<b>lobRead</b>(lobObject, position, length, callback)
 					
 					</div>
 					<div class="description">
-						Read data lob object
+						Read a LOB object from the database
 						
 						
 					</div>
@@ -1014,7 +1401,7 @@ ul.inheritsList
 								<dd></dd>
 							
 								<dt>
-									<b>pos</b>
+									<b>position</b>
 									
 								</dt>
 								<dd></dd>
@@ -1036,6 +1423,92 @@ ul.inheritsList
 						
 						
 						
+						
+						
+						
+
+					<hr />
+				
+					<a name="lobWrite"> </a>
+					<div class="fixedFont">
+					
+					
+					<b>lobWrite</b>(lobObject, position, dataBuffer, callback)
+					
+					</div>
+					<div class="description">
+						Write data to a LOB object
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<b>lobObject</b>
+									
+								</dt>
+								<dd></dd>
+							
+								<dt>
+									<b>position</b>
+									
+								</dt>
+								<dd></dd>
+							
+								<dt>
+									<b>dataBuffer</b>
+									
+								</dt>
+								<dd></dd>
+							
+								<dt>
+									<b>callback</b>
+									
+								</dt>
+								<dd></dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+						
+						
+
+					<hr />
+				
+					<a name="queriesQueueIsEmpty"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{Boolean}</span>
+					<b>queriesQueueIsEmpty</b>()
+					
+					</div>
+					<div class="description">
+						Return true if there are pending queries in the queries queue
+						
+						
+					</div>
+					
+					
+					
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{Boolean}</span> </dd>
+							
+							</dl>
 						
 						
 						
@@ -1145,6 +1618,67 @@ ul.inheritsList
 
 					<hr />
 				
+					<a name="queryWithTypedParams"> </a>
+					<div class="fixedFont">
+					
+					<span class="light">{*}</span>
+					<b>queryWithTypedParams</b>(sql, arrParamsValues, arrParamsDataTypes, callback)
+					
+					</div>
+					<div class="description">
+						Execute query with typed parameters
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<b>sql</b>
+									
+								</dt>
+								<dd></dd>
+							
+								<dt>
+									<b>arrParamsValues</b>
+									
+								</dt>
+								<dd></dd>
+							
+								<dt>
+									<b>arrParamsDataTypes</b>
+									
+								</dt>
+								<dd></dd>
+							
+								<dt>
+									<b>callback</b>
+									
+								</dt>
+								<dd></dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+							<dl class="detailList">
+							<dt class="heading">Returns:</dt>
+							
+								<dd><span class="light fixedFont">{*}</span> </dd>
+							
+							</dl>
+						
+						
+						
+
+					<hr />
+				
 					<a name="rollback"> </a>
 					<div class="fixedFont">
 					
@@ -1153,7 +1687,7 @@ ul.inheritsList
 					
 					</div>
 					<div class="description">
-						RollbackPacket transaction
+						Rollback transaction
 						
 						
 					</div>
@@ -1221,6 +1755,126 @@ ul.inheritsList
 						
 						
 
+					<hr />
+				
+					<a name="setConnectionTimeout"> </a>
+					<div class="fixedFont">
+					
+					
+					<b>setConnectionTimeout</b>(timeout)
+					
+					</div>
+					<div class="description">
+						Set connection timeout value. If set to 0, the timeout is reset to none.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<b>timeout</b>
+									
+								</dt>
+								<dd>(.msec)</dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+						
+						
+
+					<hr />
+				
+					<a name="setDatabaseParameter"> </a>
+					<div class="fixedFont">
+					
+					
+					<b>setDatabaseParameter</b>(parameter, value, callback)
+					
+					</div>
+					<div class="description">
+						Set a database parameter
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<b>parameter</b>
+									
+								</dt>
+								<dd>id</dd>
+							
+								<dt>
+									<b>value</b>
+									
+								</dt>
+								<dd></dd>
+							
+								<dt>
+									<b>callback</b>
+									
+								</dt>
+								<dd></dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+						
+						
+
+					<hr />
+				
+					<a name="setEnforceOldQueryProtocol"> </a>
+					<div class="fixedFont">
+					
+					
+					<b>setEnforceOldQueryProtocol</b>(enforceOldProtocol)
+					
+					</div>
+					<div class="description">
+						Set the protocol to be used for queries execution.If set to true, the driver will use the (old) 8.4.x protocol.If set to false, the driver will use the newer 9.x protocol.
+						
+						
+					</div>
+					
+					
+					
+						
+							<dl class="detailList">
+							<dt class="heading">Parameters:</dt>
+							
+								<dt>
+									<b>enforceOldProtocol</b>
+									
+								</dt>
+								<dd></dd>
+							
+							</dl>
+						
+						
+						
+						
+						
+						
+						
+
 					
 				
 			
@@ -1235,7 +1889,7 @@ ul.inheritsList
 <!-- ============================== footer ================================= -->
 		<div class="fineprint" style="clear:both">
 			
-			Documentation generated by <a href="http://code.google.com/p/jsdoc-toolkit/" target="_blank">JsDoc Toolkit</a> 2.4.0 on Sat Dec 15 2012 12:31:19 GMT+0100 (CET)
+			Documentation generated by <a href="http://code.google.com/p/jsdoc-toolkit/" target="_blank">JsDoc Toolkit</a> 2.4.0 on Mon Mar 11 2013 18:26:53 GMT+0100 (CET)
 		</div>
 	</body>
 </html>

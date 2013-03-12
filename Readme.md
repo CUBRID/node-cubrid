@@ -1,5 +1,5 @@
 <b>node-cubrid</b><br/>
-June-December, 2012<br/>
+2012-2013<br/>
 http://www.cubrid.org<br/>
 
 
@@ -8,12 +8,16 @@ Introduction
 The <b>CUBRID</b> node.js driver is an open-source project with the goal of implementing a 100% native node.js driver
 for the <b>CUBRID</b> database engine (www.cubrid.org).
 
-The driver is under constant development and the current release is the <b>1.1</b>, which features:
-- Full compatibility with 8.4.1, 8.4.3 and 9.0.0 (beta) CUBRID engine releases
-- Rich database support: Connect, Query, Fetch, Execute, Commit, Rollback, DB Schema etc.
+The driver is under constant development and the current release is the <b>2.0</b>, which features:
+- Full (backward) compatibility with 8.4.1, 8.4.3, 9.0 and 9.1 (beta) CUBRID engine releases
+- Rich database support: Connect, Query, Fetch, Execute, Commit etc.
+- Support or queries queueing
+- Support for database schema
+- Support for database parameters and transactions
+- Support for LOB objects
 - Out of the box driver events model
-- <b>10.000</b>+ LOC, including the driver test code and demos
-- 50+ test cases
+- <b>15.000</b>+ LOC, including the driver test code and demos
+- 100+ test cases
 - HTML documentation
 - User demos: E2E scenarios, web sites
 - User tutorials
@@ -22,15 +26,18 @@ The driver is under constant development and the current release is the <b>1.1</
 
 Releases
 =======================================================================================================
-<b>1.1.1</b>
- - Released in January, 2013
- - Added ActionQueue direct export from the node-cubrid module
- - Added createDefaultCUBRIDDemodbConnection function wrapper
- - Added a function that returns an array of objects where column names from the query result are keys
- - Fixed incorrect Datetime type parsing
- - Fixed the delimiters and number datatype handling in the _sqlFormat function
- - Updated test cases suite to provide fixes coverage
- 
+<b>2.0</b>
+ - Released in March, 2013
+ - Added compatibility with CUBRID 9.1 beta release
+ - Support or queries queueing
+ - Support for LOB objects
+ - Support for database parameters
+ - Support for more database schema
+ - Support for separate Prepare and Execute protocol (for improved backward compatibility)
+ - Code quality improvements
+ - Issues fixing
+ - New test cases
+
 <b>1.1</b>
  - Released in December, 2012
  - Added compatibility with CUBRID 8.4.3 stable release
@@ -205,19 +212,36 @@ Or, if you prefer the standard callbacks "style":
     });
 
 
+This is an example of the 2.0 release newly introduced queries queue processor usage:
+
+    var SQL_1 = 'SELECT COUNT(*) FROM [code]';
+    var SQL_2 = 'SELECT * FROM [code] WHERE s_name = \'X\'';
+    var SQL_3 = 'SELECT COUNT(*) FROM [code] WHERE f_name LIKE \'M%\'';
+
+    Helpers.logInfo('Executing [1]: ' + SQL_1);
+    CUBRIDClient.addQuery(SQL_1, function (err, result) {
+      Helpers.logInfo('Result [1]: ' + Result2Array.RowsArray(result));
+    });
+
+    Helpers.logInfo('Executing [2]: ' + SQL_2);
+    CUBRIDClient.addQuery(SQL_2, function (err, result) {
+      Helpers.logInfo('Result [2]: ' + Result2Array.RowsArray(result));
+    });
+
+    Helpers.logInfo('Executing [3]: ' + SQL_3);
+    CUBRIDClient.addQuery(SQL_3, function (err, result) {
+      Helpers.logInfo('Result [3]: ' + Result2Array.RowsArray(result));
+      CUBRIDClient.close();
+    });
+
+
 <b>Once again, remember that there are dozens of ready-to-use coding examples featured in the project,
 that can give you a very fast startup.</b>
-
+For how-to examples and tutorials, the plae to visit is: http://www.cubrid.org/wiki_apis/entry/cubrid-node-js-tutorials.
 
 What's next
 =======================================================================================================
-In the next driver release (2.0), we will be targeting:
-- Compatibility with the 9.0.0 CUBRID engine stable release
-- Additional database functionality (enhanced LOB support, more db schemas etc.)
-- New functionalities: integrated connection pool, queries queue, better caching etc.
-- Code improvements, optimizations
-- More examples
-
+We intend to continuosly improve this driver, by adding more features and improving the existing code base.
 ...And you are more than welcomed to suggest what we should improve or add - please let us know! :)
 
 

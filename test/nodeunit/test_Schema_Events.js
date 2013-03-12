@@ -17,7 +17,7 @@ exports['test_Schema_Events'] = function (test) {
 
   CUBRIDClient.on(CUBRIDClient.EVENT_CONNECTED, function () {
     Helpers.logInfo('Connected.');
-    CUBRIDClient.getSchema(CUBRIDClient.SCHEMA_TABLE, null);
+    CUBRIDClient.getSchema(CUBRIDClient.SCHEMA_TABLE, null, null);
     currentSchemaToReceive = CUBRIDClient.SCHEMA_TABLE;
   });
 
@@ -35,7 +35,7 @@ exports['test_Schema_Events'] = function (test) {
         }
       }
     } else {
-      if (CUBRIDClient._DB_ENGINE_VER.startsWith('9.0')) {
+      if (CUBRIDClient._DB_ENGINE_VER.startsWith('9')) {
         if (currentSchemaToReceive === CUBRIDClient.SCHEMA_TABLE) {
           test.ok(result.length === 33);
         } else {

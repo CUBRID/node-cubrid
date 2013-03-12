@@ -32,7 +32,7 @@ assert.equal(newsql, "insert into a values('1', 2, NULL)");
 var unescaped = 'insert into "a values(\b)';
 var escaped = Helpers._escapeString(unescaped);
 
-assert.equal(escaped, "insert into \"a values(\b)");
+assert.equal(escaped, "insert into \"\"a values(\\b)");
 
 //Test Input validation functions
 assert(Helpers._validateInputBoolean(null) === false);
@@ -45,7 +45,7 @@ assert(Helpers._validateInputBoolean(1) === true);
 assert(Helpers._validateInputPositive(null) === false);
 assert(Helpers._validateInputPositive(3.14) === true);
 assert(Helpers._validateInputPositive(-1) === false);
-assert(Helpers._validateInputPositive(0) === false);
+assert(Helpers._validateInputPositive(0) === true);
 assert(Helpers._validateInputPositive(14) === true);
 
 assert(Helpers._validateInputTimeout(null) === false);

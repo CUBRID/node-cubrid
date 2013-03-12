@@ -14,12 +14,12 @@ exports['test_SetAutoCommit'] = function (test) {
       errorHandler(err);
     } else {
       Helpers.logInfo('Connected...');
-      CUBRIDClient.setAutoCommitMode(false, function () {
+      CUBRIDClient.setAutoCommitMode(false, function (err) {
         if (err) {
           errorHandler(err);
         } else {
           test.ok(CUBRIDClient.autoCommitMode === false, 'AutoCommitMode not set correctly!');
-          CUBRIDClient.setAutoCommitMode(true, function () {
+          CUBRIDClient.setAutoCommitMode(true, function (err) {
             if (err) {
               errorHandler(err);
             } else {

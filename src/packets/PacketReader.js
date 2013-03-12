@@ -299,7 +299,7 @@ PacketReader.prototype._parseObject = function () {
 
 /**
  * Returns a BLOB object from the internal buffer
- * @return {Buffer}
+ * @return {Object}
  */
 PacketReader.prototype._parseBlob = function (size) {
   var packedLobHandle = this._parseBytes(size);
@@ -309,17 +309,19 @@ PacketReader.prototype._parseBlob = function (size) {
   for (var i = DATA_TYPES.LONG_SIZEOF - 1; i >= 0; i--) {
     lobSize += lobSizeBuffer[DATA_TYPES.LONG_SIZEOF - i - 1] * Math.pow(256, i);
   }
+  var fileLocator = packedLobHandle.slice(16, packedLobHandle.length - 1).toString();
 
   return {
     lobType         : CAS.CUBRIDDataType.CCI_U_TYPE_BLOB, //BLOB type
     packedLobHandle : packedLobHandle,
+    fileLocator     : fileLocator,
     lobLength       : lobSize
   };
 };
 
 /**
  * Returns a CLOB object from the internal buffer
- * @return {String}
+ * @return {Object}
  */
 PacketReader.prototype._parseClob = function (size) {
   var packedLobHandle = this._parseBytes(size);
@@ -329,10 +331,12 @@ PacketReader.prototype._parseClob = function (size) {
   for (var i = DATA_TYPES.LONG_SIZEOF - 1; i >= 0; i--) {
     lobSize += lobSizeBuffer[DATA_TYPES.LONG_SIZEOF - i - 1] * Math.pow(256, i);
   }
+  var fileLocator = packedLobHandle.slice(16, packedLobHandle.length - 1).toString();
 
   return {
     lobType         : CAS.CUBRIDDataType.CCI_U_TYPE_CLOB, //CLOB type
     packedLobHandle : packedLobHandle,
+    fileLocator     : fileLocator,
     lobLength       : lobSize
   };
 };

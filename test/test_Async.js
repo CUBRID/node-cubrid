@@ -1,7 +1,7 @@
 var CUBRIDClient = require('./test_Setup').createDefaultCUBRIDDemodbConnection,
 //TODO Update this with your own async installation path
   Async = require('c:/Program Files (x86)/nodejs/node_modules/async/index.js'),
-  //Async = require('C:/Documents and Settings/Ovidiu/node_modules/async/index.js'),
+//Async = require('C:/Documents and Settings/Ovidiu/node_modules/async/index.js'),
   Helpers = require('../src/utils/Helpers'),
   Result2Array = require('../src/resultset/Result2Array'),
   assert = require('assert');
@@ -79,7 +79,7 @@ Async.waterfall(
       CUBRIDClient.closeQuery(returnedQueryHandle, cb);
     },
 
-    function (queryHadle, cb) {
+    function (queryHandle, cb) {
       CUBRIDClient.close(cb);
     }
   ],

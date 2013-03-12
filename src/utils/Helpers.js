@@ -11,15 +11,19 @@ var DEBUG_ENABLED = require('../Config').DEBUG_ENABLED,
  * @param arg2
  * @private
  */
-function _emitSafeEvent(obj, successEvent, arg1, arg2) {
+function _emitSafeEvent(obj, successEvent, arg1, arg2, arg3) {
   if (obj.listeners(successEvent).length > 0) {
-    if (typeof arg1 !== 'undefined' && typeof arg2 !== 'undefined') {
-      obj.emit(successEvent, arg1, arg2);
+    if (typeof arg1 !== 'undefined' && typeof arg2 !== 'undefined' && typeof arg3 !== 'undefined') {
+      obj.emit(successEvent, arg1, arg2, arg3);
     } else {
-      if (typeof arg1 !== 'undefined') {
-        obj.emit(successEvent, arg1);
+      if (typeof arg1 !== 'undefined' && typeof arg2 !== 'undefined') {
+        obj.emit(successEvent, arg1, arg2);
       } else {
-        obj.emit(successEvent);
+        if (typeof arg1 !== 'undefined') {
+          obj.emit(successEvent, arg1);
+        } else {
+          obj.emit(successEvent);
+        }
       }
     }
   }
@@ -33,13 +37,13 @@ function _emitSafeEvent(obj, successEvent, arg1, arg2) {
  * @param successEvent
  * @private
  */
-exports._emitEvent = function (obj, err, errorEvent, successEvent, arg1, arg2) {
+exports._emitEvent = function (obj, err, errorEvent, successEvent, arg1, arg2, arg3) {
   if (typeof err !== 'undefined' && err !== null) {
     if (obj.listeners(errorEvent).length > 0) {
       obj.emit(errorEvent, err);
     }
   } else {
-    _emitSafeEvent(obj, successEvent, arg1, arg2);
+    _emitSafeEvent(obj, successEvent, arg1, arg2, arg3);
   }
 };
 
@@ -74,11 +78,24 @@ exports._validateInputTimeout = function (val) {
 };
 
 /**
- * Validate if the value is an accepted strict-positive "number" input
+ * Validate if the value is a positive "number" input
  * @param val
  * @return {Boolean}
  */
 exports._validateInputPositive = function (val) {
+  if (typeof val === 'undefined' || val === null || !(typeof val === 'number' && val >= 0)) {
+    return false;
+  }
+
+  return true;
+};
+
+/**
+ * Validate if the value is a strict positive "number" input
+ * @param val
+ * @return {Boolean}
+ */
+exports._validateInputStrictPositive = function (val) {
   if (typeof val === 'undefined' || val === null || !(typeof val === 'number' && val > 0)) {
     return false;
   }
@@ -255,7 +272,7 @@ exports._combineData = function (buffer, value) {
  */
 exports.logInfo = function logInfo(data) {
   if (DEBUG_ENABLED) {
-    if (typeof window != 'undefined') {
+    if (typeof window !== 'undefined') {
       if (!("console" in window) || !("firebug" in console)) {
         var names = ["log", "debug", "info", "warn", "error", "assert", "dir", "dirxml", "group", "groupEnd", "time", "timeEnd", "count", "trace", "profile", "profileEnd"];
         window.console = {};

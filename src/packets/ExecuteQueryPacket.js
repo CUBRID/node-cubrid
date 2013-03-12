@@ -158,7 +158,7 @@ ExecuteQueryPacket.prototype.parse = function (parser) {
     var columnValues = new Array(this.tupleCount);
     for (var i = 0; i < this.columnCount; i++) {
       columnNames[i] = this.infoArray[i].Name;
-      columnDataTypes[i] = CAS.getCUBRIDDataType(this.infoArray[i].ColumnType);
+      columnDataTypes[i] = CAS.getCUBRIDDataTypeName(this.infoArray[i].ColumnType);
     }
 
     columnValues = this._getData(parser, this.tupleCount);

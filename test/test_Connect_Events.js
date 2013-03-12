@@ -10,7 +10,7 @@ CUBRIDClient.on(CUBRIDClient.EVENT_ERROR, function (err) {
 });
 
 CUBRIDClient.on(CUBRIDClient.EVENT_CONNECTED, function () {
-  console.log('Connection opened.');
+  Helpers.logInfo('Connection opened.');
   CUBRIDClient.query('select * from game');
 });
 
@@ -24,7 +24,8 @@ CUBRIDClient.on(CUBRIDClient.EVENT_QUERY_CLOSED, function () {
 });
 
 CUBRIDClient.on(CUBRIDClient.EVENT_CONNECTION_CLOSED, function () {
-  console.log('Connection closed');
+  Helpers.logInfo('Connection closed');
+  Helpers.logInfo('Test passed');
 });
 
 
