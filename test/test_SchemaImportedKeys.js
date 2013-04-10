@@ -40,7 +40,7 @@ ActionQueue.enqueue(
         assert(result[1].DeleteAction === 1);
       }
       else {
-        if (CUBRIDClient._DB_ENGINE_VER.startsWith('9.0')) {
+        if (CUBRIDClient._DB_ENGINE_VER.startsWith('9.1')) {
           assert(result[0].FkName === 'fk_game_event_code');
           assert(result[0].PkName === 'pk_event_code');
           assert(result[0].FkTableName === 'game');

@@ -68,7 +68,7 @@ CUBRIDClient.on(CUBRIDClient.EVENT_QUERY_DATA_AVAILABLE, function (result, query
     global.queryNo++;
   } else {
     if (global.queryNo === 2) {
-      assert(Result2Array.TotalRowsCount(result) === null);
+      assert(Result2Array.TotalRowsCount(result) === 0);
       CUBRIDClient.closeQuery(global.savedQueryHandle, null);
     } else {
       assert(Result2Array.RowsArray(result)[0][0] === 0);

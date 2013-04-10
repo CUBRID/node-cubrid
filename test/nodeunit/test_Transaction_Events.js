@@ -69,7 +69,7 @@ exports['test_Transaction_Events'] = function (test) {
       CUBRIDClient.closeQuery(global.savedQueryHandle, null);
     } else {
       if (global.queryNo === 2) {
-        test.ok(Result2Array.TotalRowsCount(result) === null);
+        test.ok(Result2Array.TotalRowsCount(result) === 0);
         CUBRIDClient.closeQuery(global.savedQueryHandle, null);
       } else {
         test.ok(Result2Array.RowsArray(result)[0][0] === 0);

@@ -25,7 +25,7 @@ ActionQueue.enqueue(
         assert(result.length === 96);
       }
       else {
-        if (CUBRIDClient._DB_ENGINE_VER.startsWith('9.0')) {
+        if (CUBRIDClient._DB_ENGINE_VER.startsWith('9.1')) {
           assert(result.length === 97);
         }
       }

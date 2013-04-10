@@ -24,7 +24,7 @@ ActionQueue.enqueue(
         assert(result.length === 32);
       }
       else {
-        if (CUBRIDClient._DB_ENGINE_VER.startsWith('9.0')) {
+        if (CUBRIDClient._DB_ENGINE_VER.startsWith('9.1')) {
           assert(result.length === 33);
         }
       }
@@ -44,7 +44,7 @@ ActionQueue.enqueue(
         assert(result.length === 16);
       }
       else {
-        if (CUBRIDClient._DB_ENGINE_VER.startsWith('9.0')) {
+        if (CUBRIDClient._DB_ENGINE_VER.startsWith('9.1')) {
           assert(result.length === 17);
         }
       }

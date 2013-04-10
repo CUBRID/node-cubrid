@@ -46,7 +46,7 @@ getMyValue.on('return', function (result) {
 
 getMyValue.on('error', function (err) {
   Helpers.logInfo(err.message);
-  throw 'We should not get here!';
+  throw err;
 });
 
 getMyValue.on('done', function () {

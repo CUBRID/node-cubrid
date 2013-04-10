@@ -2,6 +2,7 @@
 2012-2013<br/>
 http://www.cubrid.org<br/>
 
+[![Build Status](https://travis-ci.org/CUBRID/node-cubrid.png)](https://travis-ci.org/CUBRID/node-cubrid)
 
 Introduction
 =======================================================================================================

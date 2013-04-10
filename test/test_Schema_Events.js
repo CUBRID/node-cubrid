@@ -33,7 +33,7 @@ CUBRIDClient.on(CUBRIDClient.EVENT_SCHEMA_DATA_AVAILABLE, function (result) {
       }
     }
   } else {
-    if (CUBRIDClient._DB_ENGINE_VER.startsWith('9.0')) {
+    if (CUBRIDClient._DB_ENGINE_VER.startsWith('9.1')) {
       if (currentSchemaToReceive === CUBRIDClient.SCHEMA_TABLE) {
         assert(result.length === 33);
       } else {

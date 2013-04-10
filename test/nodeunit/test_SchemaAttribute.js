@@ -26,7 +26,7 @@ exports['test_SchemaAttribute'] = function (test) {
           test.ok(result.length === 191);
         }
         else {
-          if (CUBRIDClient._DB_ENGINE_VER.startsWith('9.0')) {
+          if (CUBRIDClient._DB_ENGINE_VER.startsWith('9.1')) {
             test.ok(result.length === 212);
           }
         }
@@ -36,7 +36,7 @@ exports['test_SchemaAttribute'] = function (test) {
           test.ok(result[0].Precision === 0);
         }
         else {
-          if (CUBRIDClient._DB_ENGINE_VER.startsWith('9.0')) {
+          if (CUBRIDClient._DB_ENGINE_VER.startsWith('9.1')) {
             test.ok(result[0].Precision === 10);
           }
         }

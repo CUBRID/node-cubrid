@@ -280,7 +280,7 @@ CUBRIDConnection.prototype._doDatabaseLogin = function (self, callback) {
         err = new Error(errorCode + ':' + errorMsg);
       } else {
         self.sessionId = openDatabasePacket.sessionId;
-        self.autoCommitMode = (self._CASInfo[3] & 0x01) ? self.AUTOCOMMIT_ON : self.AUTOCOMMIT_OFF;
+        self.autoCommitMode = self.AUTOCOMMIT_ON;
       }
       callback.call(self, err);
     }
@@ -472,7 +472,7 @@ CUBRIDConnection.prototype.batchExecuteNoQuery = function (sqls, callback) {
             batchExecuteNoQueryPacket.parse(packetReader);
             var errorCode = batchExecuteNoQueryPacket.errorCode;
             var errorMsg = batchExecuteNoQueryPacket.errorMsg;
-            if (self._DB_ENGINE_VER.startsWith('8.4.3')) {
+            if (!self._DB_ENGINE_VER.startsWith('8.4.1')) {
               for (var i = 0; i < batchExecuteNoQueryPacket.arrResultsCode.length; i++) {
                 if (batchExecuteNoQueryPacket.arrResultsCode[i] < 0) {
                   if (err === null) {
@@ -525,7 +525,12 @@ CUBRIDConnection.prototype.execute = function (sql, callback) {
   var arrSQL = [];
   arrSQL.push(sql);
 
-  return self.batchExecuteNoQuery(arrSQL, callback);
+  if(this._ENFORCE_OLD_QUERY_PROTOCOL === true)
+  {
+    return self.executeWithTypedParams(sql, null, null, callback);
+  } else {
+    return self.batchExecuteNoQuery(arrSQL, callback);
+  }
 };
 
 /**
@@ -1227,6 +1232,13 @@ CUBRIDConnection.prototype.setAutoCommitMode = function (autoCommitMode, callbac
 };
 
 /**
+ * Get session auto-commit mode
+ */
+CUBRIDConnection.prototype.getAutoCommitMode = function () {
+  return this.autoCommitMode;
+};
+
+/**
  * Rollback transaction
  * @param callback
  */
@@ -1359,40 +1371,10 @@ function _toggleAutoCommitMode(self, autoCommitMode, callback) {
     }
   }
 
-  var packetWriter = new PacketWriter();
-  var setAutoCommitModePacket = new SetAutoCommitModePacket(
-    {
-      casInfo        : self._CASInfo,
-      autoCommitMode : autoCommitMode,
-      dbVersion      : self._DB_ENGINE_VER
-    }
-  );
-  setAutoCommitModePacket.write(packetWriter);
-  self._socket.write(packetWriter._buffer);
-
-  self._socket.on('data', function (data) {
-    responseData = Helpers._combineData(responseData, data);
-    if (expectedResponseLength === -1 && responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
-      expectedResponseLength = Helpers._getExpectedResponseLength(responseData);
-    }
-    if (responseData.length === expectedResponseLength) {
-      self._socket.removeAllListeners('data');
-      var packetReader = new PacketReader();
-      packetReader.write(responseData);
-      setAutoCommitModePacket.parse(packetReader);
-      var errorCode = setAutoCommitModePacket.errorCode;
-      var errorMsg = setAutoCommitModePacket.errorMsg;
-      if (errorCode !== 0) {
-        err = new Error(errorCode + ':' + errorMsg);
-      } else {
-        self.autoCommitMode = autoCommitMode;
-      }
-
-      if (callback && typeof(callback) === 'function') {
-        callback.call(self, err);
-      }
-    }
-  });
+  self.autoCommitMode = autoCommitMode;
+  if (callback && typeof(callback) === 'function') {
+    callback.call(self, err);
+  }
 }
 
 /**

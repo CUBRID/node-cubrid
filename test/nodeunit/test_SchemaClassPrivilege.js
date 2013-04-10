@@ -26,7 +26,7 @@ exports['test_SchemaClassPrivilege'] = function (test) {
           test.ok(result.length === 96);
         }
         else {
-          if (CUBRIDClient._DB_ENGINE_VER.startsWith('9.0')) {
+          if (CUBRIDClient._DB_ENGINE_VER.startsWith('9.1')) {
             test.ok(result.length === 97);
           }
         }

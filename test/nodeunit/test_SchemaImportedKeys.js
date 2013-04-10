@@ -41,7 +41,7 @@ exports['test_SchemaImportedKeys'] = function (test) {
           test.ok(result[1].DeleteAction === 1);
         }
         else {
-          if (CUBRIDClient._DB_ENGINE_VER.startsWith('9.0')) {
+          if (CUBRIDClient._DB_ENGINE_VER.startsWith('9.1')) {
             test.ok(result[0].FkName === 'fk_game_event_code');
             test.ok(result[0].PkName === 'pk_event_code');
             test.ok(result[0].FkTableName === 'game');

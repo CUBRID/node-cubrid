@@ -6,7 +6,7 @@
  */
 exports.RowsArray = function (jsonData) {
   if (typeof  jsonData === 'undefined' || jsonData === null || jsonData.length === 0) {
-    return null;
+    return new Array(0);
   }
 
   try {
@@ -15,7 +15,7 @@ exports.RowsArray = function (jsonData) {
 
     var rowsCount = fullArray.ColumnValues.length;
     if (rowsCount <= 0) {
-      return null;
+      return new Array(0);
     } else {
       for (var i = 0; i < rowsCount; i++) {
         arr[i] = fullArray.ColumnValues[i];
@@ -24,7 +24,7 @@ exports.RowsArray = function (jsonData) {
     return arr;
   }
   catch (ignored) {
-    return null;
+    return new Array(0);
   }
 };
 
@@ -36,7 +36,7 @@ exports.RowsArray = function (jsonData) {
  */
 exports.ColumnNamesArray = function (jsonData) {
   if (typeof  jsonData === 'undefined' || jsonData === null || jsonData.length === 0) {
-    return null;
+    return new Array(0);
   }
 
   var fullArray = '';
@@ -46,13 +46,13 @@ exports.ColumnNamesArray = function (jsonData) {
 
     var rowsCount = fullArray.ColumnNames.length;
     if (rowsCount <= 0) {
-      return null;
+      return new Array(0);
     } else {
       return fullArray.ColumnNames;
     }
   }
   catch (ignored) {
-    return null;
+    return new Array(0);
   }
 };
 
@@ -64,7 +64,7 @@ exports.ColumnNamesArray = function (jsonData) {
  */
 exports.ColumnTypesArray = function (jsonData) {
   if (typeof  jsonData === 'undefined' || jsonData === null || jsonData.length === 0) {
-    return null;
+    return new Array(0);
   }
 
   var fullArray = '';
@@ -74,13 +74,13 @@ exports.ColumnTypesArray = function (jsonData) {
 
     var rowsCount = fullArray.ColumnDataTypes.length;
     if (rowsCount <= 0) {
-      return null;
+      return new Array(0);
     } else {
       return fullArray.ColumnDataTypes;
     }
   }
   catch (ignored) {
-    return null;
+    return new Array(0);
   }
 };
 
@@ -93,7 +93,7 @@ exports.ColumnTypesArray = function (jsonData) {
  */
 exports.TotalRowsCount = function (jsonData) {
   if (typeof  jsonData === 'undefined' || jsonData === null || jsonData.length === 0) {
-    return null;
+    return 0;
   }
 
   var fullArray = '';
@@ -103,13 +103,13 @@ exports.TotalRowsCount = function (jsonData) {
 
     var rowsCount = fullArray.RowsCount;
     if (rowsCount <= 0) {
-      return null;
+      return 0;
     } else {
       return fullArray.RowsCount;
     }
   }
   catch (ignored) {
-    return null;
+    return 0;
   }
 };
 
@@ -121,7 +121,7 @@ exports.TotalRowsCount = function (jsonData) {
  */
 exports.ObjectsArray = function(jsonData) {
   if (typeof  jsonData === 'undefined' || jsonData === null || jsonData.length === 0) {
-    return null;
+    return new Array(0);
   }
 
   try {
@@ -131,7 +131,7 @@ exports.ObjectsArray = function(jsonData) {
     var rowsCount = fullArray.ColumnValues.length;
     var colCount = fullArray.ColumnNames.length;
     if (rowsCount <= 0) {
-      return null;
+      return new Array(0);
     } else {
       for (var i = 0; i < rowsCount; i++) {
         arr[i] = {};
@@ -143,6 +143,6 @@ exports.ObjectsArray = function(jsonData) {
     return arr;
   }
   catch (ignored) {
-    return null;
+    return new Array(0);
   }
 };

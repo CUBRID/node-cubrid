@@ -105,7 +105,7 @@ PrepareAndExecutePacket.prototype.writeExecute = function (writer) {
   writer._writeInt(0); //max row size;
   writer._writeInt(0);//NULL
   writer._writeInt(DATA_TYPES.BYTE_SIZEOF);
-  if (this.statementType === CAS.CUBRIDStatementType.CUBRID_STMT_INSERT) {
+  if (this.statementType !== CAS.CUBRIDStatementType.CUBRID_STMT_SELECT) {
     writer._writeByte(0); // fetchFlag;
   } else {
     writer._writeByte(1); // fetchFlag;

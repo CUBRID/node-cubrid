@@ -44,7 +44,7 @@ exports['test_Transaction'] = function (test) {
       },
 
       function (result, queryHandle, cb) {
-        test.ok(Result2Array.TotalRowsCount(result) === null);
+        test.ok(Result2Array.TotalRowsCount(result) === 0);
         CUBRIDClient.closeQuery(queryHandle, cb);
       },
 

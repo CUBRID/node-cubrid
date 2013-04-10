@@ -43,7 +43,7 @@ ActionQueue.enqueue(
     },
 
     function (result, queryHandle, cb) {
-      assert(Result2Array.TotalRowsCount(result) === null);
+      assert(Result2Array.TotalRowsCount(result) === 0);
       CUBRIDClient.closeQuery(queryHandle, cb);
     },
 

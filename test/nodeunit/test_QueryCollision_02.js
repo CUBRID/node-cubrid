@@ -48,7 +48,7 @@ exports['test_QueryCollision_02'] = function (test) {
 
   getMyValue.on('error', function (err) {
     Helpers.logInfo(err.message);
-    throw 'We should not get here!';
+    throw err;
   });
 
   getMyValue.on('done', function () {
