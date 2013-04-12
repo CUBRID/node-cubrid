@@ -1265,6 +1265,7 @@ CUBRIDConnection.prototype.rollback = function (callback) {
     if (callback && typeof(callback) === 'function') {
       callback.call(self, err);
     }
+    return;
   }
 
   self._socket.on('data', function (data) {
@@ -1318,6 +1319,7 @@ CUBRIDConnection.prototype.commit = function (callback) {
     if (callback && typeof(callback) === 'function') {
       callback.call(self, err);
     }
+    return;
   }
 
   self._socket.on('data', function (data) {
