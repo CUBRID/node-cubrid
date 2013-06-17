@@ -39,7 +39,7 @@
   },
   
   "scripts": {
-    "test": "nodeunit src/packets/unit_tests/nodeunit src/utils/unit_tests/nodeunit"
+    "test": "nodeunit src/packets/unit_tests/nodeunit src/utils/unit_tests/nodeunit test/nodeunit"
   },
 
   "dependencies" : {

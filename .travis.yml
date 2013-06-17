@@ -5,4 +5,13 @@ node_js:
   - 0.6
   
 before_script:
-  - "npm install -g nodeunit"
+  - cat /etc/hosts
+  - sudo hostname localhost
+  - echo 'yes' | sudo add-apt-repository ppa:cubrid/cubrid
+  - sudo apt-get update
+  - sudo apt-get install cubrid
+  - /etc/profile.d/cubrid.sh
+  - sudo apt-get install cubrid-demodb
+  - npm install -g nodeunit
+  - npm install async
+  - npm install generic-pool
