@@ -40,7 +40,7 @@ function testExecuteQueryPacket_01() {
     0, 0, 2, 83, 0, 0, 0, 0, 7, 83, 105, 108, 118, 101, 114, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 71, 0, 0, 0, 0, 5,
     71, 111, 108, 100, 0]));
 
-  var resultSet = executeQueryPacket.parse(packetReader);
+  var resultSet = executeQueryPacket.parse(packetReader).resultSet;
   assert.equal(resultSet, '{"ColumnNames":["s_name","f_name"],"ColumnDataTypes":["Char","String"],"RowsCount":6,"ColumnValues":[["X","Mixed"],["W","Woman"],["M","Man"],["B","Bronze"],["S","Silver"],["G","Gold"]]}');
 }
 

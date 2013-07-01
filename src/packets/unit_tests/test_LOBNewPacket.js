@@ -29,7 +29,7 @@ function testLOBReadPacket_01() {
                                  49, 51, 54, 50, 49, 51, 54, 54, 49, 51, 53, 52, 54, 48, 48, 48, 95, 48, 48, 52, 49, 0,
                                  0, 0, 0, 30, 0, 255, 255, 255, 0, 0, 0, 1, 0, 0, 0, 0, 1, 20, 0, 0, 0, 1, 0, 0, 22, 128,
                                  11, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]));
-  var lobHandle = lobnewPacket.parse(packetReader);
+  var lobHandle = lobnewPacket.parse(packetReader).result;
 
   assert.equal(lobnewPacket.casInfo[0], 1); // CasInfo
   assert.equal(lobnewPacket.casInfo[1], 255); // CasInfo

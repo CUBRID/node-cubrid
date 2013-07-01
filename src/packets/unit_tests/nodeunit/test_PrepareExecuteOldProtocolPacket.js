@@ -92,7 +92,7 @@ exports['test_PrepareExecuteOldProtocolPacket'] = function (test) {
                                  5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 83, 0, 0, 0, 0, 7, 83, 105, 108, 118, 101, 114,
                                  0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 71, 0, 0, 0, 0, 5, 71, 111, 108, 100, 0]));
 
-  var resultSet = prepareExecuteOldProtocolPacket.parseExecute(packetReader);
+  var resultSet = prepareExecuteOldProtocolPacket.parseExecute(packetReader).resultSet;
 
   test.equal(resultSet, '{"ColumnNames":["s_name","f_name"],"ColumnDataTypes":["Char","String"],"RowsCount":6,"ColumnValues":[["X","Mixed"],["W","Woman"],["M","Man"],["B","Bronze"],["S","Silver"],["G","Gold"]]}');
   console.log('Unit test ended OK.');
