@@ -22,10 +22,10 @@ function testLoginToDatabasePacket_01() {
     0, 0, 0, 3]));
   openDatabasePacket.parse(packetReader);
 
-  assert.equal(openDatabasePacket.casInfo[0], 0); //casInfo
-  assert.equal(openDatabasePacket.casInfo[1], 255); //casInfo
-  assert.equal(openDatabasePacket.casInfo[2], 255); //casInfo
-  assert.equal(openDatabasePacket.casInfo[3], 255); //casInfo
+  assert.equal(openDatabasePacket.casInfo[0], 0); // CasInfo
+  assert.equal(openDatabasePacket.casInfo[1], 255); // CasInfo
+  assert.equal(openDatabasePacket.casInfo[2], 255); // CasInfo
+  assert.equal(openDatabasePacket.casInfo[3], 255); // CasInfo
 
   assert.equal(openDatabasePacket.responseCode, 0);
 

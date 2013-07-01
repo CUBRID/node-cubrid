@@ -54,7 +54,7 @@ exports['test_NodePool'] = function (test) {
               Helpers.logError(err);
             } else {
               Helpers.logInfo('[1] Query closed.');
-              // return object back to pool
+              // Return object back to pool
               pool.release(client);
             }
           });
@@ -83,7 +83,7 @@ exports['test_NodePool'] = function (test) {
               Helpers.logError(err);
             } else {
               Helpers.logInfo('[2] Query closed.');
-              // return object back to pool
+              // Return object back to pool
               pool.release(client);
             }
           });
@@ -112,7 +112,7 @@ exports['test_NodePool'] = function (test) {
               Helpers.logError(err);
             } else {
               Helpers.logInfo('[3] Query closed.');
-              // return object back to pool
+              // Return object back to pool
               pool.release(client);
             }
           });
@@ -141,7 +141,7 @@ exports['test_NodePool'] = function (test) {
               Helpers.logError(err);
             } else {
               Helpers.logInfo('[4] Query closed.');
-              // return object back to pool
+              // Return object back to pool
               pool.release(client);
             }
           });

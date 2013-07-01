@@ -28,11 +28,11 @@ function OpenDatabasePacket(options) {
  * @param writer
  */
 OpenDatabasePacket.prototype.write = function (writer) {
-  writer._writeFixedLengthString(this.database, 0, 32);
-  writer._writeFixedLengthString(this.user, 0, 32);
-  writer._writeFixedLengthString(this.password, 0, 32);
-  writer._writeFiller(512, 0);
-  writer._writeFiller(20, 0);
+  writer._writeFixedLengthString(this.database, 0, 32); // Database name
+  writer._writeFixedLengthString(this.user, 0, 32); // User login ID
+  writer._writeFixedLengthString(this.password, 0, 32); // User login password
+  writer._writeFiller(512, 0); // Used for extended connection info
+  writer._writeFiller(20, 0); // Reserved
 
   return writer;
 };
@@ -53,8 +53,8 @@ OpenDatabasePacket.prototype.parse = function (parser) {
       this.errorMsg = Helpers._resolveErrorCode(this.errorCode);
     }
   } else {
-    this.brokerInfo = parser._parseBytes(DATA_TYPES.BROKER_INFO_SIZEOF);
-    this.sessionId = parser._parseInt();
+    this.brokerInfo = parser._parseBytes(DATA_TYPES.BROKER_INFO_SIZEOF); // Broker information
+    this.sessionId = parser._parseInt(); // Unique session ID
   }
 
   return this;

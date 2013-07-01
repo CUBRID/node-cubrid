@@ -12,12 +12,12 @@ exports['test_CloseQueryPacket'] = function (test) {
   var closeQueryPacket = new CloseQueryPacket(options);
 
   closeQueryPacket.write(packetWriter);
-  test.equal(packetWriter._toBuffer()[3], 14); //total length
+  test.equal(packetWriter._toBuffer()[3], 14); // Total length
 
-  test.equal(packetWriter._toBuffer()[4], 0); //casInfo
-  test.equal(packetWriter._toBuffer()[5], 255); //casInfo
-  test.equal(packetWriter._toBuffer()[6], 255); //casInfo
-  test.equal(packetWriter._toBuffer()[7], 255); //casInfo
+  test.equal(packetWriter._toBuffer()[4], 0); // CasInfo
+  test.equal(packetWriter._toBuffer()[5], 255); // CasInfo
+  test.equal(packetWriter._toBuffer()[6], 255); // CasInfo
+  test.equal(packetWriter._toBuffer()[7], 255); // CasInfo
 
   test.equal(packetWriter._toBuffer()[8], CAS.CASFunctionCode.CAS_FC_CLOSE_REQ_HANDLE);
   test.equal(packetWriter._toBuffer()[12], 4);
@@ -31,10 +31,10 @@ exports['test_CloseQueryPacket'] = function (test) {
 
   closeQueryPacket.parse(packetReader);
 
-  test.equal(closeQueryPacket.casInfo[0], 0); //casInfo
-  test.equal(closeQueryPacket.casInfo[1], 255); //casInfo
-  test.equal(closeQueryPacket.casInfo[2], 255); //casInfo
-  test.equal(closeQueryPacket.casInfo[3], 255); //casInfo
+  test.equal(closeQueryPacket.casInfo[0], 0); // CasInfo
+  test.equal(closeQueryPacket.casInfo[1], 255); // CasInfo
+  test.equal(closeQueryPacket.casInfo[2], 255); // CasInfo
+  test.equal(closeQueryPacket.casInfo[3], 255); // CasInfo
 
   test.equal(closeQueryPacket.responseCode, 0);
 

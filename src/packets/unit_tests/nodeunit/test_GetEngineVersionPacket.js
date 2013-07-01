@@ -12,12 +12,12 @@ exports['test_GetEngineVersionPacket'] = function (test) {
   var getEngineVersionPacket = new GetEngineVersionPacket(options);
 
   getEngineVersionPacket.write(packetWriter);
-  test.equal(packetWriter._toBuffer()[3], 6); //total length
+  test.equal(packetWriter._toBuffer()[3], 6); // Total length
 
-  test.equal(packetWriter._toBuffer()[4], 0); //casInfo
-  test.equal(packetWriter._toBuffer()[5], 255); //casInfo
-  test.equal(packetWriter._toBuffer()[6], 255); //casInfo
-  test.equal(packetWriter._toBuffer()[7], 255); //casInfo
+  test.equal(packetWriter._toBuffer()[4], 0); // Casinfo
+  test.equal(packetWriter._toBuffer()[5], 255); // Casinfo
+  test.equal(packetWriter._toBuffer()[6], 255); // Casinfo
+  test.equal(packetWriter._toBuffer()[7], 255); // Casinfo
 
   test.equal(packetWriter._toBuffer()[8], CAS.CASFunctionCode.CAS_FC_GET_DB_VERSION);
   test.equal(packetWriter._toBuffer()[12], 1);
@@ -30,10 +30,10 @@ exports['test_GetEngineVersionPacket'] = function (test) {
   packetReader._append(new Buffer([0]));
   getEngineVersionPacket.parse(packetReader);
 
-  test.equal(getEngineVersionPacket.casInfo[0], 0); //casInfo
-  test.equal(getEngineVersionPacket.casInfo[1], 255); //casInfo
-  test.equal(getEngineVersionPacket.casInfo[2], 255); //casInfo
-  test.equal(getEngineVersionPacket.casInfo[3], 255); //casInfo
+  test.equal(getEngineVersionPacket.casInfo[0], 0); // Casinfo
+  test.equal(getEngineVersionPacket.casInfo[1], 255); // Casinfo
+  test.equal(getEngineVersionPacket.casInfo[2], 255); // Casinfo
+  test.equal(getEngineVersionPacket.casInfo[3], 255); // Casinfo
 
   test.equal(getEngineVersionPacket.responseCode, 0);
 

@@ -23,6 +23,7 @@ function LOBWritePacket(options) {
   this.responseCode = 0;
   this.errorCode = 0;
   this.errorMsg = '';
+  this.wroteLength = 0;
 }
 
 /**
@@ -38,16 +39,16 @@ LOBWritePacket.prototype.write = function (writer) {
   writer._writeBytes(DATA_TYPES.CAS_INFO_SIZE, this.casInfo);
 
   writer._writeByte(CAS.CASFunctionCode.CAS_FC_LOB_WRITE);
-  writer._writeInt(this.lobObject.packedLobHandle.length); //length of the packedLobHandle
-  writer._writeBytes(this.lobObject.packedLobHandle.length, this.lobObject.packedLobHandle); //lob handle
+  writer._writeInt(this.lobObject.packedLobHandle.length); // Length of the packedLobHandle
+  writer._writeBytes(this.lobObject.packedLobHandle.length, this.lobObject.packedLobHandle); // LOB handle
   writer._writeInt(DATA_TYPES.LONG_SIZEOF);
-  writer._writeLong(this.position);//start position from witch to write data
-  writer._writeInt(this.writeLen);//length of data to be written
+  writer._writeLong(this.position); // Start position from witch to write data
+  writer._writeInt(this.writeLen); // Length of data to be written
   if (this.lobObject.lobType === CAS.CUBRIDDataType.CCI_U_TYPE_BLOB) {
     writer._writeBytes(this.writeLen, this.data);
   } else {
     if (this.lobObject.lobType === CAS.CUBRIDDataType.CCI_U_TYPE_CLOB) {
-      var dataInBytes = new Buffer(this.data, 'binary'); //convert clob string to bytes
+      var dataInBytes = new Buffer(this.data, 'binary'); // Convert clob string to bytes
       writer._writeBytes(this.writeLen, dataInBytes);
     }
   }
@@ -71,8 +72,10 @@ LOBWritePacket.prototype.parse = function (parser) {
       this.errorMsg = Helpers._resolveErrorCode(this.errorCode);
     }
   } else {
-    return this.responseCode;
+    this.wroteLength = this.responseCode;
   }
+
+  return this;
 };
 
 

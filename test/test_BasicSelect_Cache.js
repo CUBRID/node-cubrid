@@ -27,7 +27,7 @@ CUBRIDClient.connect(function (err) {
           if (err) {
             errorHandler(err);
           } else {
-            //Repeat query - results expected to come from cache this time
+            // Repeat query - results expected to come from cache this time
             var startTime2 = (new Date()).getTime();
             CUBRIDClient.query('select * from game', function (err, result, queryHandle) {
               if (err) {

@@ -44,7 +44,7 @@ CUBRIDClient.on(CUBRIDClient.EVENT_FETCH_DATA_AVAILABLE, function (result, query
   Helpers.logInfo('*** Fetch data received for query: ' + queryHandle + '[' + Result2Array.RowsArray(result).length + ' rows]');
   Helpers.logInfo('*** First row: ' + Result2Array.RowsArray(result)[0].toString());
 
-  // continue to fetch...
+  // Continue to fetch...
   Helpers.logInfo('*** fetching more rows...');
   CUBRIDClient.fetch(queryHandle);
 });

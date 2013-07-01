@@ -11,12 +11,12 @@ function testCommitPacket_01() {
   var commitPacket = new CommitPacket(options);
 
   commitPacket.write(packetWriter);
-  assert.equal(packetWriter._toBuffer()[3], 6); //total length
+  assert.equal(packetWriter._toBuffer()[3], 6); // Total length
 
-  assert.equal(packetWriter._toBuffer()[4], 0); //casInfo
-  assert.equal(packetWriter._toBuffer()[5], 255); //casInfo
-  assert.equal(packetWriter._toBuffer()[6], 255); //casInfo
-  assert.equal(packetWriter._toBuffer()[7], 255); //casInfo
+  assert.equal(packetWriter._toBuffer()[4], 0); // CasInfo
+  assert.equal(packetWriter._toBuffer()[5], 255); // CasInfo
+  assert.equal(packetWriter._toBuffer()[6], 255); // CasInfo
+  assert.equal(packetWriter._toBuffer()[7], 255); // CasInfo
 
   assert.equal(packetWriter._toBuffer()[8], CAS.CASFunctionCode.CAS_FC_END_TRAN);
   assert.equal(packetWriter._toBuffer()[12], 1);
@@ -28,10 +28,10 @@ function testCommitPacket_01() {
 
   commitPacket.parse(packetReader);
 
-  assert.equal(commitPacket.casInfo[0], 0); //casInfo
-  assert.equal(commitPacket.casInfo[1], 255); //casInfo
-  assert.equal(commitPacket.casInfo[2], 255); //casInfo
-  assert.equal(commitPacket.casInfo[3], 255); //casInfo
+  assert.equal(commitPacket.casInfo[0], 0); // CasInfo
+  assert.equal(commitPacket.casInfo[1], 255); // CasInfo
+  assert.equal(commitPacket.casInfo[2], 255); // CasInfo
+  assert.equal(commitPacket.casInfo[3], 255); // CasInfo
 
   assert.equal(commitPacket.responseCode, 0);
 

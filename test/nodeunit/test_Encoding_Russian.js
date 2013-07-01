@@ -3,7 +3,7 @@ var CUBRIDClient = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbCo
   Helpers = require('../../src/utils/Helpers'),
   Result2Array = require('../../src/resultset/Result2Array');
 
-var testData = 'Я хотел бы отослать этот пакет.'; //Russian: 'I would like to send off this package.'
+var testData = 'Я хотел бы отослать этот пакет.'; // Russian: 'I would like to send off this package.'
 
 exports['test_Encoding_Russian'] = function (test) {
   test.expect(1);

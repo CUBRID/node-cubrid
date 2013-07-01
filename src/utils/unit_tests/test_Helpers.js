@@ -34,7 +34,7 @@ var escaped = Helpers._escapeString(unescaped);
 
 assert.equal(escaped, "insert into \"\"a values(\\b)");
 
-//Test Input validation functions
+// Test Input validation functions
 assert(Helpers._validateInputBoolean(null) === false);
 assert(Helpers._validateInputBoolean(4) === false);
 assert(Helpers._validateInputBoolean(3.14) === false);

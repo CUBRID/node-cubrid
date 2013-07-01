@@ -35,9 +35,9 @@ CloseQueryPacket.prototype.write = function (writer) {
   writer._writeBytes(DATA_TYPES.CAS_INFO_SIZE, this.casInfo);
   writer._writeByte(CAS.CASFunctionCode.CAS_FC_CLOSE_REQ_HANDLE);
   writer._writeInt(DATA_TYPES.INT_SIZEOF);
-  writer._writeInt(this.reqHandle);
+  writer._writeInt(this.reqHandle); // Query handle
   writer._writeInt(DATA_TYPES.BYTE_SIZEOF);
-  writer._writeByte(0); //autocommit mode
+  writer._writeByte(0); // Autocommit mode
 
   return writer;
 };

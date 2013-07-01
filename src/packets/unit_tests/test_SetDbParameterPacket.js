@@ -16,7 +16,7 @@ function testSetDbParameter() {
   var setDbParameterPacket = new SetDbParameterPacket(options);
 
   setDbParameterPacket.write(packetWriter);
-  assert.equal(packetWriter._toBuffer()[3], 17); //total length
+  assert.equal(packetWriter._toBuffer()[3], 17); // Total length
   assert.equal(packetWriter._toBuffer()[8], CAS.CASFunctionCode.CAS_FC_SET_DB_PARAMETER);
   assert.equal(packetWriter._toBuffer()[12], 4);
   assert.equal(packetWriter._toBuffer()[16], CAS.CCIDbParam.CCI_PARAM_MAX_STRING_LENGTH);
@@ -28,10 +28,10 @@ function testSetDbParameter() {
                                  0, 0, 0, 0]));
   setDbParameterPacket.parse(packetReader);
 
-  assert.equal(setDbParameterPacket.casInfo[0], 0); //casInfo
-  assert.equal(setDbParameterPacket.casInfo[1], 255); //casInfo
-  assert.equal(setDbParameterPacket.casInfo[2], 255); //casInfo
-  assert.equal(setDbParameterPacket.casInfo[3], 255); //casInfo
+  assert.equal(setDbParameterPacket.casInfo[0], 0); // CasInfo
+  assert.equal(setDbParameterPacket.casInfo[1], 255); // CasInfo
+  assert.equal(setDbParameterPacket.casInfo[2], 255); // CasInfo
+  assert.equal(setDbParameterPacket.casInfo[3], 255); // CasInfo
 
   assert.equal(setDbParameterPacket.responseCode, 0);
   assert.equal(setDbParameterPacket.errorCode, 0);

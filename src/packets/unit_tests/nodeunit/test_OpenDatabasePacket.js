@@ -24,10 +24,10 @@ exports['test_OpenDatabasePacket'] = function (test) {
                                  0, 0, 0, 3]));
   openDatabasePacket.parse(packetReader);
 
-  test.equal(openDatabasePacket.casInfo[0], 0); //casInfo
-  test.equal(openDatabasePacket.casInfo[1], 255); //casInfo
-  test.equal(openDatabasePacket.casInfo[2], 255); //casInfo
-  test.equal(openDatabasePacket.casInfo[3], 255); //casInfo
+  test.equal(openDatabasePacket.casInfo[0], 0); // Casinfo
+  test.equal(openDatabasePacket.casInfo[1], 255); // Casinfo
+  test.equal(openDatabasePacket.casInfo[2], 255); // Casinfo
+  test.equal(openDatabasePacket.casInfo[3], 255); // Casinfo
 
   test.equal(openDatabasePacket.responseCode, 0);
 

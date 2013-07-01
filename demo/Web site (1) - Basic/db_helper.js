@@ -90,7 +90,7 @@ exports.get_employees = function (callback) {
           var emp = Result2Array.RowsArray(result);
           var cols = Result2Array.ColumnNamesArray(result);
           var cnt = Result2Array.TotalRowsCount(result);
-          // callback function returns employees array
+          // Callback function returns employees array
           callback(emp, cols, cnt);
         }
       });

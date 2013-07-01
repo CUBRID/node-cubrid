@@ -12,12 +12,12 @@ exports['test_CommitPacket'] = function (test) {
   var commitPacket = new CommitPacket(options);
 
   commitPacket.write(packetWriter);
-  test.equal(packetWriter._toBuffer()[3], 6); //total length
+  test.equal(packetWriter._toBuffer()[3], 6); // Total length
 
-  test.equal(packetWriter._toBuffer()[4], 0); //casInfo
-  test.equal(packetWriter._toBuffer()[5], 255); //casInfo
-  test.equal(packetWriter._toBuffer()[6], 255); //casInfo
-  test.equal(packetWriter._toBuffer()[7], 255); //casInfo
+  test.equal(packetWriter._toBuffer()[4], 0); // CasInfo
+  test.equal(packetWriter._toBuffer()[5], 255); // CasInfo
+  test.equal(packetWriter._toBuffer()[6], 255); // CasInfo
+  test.equal(packetWriter._toBuffer()[7], 255); // CasInfo
 
   test.equal(packetWriter._toBuffer()[8], CAS.CASFunctionCode.CAS_FC_END_TRAN);
   test.equal(packetWriter._toBuffer()[12], 1);
@@ -29,10 +29,10 @@ exports['test_CommitPacket'] = function (test) {
 
   commitPacket.parse(packetReader);
 
-  test.equal(commitPacket.casInfo[0], 0); //casInfo
-  test.equal(commitPacket.casInfo[1], 255); //casInfo
-  test.equal(commitPacket.casInfo[2], 255); //casInfo
-  test.equal(commitPacket.casInfo[3], 255); //casInfo
+  test.equal(commitPacket.casInfo[0], 0); // CasInfo
+  test.equal(commitPacket.casInfo[1], 255); // CasInfo
+  test.equal(commitPacket.casInfo[2], 255); // CasInfo
+  test.equal(commitPacket.casInfo[3], 255); // CasInfo
 
   test.equal(commitPacket.responseCode, 0);
   test.equal(commitPacket.errorCode, 0);

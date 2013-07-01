@@ -65,7 +65,7 @@ exports['test_DataTypesEvents'] = function (test) {
   CUBRIDClient.on(CUBRIDClient.EVENT_QUERY_DATA_AVAILABLE, function (result, queryHandle) {
     Helpers.logInfo('Data received.');
     Helpers.logInfo('Returned active query handle: ' + queryHandle);
-    global.savedQueryHandle = queryHandle; // save handle - needed for further fetch operations
+    global.savedQueryHandle = queryHandle; // Save handle - needed for further fetch operations
     test.ok(Result2Array.TotalRowsCount(result) === 1);
     Helpers.logInfo('Total query result rows count: ' + Result2Array.TotalRowsCount(result));
     Helpers.logInfo('Returned rows count: ' + Result2Array.RowsArray(result).length);

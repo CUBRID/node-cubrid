@@ -14,12 +14,12 @@ exports['test_ExecuteQueryPacket'] = function (test) {
   var executeQueryPacket = new ExecuteQueryPacket(options);
 
   executeQueryPacket.write(packetWriter);
-  test.equal(packetWriter._toBuffer()[3], 87); //total length
+  test.equal(packetWriter._toBuffer()[3], 87); // Total length
 
-  test.equal(packetWriter._toBuffer()[4], 0); //casInfo
-  test.equal(packetWriter._toBuffer()[5], 255); //casInfo
-  test.equal(packetWriter._toBuffer()[6], 255); //casInfo
-  test.equal(packetWriter._toBuffer()[7], 255); //casInfo
+  test.equal(packetWriter._toBuffer()[4], 0); // Casinfo
+  test.equal(packetWriter._toBuffer()[5], 255); // Casinfo
+  test.equal(packetWriter._toBuffer()[6], 255); // Casinfo
+  test.equal(packetWriter._toBuffer()[7], 255); // Casinfo
 
   test.equal(packetWriter._toBuffer()[8], CAS.CASFunctionCode.CAS_FC_PREPARE_AND_EXECUTE);
   test.equal(packetWriter._toBuffer()[16], 3);

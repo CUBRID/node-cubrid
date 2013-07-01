@@ -19,6 +19,7 @@ function FetchPacket(options) {
   this.responseCode = 0;
   this.errorCode = 0;
   this.errorMsg = '';
+  this.resultSet = ''; // ResultSet of the fetch
 }
 
 /**
@@ -37,15 +38,15 @@ FetchPacket.prototype.write = function (writer, queryPacket) {
 
   writer._writeByte(CAS.CASFunctionCode.CAS_FC_FETCH);
   writer._writeInt(DATA_TYPES.INT_SIZEOF);
-  writer._writeInt(queryPacket.queryHandle); //serverHandler
+  writer._writeInt(queryPacket.queryHandle); // Query handle
   writer._writeInt(DATA_TYPES.INT_SIZEOF);
-  writer._writeInt(queryPacket.currentTupleCount + 1); //Start position (= current cursor position + 1)
+  writer._writeInt(queryPacket.currentTupleCount + 1); // Start position (= current cursor position + 1)
   writer._writeInt(DATA_TYPES.INT_SIZEOF);
-  writer._writeInt(100); //Fetch size; 0 = default; recommended = 100
+  writer._writeInt(100); // Fetch size; 0 = default; recommended = 100
   writer._writeInt(DATA_TYPES.BYTE_SIZEOF);
-  writer._writeByte(0); //Is case sensitive
+  writer._writeByte(0); // Is case sensitive
   writer._writeInt(DATA_TYPES.INT_SIZEOF);
-  writer._writeInt(0); //Is the ResultSet index...?
+  writer._writeInt(0); // Is the ResultSet index...?
 
   return writer;
 };
@@ -68,8 +69,10 @@ FetchPacket.prototype.parse = function (parser, queryPacket) {
     }
   } else {
     this.tupleCount = parser._parseInt();
-    return JSON.stringify({ColumnValues : queryPacket._getData(parser, this.tupleCount)});
+    this.resultSet = JSON.stringify({ColumnValues : queryPacket._getData(parser, this.tupleCount)});
   }
+
+  return this;
 };
 
 

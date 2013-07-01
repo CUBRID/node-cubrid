@@ -1,8 +1,8 @@
 var CUBRIDConnection = require('../../src/CUBRIDConnection');
 
-//first connection
+// First connection
 var CUBRIDClient = new CUBRIDConnection('localhost', 33000, 'public', '', 'demodb');
-//second connection
+// Second connection
 var CUBRIDClient2 = new CUBRIDConnection('localhost', 33000, 'public', '', 'demodb');
 
 var Helpers = require('../../src/utils/Helpers'),

@@ -17,12 +17,12 @@ function testExecuteQueryPacket_01() {
   var prepareExecuteOldProtocolPacket = new PrepareExecuteOldProtocolPacket(options);
 
   prepareExecuteOldProtocolPacket.writePrepare(packetWriter);
-  assert.equal(packetWriter._toBuffer()[3], 34); //total length
+  assert.equal(packetWriter._toBuffer()[3], 34); // Total length
 
-  assert.equal(packetWriter._toBuffer()[4], 0); //casInfo
-  assert.equal(packetWriter._toBuffer()[5], 255); //casInfo
-  assert.equal(packetWriter._toBuffer()[6], 255); //casInfo
-  assert.equal(packetWriter._toBuffer()[7], 255); //casInfo
+  assert.equal(packetWriter._toBuffer()[4], 0); // CasInfo
+  assert.equal(packetWriter._toBuffer()[5], 255); // CasInfo
+  assert.equal(packetWriter._toBuffer()[6], 255); // CasInfo
+  assert.equal(packetWriter._toBuffer()[7], 255); // CasInfo
 
   assert.equal(packetWriter._toBuffer()[8], CAS.CASFunctionCode.CAS_FC_PREPARE);
   assert.equal(packetWriter._toBuffer()[12], 19);
@@ -62,12 +62,12 @@ function testExecuteQueryPacket_01() {
   packetReader = new PacketReader();
   packetWriter = new PacketWriter();
   prepareExecuteOldProtocolPacket.writeExecute(packetWriter);
-  assert.equal(packetWriter._toBuffer()[3], 69); //total length
+  assert.equal(packetWriter._toBuffer()[3], 69); // Total length
 
-  assert.equal(packetWriter._toBuffer()[4], 1); //casInfo
-  assert.equal(packetWriter._toBuffer()[5], 255); //casInfo
-  assert.equal(packetWriter._toBuffer()[6], 255); //casInfo
-  assert.equal(packetWriter._toBuffer()[7], 255); //casInfo
+  assert.equal(packetWriter._toBuffer()[4], 1); // CasInfo
+  assert.equal(packetWriter._toBuffer()[5], 255); // CasInfo
+  assert.equal(packetWriter._toBuffer()[6], 255); // CasInfo
+  assert.equal(packetWriter._toBuffer()[7], 255); // CasInfo
 
   assert.equal(packetWriter._toBuffer()[8], CAS.CASFunctionCode.CAS_FC_EXECUTE);
   assert.equal(packetWriter._toBuffer()[16], 1);

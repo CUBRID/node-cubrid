@@ -35,7 +35,7 @@ function testFetchPacket() {
   packetWriter = new PacketWriter();
   var fetchPacket = new FetchPacket(options);
   fetchPacket.write(packetWriter, executeQueryPacket);
-  assert.equal(packetWriter._toBuffer()[3], 38); //total length
+  assert.equal(packetWriter._toBuffer()[3], 38); // Total length
   assert.equal(packetWriter._toBuffer()[8], CAS.CASFunctionCode.CAS_FC_FETCH);
   assert.equal(packetWriter._toBuffer()[16], 4);
   assert.equal(packetWriter._toBuffer()[24], 7);
@@ -49,10 +49,10 @@ function testFetchPacket() {
                                  0, 0, 0, 0]));
   fetchPacket.parse(packetReader, executeQueryPacket);
 
-  assert.equal(fetchPacket.casInfo[0], 0); //casInfo
-  assert.equal(fetchPacket.casInfo[1], 255); //casInfo
-  assert.equal(fetchPacket.casInfo[2], 255); //casInfo
-  assert.equal(fetchPacket.casInfo[3], 255); //casInfo
+  assert.equal(fetchPacket.casInfo[0], 0); // CasInfo
+  assert.equal(fetchPacket.casInfo[1], 255); // CasInfo
+  assert.equal(fetchPacket.casInfo[2], 255); // CasInfo
+  assert.equal(fetchPacket.casInfo[3], 255); // CasInfo
 
   assert.equal(fetchPacket.responseCode, 0);
   assert.equal(fetchPacket.errorCode, 0);

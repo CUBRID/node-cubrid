@@ -22,6 +22,7 @@ function LOBNewPacket(options) {
   this.errorMsg = '';
   this.packedLobHandle = '';
   this.fileLocator = '';
+  this.result = null;
 }
 
 /**
@@ -37,7 +38,7 @@ LOBNewPacket.prototype.write = function (writer) {
 
   writer._writeByte(CAS.CASFunctionCode.CAS_FC_LOB_NEW);
   writer._writeInt(DATA_TYPES.INT_SIZEOF);
-  writer._writeInt(this.lobType); //LOB type
+  writer._writeInt(this.lobType); // LOB type
 
   return writer;
 };
@@ -58,14 +59,16 @@ LOBNewPacket.prototype.parse = function (parser) {
       this.errorMsg = Helpers._resolveErrorCode(this.errorCode);
     }
   } else {
-    this.packedLobHandle = parser._parseBytes(responseLength - DATA_TYPES.INT_SIZEOF); //lob handle
+    this.packedLobHandle = parser._parseBytes(responseLength - DATA_TYPES.INT_SIZEOF); // LOB handle
     this.fileLocator = this.packedLobHandle.slice(16, this.packedLobHandle.length - 1).toString();
   }
-  return {
+  this.result =  {
     lobType         : this.lobType,
     packedLobHandle : this.packedLobHandle,
     fileLocator     : this.fileLocator,
     lobLength       : 0
   };
+
+  return this;
 };
 

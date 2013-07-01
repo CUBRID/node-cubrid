@@ -11,12 +11,12 @@ function testCloseConnectionPacket_01() {
   var closeDatabasePacket = new CloseDatabasePacket(options);
 
   closeDatabasePacket.write(packetWriter);
-  assert.equal(packetWriter._toBuffer()[3], 1); //total length
+  assert.equal(packetWriter._toBuffer()[3], 1); // Total length
 
-  assert.equal(packetWriter._toBuffer()[4], 0); //casInfo
-  assert.equal(packetWriter._toBuffer()[5], 255); //casInfo
-  assert.equal(packetWriter._toBuffer()[6], 255); //casInfo
-  assert.equal(packetWriter._toBuffer()[7], 255); //casInfo
+  assert.equal(packetWriter._toBuffer()[4], 0); // CasInfo
+  assert.equal(packetWriter._toBuffer()[5], 255); // CasInfo
+  assert.equal(packetWriter._toBuffer()[6], 255); // CasInfo
+  assert.equal(packetWriter._toBuffer()[7], 255); // CasInfo
 
   assert.equal(packetWriter._toBuffer()[8], CAS.CASFunctionCode.CAS_FC_CON_CLOSE);
 
@@ -26,10 +26,10 @@ function testCloseConnectionPacket_01() {
 
   closeDatabasePacket.parse(packetReader);
 
-  assert.equal(closeDatabasePacket.casInfo[0], 0); //casInfo
-  assert.equal(closeDatabasePacket.casInfo[1], 255); //casInfo
-  assert.equal(closeDatabasePacket.casInfo[2], 255); //casInfo
-  assert.equal(closeDatabasePacket.casInfo[3], 255); //casInfo
+  assert.equal(closeDatabasePacket.casInfo[0], 0); // CasInfo
+  assert.equal(closeDatabasePacket.casInfo[1], 255); // CasInfo
+  assert.equal(closeDatabasePacket.casInfo[2], 255); // CasInfo
+  assert.equal(closeDatabasePacket.casInfo[3], 255); // CasInfo
 
   assert.equal(closeDatabasePacket.responseCode, 0);
 

@@ -19,12 +19,12 @@ exports['test_PrepareExecuteOldProtocolPacket'] = function (test) {
   var prepareExecuteOldProtocolPacket = new PrepareExecuteOldProtocolPacket(options);
 
   prepareExecuteOldProtocolPacket.writePrepare(packetWriter);
-  test.equal(packetWriter._toBuffer()[3], 34); //total length
+  test.equal(packetWriter._toBuffer()[3], 34); // Total length
 
-  test.equal(packetWriter._toBuffer()[4], 0); //casInfo
-  test.equal(packetWriter._toBuffer()[5], 255); //casInfo
-  test.equal(packetWriter._toBuffer()[6], 255); //casInfo
-  test.equal(packetWriter._toBuffer()[7], 255); //casInfo
+  test.equal(packetWriter._toBuffer()[4], 0); // Casinfo
+  test.equal(packetWriter._toBuffer()[5], 255); // Casinfo
+  test.equal(packetWriter._toBuffer()[6], 255); // Casinfo
+  test.equal(packetWriter._toBuffer()[7], 255); // Casinfo
 
   test.equal(packetWriter._toBuffer()[8], CAS.CASFunctionCode.CAS_FC_PREPARE);
   test.equal(packetWriter._toBuffer()[12], 19);
@@ -64,12 +64,12 @@ exports['test_PrepareExecuteOldProtocolPacket'] = function (test) {
   packetReader = new PacketReader();
   packetWriter = new PacketWriter();
   prepareExecuteOldProtocolPacket.writeExecute(packetWriter);
-  test.equal(packetWriter._toBuffer()[3], 69); //total length
+  test.equal(packetWriter._toBuffer()[3], 69); // Total length
 
-  test.equal(packetWriter._toBuffer()[4], 1); //casInfo
-  test.equal(packetWriter._toBuffer()[5], 255); //casInfo
-  test.equal(packetWriter._toBuffer()[6], 255); //casInfo
-  test.equal(packetWriter._toBuffer()[7], 255); //casInfo
+  test.equal(packetWriter._toBuffer()[4], 1); // Casinfo
+  test.equal(packetWriter._toBuffer()[5], 255); // Casinfo
+  test.equal(packetWriter._toBuffer()[6], 255); // Casinfo
+  test.equal(packetWriter._toBuffer()[7], 255); // Casinfo
 
   test.equal(packetWriter._toBuffer()[8], CAS.CASFunctionCode.CAS_FC_EXECUTE);
   test.equal(packetWriter._toBuffer()[16], 1);

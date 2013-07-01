@@ -13,8 +13,7 @@ var CUBRIDConnection = require('../src/CUBRIDConnection'),
   },
   client = new CUBRIDConnection(dbConf.host, dbConf.port, dbConf.user, dbConf.password, dbConf.database);
 
-var recordsToPopulate = 1000,
-  shards = [0, 1];
+var shards = [0, 1];
 
 client.connect(function (err) {
   if (err) {
@@ -26,6 +25,7 @@ client.connect(function (err) {
     client.setAutoCommitMode(true);
     client.setEnforceOldQueryProtocol(true);
 
+    // Simulate the execution on two shards
     async.eachSeries(shards, selectAll, function (err) {
       if (err) {
         Helpers.logInfo(err);

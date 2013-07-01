@@ -2,7 +2,7 @@ var http = require('http'),
   Result2Array = require('../../src/resultset/Result2Array'),
   client = require('../../index.js').createDefaultCUBRIDDemodbConnection();
 
-//Note: Open http://localhost:8888 to test this
+// Note: Open http://localhost:8888 to test this
 
 function resultToHtmlTable(result) {
   var ret = '';

@@ -15,7 +15,7 @@ exports['test_LOBReadPacket'] = function (test) {
   ]);
   var lobHandle =
   {
-    lobType         : CAS.CUBRIDDataType.CCI_U_TYPE_BLOB, //BLOB type
+    lobType         : CAS.CUBRIDDataType.CCI_U_TYPE_BLOB, // BLOB type
     packedLobHandle : packedLobHandle,
     fileLocator     : 'file:C:\\CUBRID\\databases\\demodb/lob/ces_670/test_lob.00001361976357078000_1538',
     lobLength       : 4
@@ -29,12 +29,12 @@ exports['test_LOBReadPacket'] = function (test) {
   };
   var lobReadPacket = new LOBReadPacket(options);
   lobReadPacket.write(packetWriter);
-  test.equal(packetWriter._toBuffer()[3], 120); //total length
+  test.equal(packetWriter._toBuffer()[3], 120); // Total length
 
-  test.equal(packetWriter._toBuffer()[4], 0); //casInfo
-  test.equal(packetWriter._toBuffer()[5], 255); //casInfo
-  test.equal(packetWriter._toBuffer()[6], 255); //casInfo
-  test.equal(packetWriter._toBuffer()[7], 255); //casInfo
+  test.equal(packetWriter._toBuffer()[4], 0); // Casinfo
+  test.equal(packetWriter._toBuffer()[5], 255); // Casinfo
+  test.equal(packetWriter._toBuffer()[6], 255); // Casinfo
+  test.equal(packetWriter._toBuffer()[7], 255); // Casinfo
 
   test.equal(packetWriter._toBuffer()[8], CAS.CASFunctionCode.CAS_FC_LOB_READ);
   test.equal(packetWriter._toBuffer()[12], 95);
@@ -51,10 +51,10 @@ exports['test_LOBReadPacket'] = function (test) {
                                  1, 2, 3, 4]));
   lobReadPacket.parse(packetReader);
 
-  test.equal(lobReadPacket.casInfo[0], 0); //casInfo
-  test.equal(lobReadPacket.casInfo[1], 255); //casInfo
-  test.equal(lobReadPacket.casInfo[2], 255); //casInfo
-  test.equal(lobReadPacket.casInfo[3], 255); //casInfo
+  test.equal(lobReadPacket.casInfo[0], 0); // Casinfo
+  test.equal(lobReadPacket.casInfo[1], 255); // Casinfo
+  test.equal(lobReadPacket.casInfo[2], 255); // Casinfo
+  test.equal(lobReadPacket.casInfo[3], 255); // Casinfo
 
   test.equal(lobReadPacket.responseCode, 4);
 

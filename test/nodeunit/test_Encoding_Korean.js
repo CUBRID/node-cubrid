@@ -3,7 +3,7 @@ var CUBRIDClient = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbCo
   Helpers = require('../../src/utils/Helpers'),
   Result2Array = require('../../src/resultset/Result2Array');
 
-var testData = '이 소포를 부치고 싶은데요.'; //KO: 'I would like to send off this package.'
+var testData = '이 소포를 부치고 싶은데요.'; // KO: 'I would like to send off this package.'
 
 exports['test_Encoding_Korean'] = function (test) {
   test.expect(1);

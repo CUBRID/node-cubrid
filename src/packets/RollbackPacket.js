@@ -33,7 +33,7 @@ RollbackPacket.prototype.write = function (writer) {
   writer._writeBytes(DATA_TYPES.CAS_INFO_SIZE, this.casInfo);
   writer._writeByte(CAS.CASFunctionCode.CAS_FC_END_TRAN);
   writer._writeInt(DATA_TYPES.BYTE_SIZEOF);
-  writer._writeByte(CAS.CCITransactionType.CCI_TRAN_ROLLBACK);
+  writer._writeByte(CAS.CCITransactionType.CCI_TRAN_ROLLBACK); // Rollback transaction
 
   return writer;
 };

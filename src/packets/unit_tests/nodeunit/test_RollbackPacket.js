@@ -12,12 +12,12 @@ exports['test_RollbackPacket'] = function (test) {
   var rollbackPacket = new RollbackPacket(options);
 
   rollbackPacket.write(packetWriter);
-  test.equal(packetWriter._toBuffer()[3], 6); //total length
+  test.equal(packetWriter._toBuffer()[3], 6); // Total length
 
-  test.equal(packetWriter._toBuffer()[4], 0); //casInfo
-  test.equal(packetWriter._toBuffer()[5], 255); //casInfo
-  test.equal(packetWriter._toBuffer()[6], 255); //casInfo
-  test.equal(packetWriter._toBuffer()[7], 255); //casInfo
+  test.equal(packetWriter._toBuffer()[4], 0); // Casinfo
+  test.equal(packetWriter._toBuffer()[5], 255); // Casinfo
+  test.equal(packetWriter._toBuffer()[6], 255); // Casinfo
+  test.equal(packetWriter._toBuffer()[7], 255); // Casinfo
 
   test.equal(packetWriter._toBuffer()[8], CAS.CASFunctionCode.CAS_FC_END_TRAN);
   test.equal(packetWriter._toBuffer()[12], 1);
@@ -29,10 +29,10 @@ exports['test_RollbackPacket'] = function (test) {
 
   rollbackPacket.parse(packetReader);
 
-  test.equal(rollbackPacket.casInfo[0], 0); //casInfo
-  test.equal(rollbackPacket.casInfo[1], 255); //casInfo
-  test.equal(rollbackPacket.casInfo[2], 255); //casInfo
-  test.equal(rollbackPacket.casInfo[3], 255); //casInfo
+  test.equal(rollbackPacket.casInfo[0], 0); // Casinfo
+  test.equal(rollbackPacket.casInfo[1], 255); // Casinfo
+  test.equal(rollbackPacket.casInfo[2], 255); // Casinfo
+  test.equal(rollbackPacket.casInfo[3], 255); // Casinfo
 
   test.equal(rollbackPacket.responseCode, 0);
 

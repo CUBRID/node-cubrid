@@ -143,7 +143,7 @@ PacketWriter.prototype._writeFiller = function (bytesCount, fillerValue) {
  * @param value
  */
 PacketWriter.prototype._writeNullTerminatedString = function (value) {
-  //Typecast undefined into '' and numbers into strings
+  // Typecast undefined into '' and numbers into strings
   value = value || '';
   value = value + '';
 
@@ -169,7 +169,7 @@ PacketWriter.prototype._writeNullTerminatedString = function (value) {
  */
 PacketWriter.prototype._writeFixedLengthString = function (value, fillerValue, fixedLength) {
   var fillerVal;
-  //Typecast undefined into '' and numbers into strings
+  // Typecast undefined into '' and numbers into strings
   value = value || '';
   value = value + '';
 
@@ -279,7 +279,7 @@ PacketWriter.prototype._writeTimestamp = function (year, month, day, hour, min, 
  * @param value
  */
 PacketWriter.prototype._writeObject = function (value) {
-  this._writeByte(0); //not supported
+  this._writeByte(0); // Not supported
 };
 
 /**
@@ -287,7 +287,7 @@ PacketWriter.prototype._writeObject = function (value) {
  * @param value
  */
 PacketWriter.prototype._writeSequence = function (value) {
-  this._writeByte(0); //not supported
+  this._writeByte(0); // Not supported
 };
 
 /**
@@ -295,7 +295,7 @@ PacketWriter.prototype._writeSequence = function (value) {
  * @param value
  */
 PacketWriter.prototype._writeResultSet = function (value) {
-  this._writeByte(0); //not supported
+  this._writeByte(0); // Not supported
 };
 
 
@@ -346,7 +346,7 @@ PacketWriter.prototype._allocate = function (count) {
     return;
   }
 
-  //Verify if we need to allocate more space
+  // Verify if we need to allocate more space
   var bytesRemaining = this._buffer.length - this._offset;
   if (bytesRemaining >= count) {
     return;

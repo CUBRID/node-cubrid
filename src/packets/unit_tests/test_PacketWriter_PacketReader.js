@@ -261,23 +261,23 @@ function testObject() {
 
 console.log('Unit test ' + module.filename.toString() + ' started...');
 
-//Test integer-types
+// Test integer-types
 testByte(bValue);
 testShort(shortValue);
 testInt(iValue);
 
-//Test signed integer-types
+// Test signed integer-types
 testShortSigned(shortValueSigned, -32767);
 //testShortSigned(shortValueSigned, -1);
 testIntSigned(iValueSigned, -2147483647);
 //testIntSigned(iValueSigned, -1);
 
-//Test strings
+// Test strings
 testChar(cValue);
 testString(sValue);
 testFixedLengthString(sValue);
 
-//Test dates
+// Test dates
 testDate(dValue.getFullYear(), dValue.getMonth(), dValue.getDate());
 testTime(dValue.getHours(), dValue.getMinutes(), dValue.getSeconds());
 testDateTime(dValue.getFullYear(), dValue.getMonth(), dValue.getDate(),
@@ -285,14 +285,14 @@ testDateTime(dValue.getFullYear(), dValue.getMonth(), dValue.getDate(),
 testTimestamp(dValue.getFullYear(), dValue.getMonth(), dValue.getDate(),
   dValue.getHours(), dValue.getMinutes(), dValue.getSeconds());
 
-//Other tests
+// Other tests
 testAllTypes(bValue, iValue, sValue);
 testPacketReaderBytes();
 testPacketReaderBuffer();
 testFiller();
 
 testLong(Math.pow(2, 53) - 152156);
-testLong(Math.pow(2, 53) + 100);//overflow
+testLong(Math.pow(2, 53) + 100); // Overflow
 testFloat(4.5);
 testDouble(3.14);
 testNumeric(1.5);

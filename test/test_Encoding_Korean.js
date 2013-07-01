@@ -4,7 +4,7 @@ var CUBRIDClient = require('./test_Setup').createDefaultCUBRIDDemodbConnection,
   Result2Array = require('../src/resultset/Result2Array'),
   assert = require('assert');
 
-var testData = '이 소포를 부치고 싶은데요.'; //KO: 'I would like to send off this package.'
+var testData = '이 소포를 부치고 싶은데요.'; // KO: 'I would like to send off this package.'
 
 Helpers.logInfo(module.filename.toString() + ' started...');
 

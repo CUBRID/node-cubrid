@@ -20,24 +20,24 @@ function ExecuteQueryPacket(options) {
   this.autoCommit = options.autoCommitMode;
   this.dbVersion = options.dbVersion;
 
-  this.resultset = '';
-  this.resultCacheLifetime = 0; //Cache lifetime
-  this.statementType = null; //
-  this.bindCount = 0; //Bind count
-  this.isUpdatable = false; //Is updatable
-  this.totalTupleCount = 0; //Total nomber of tuples
-  this.cache_reusable = 0; //Cache reusable
-  this.resultCount = 0; //Number of results
-  this.columnCount = 0; //Number of columns
-  this.infoArray = new ColumnMetaData(); //Column meta data
-  this.resultInfos = new ResultInfo(); //Result info
-  this.queryHandle = 0; //Query handle
-  this.currentTupleCount = 0; //Current number of returned tuples
-  this.tupleCount = 0; //Number of tuples
+  this.resultSet = ''; // Resultset of the query
+  this.resultCacheLifetime = 0; // Cache lifetime
+  this.statementType = null; // Statement type
+  this.bindCount = 0; // Bind count
+  this.isUpdatable = false; // Is updatable
+  this.totalTupleCount = 0; // Total nomber of tuples
+  this.cache_reusable = 0; // Cache reusable
+  this.resultCount = 0; // Number of results
+  this.columnCount = 0; // Number of columns
+  this.infoArray = new ColumnMetaData(); // Column meta data
+  this.resultInfos = new ResultInfo(); // Result info
+  this.queryHandle = 0; // Query handle
+  this.currentTupleCount = 0; // Current number of returned tuples
+  this.tupleCount = 0; // Number of tuples
 
-  this.responseCode = 0; //Response code
-  this.errorCode = 0; //Error code
-  this.errorMsg = ''; //Error message
+  this.responseCode = 0; // Response code
+  this.errorCode = 0; // Error code
+  this.errorMsg = ''; // Error message
 }
 
 /**
@@ -54,7 +54,7 @@ ExecuteQueryPacket.prototype.write = function (writer) {
     DATA_TYPES.INT_SIZEOF + DATA_TYPES.INT_SIZEOF;
   var functionCode = CAS.CASFunctionCode.CAS_FC_PREPARE_AND_EXECUTE;
 
-  //Prepare info
+  // Prepare info
   writer._writeInt(bufferLength - DATA_TYPES.DATA_LENGTH_SIZEOF - DATA_TYPES.CAS_INFO_SIZE);
   writer._writeBytes(DATA_TYPES.CAS_INFO_SIZE, this.casInfo);
 
@@ -64,26 +64,26 @@ ExecuteQueryPacket.prototype.write = function (writer) {
   writer._writeByte(functionCode);
 
   writer._writeInt(DATA_TYPES.INT_SIZEOF);
-  writer._writeInt(3);// number of CAS args
-  writer._writeNullTerminatedString(this.sql);//sql string
+  writer._writeInt(3); // Number of CAS args
+  writer._writeNullTerminatedString(this.sql); // Sql string
   writer._writeInt(DATA_TYPES.BYTE_SIZEOF);
-  writer._writeByte(CAS.CCIPrepareOption.CCI_PREPARE_NORMAL); //prepare flag
+  writer._writeByte(CAS.CCIPrepareOption.CCI_PREPARE_NORMAL); // Prepare flag
   writer._writeInt(DATA_TYPES.BYTE_SIZEOF);
-  writer._writeByte(this.autoCommit ? 1 : 0); //autocommit mode
+  writer._writeByte(this.autoCommit ? 1 : 0); // Autocommit mode
 
-  //Execute info
+  // Execute info
   writer._writeInt(DATA_TYPES.BYTE_SIZEOF);
-  writer._writeByte(CAS.CCIExecutionOption.CCI_EXEC_QUERY_ALL); //execute flag
+  writer._writeByte(CAS.CCIExecutionOption.CCI_EXEC_QUERY_ALL); // Execute flag
   writer._writeInt(DATA_TYPES.INT_SIZEOF);
-  writer._writeInt(0); //max col size;
+  writer._writeInt(0); // Max col size;
   writer._writeInt(DATA_TYPES.INT_SIZEOF);
-  writer._writeInt(0); //max row size;
-  writer._writeInt(0);//NULL
-  writer._writeInt(2 * DATA_TYPES.INT_SIZEOF); // write cache time
-  writer._writeInt(0); //seconds
-  writer._writeInt(0); //useconds
+  writer._writeInt(0); // Max row size;
+  writer._writeInt(0); // NULL
+  writer._writeInt(2 * DATA_TYPES.INT_SIZEOF); // Write cache time
+  writer._writeInt(0); // Seconds
+  writer._writeInt(0); // Useconds
   writer._writeInt(DATA_TYPES.INT_SIZEOF);
-  writer._writeInt(0);//query timeout
+  writer._writeInt(0); // Query timeout
 
   return writer;
 };
@@ -105,54 +105,54 @@ ExecuteQueryPacket.prototype.parse = function (parser) {
     }
   } else {
     this.queryHandle = this.responseCode;
-    this.resultCacheLifetime = parser._parseInt();
-    this.statementType = parser._parseByte();
-    this.bindCount = parser._parseInt();
-    this.isUpdatable = (parser._parseByte() === 0);
-    this.columnCount = parser._parseInt();
+    this.resultCacheLifetime = parser._parseInt(); // Cache lifetime
+    this.statementType = parser._parseByte(); // Statement type
+    this.bindCount = parser._parseInt(); // Bind count
+    this.isUpdatable = (parser._parseByte() === 0); // Is updatable?
+    this.columnCount = parser._parseInt(); // Query result columns count
     this.infoArray = [];
     for (i = 0; i < this.columnCount; i++) {
       var info = new ColumnMetaData();
-      info.ColumnType = parser._parseByte();
-      info.scale = parser._parseShort();
-      info.precision = parser._parseInt();
+      info.ColumnType = parser._parseByte(); // Column type
+      info.scale = parser._parseShort(); // Scale
+      info.precision = parser._parseInt(); // Precision
       var len = parser._parseInt();
-      info.Name = parser._parseNullTerminatedString(len);
+      info.Name = parser._parseNullTerminatedString(len); // Column name
       len = parser._parseInt();
-      info.RealName = parser._parseNullTerminatedString(len);
+      info.RealName = parser._parseNullTerminatedString(len); // Column real name
       len = parser._parseInt();
-      info.TableName = parser._parseNullTerminatedString(len);
-      info.IsNullable = (parser._parseByte() === 1);
+      info.TableName = parser._parseNullTerminatedString(len); // Table name
+      info.IsNullable = (parser._parseByte() === 1); // Is nullable?
       len = parser._parseInt();
-      info.DafaultValue = parser._parseNullTerminatedString(len);
-      info.IsAutoIncrement = (parser._parseByte() === 1);
-      info.IsUniqueKey = (parser._parseByte() === 1);
-      info.IsPrimaryKey = (parser._parseByte() === 1);
-      info.IsReverseIndex = (parser._parseByte() === 1);
-      info.IsReverseUnique = (parser._parseByte() === 1);
-      info.IsForeignKey = (parser._parseByte() === 1);
-      info.IsShared = (parser._parseByte() === 1);
+      info.DafaultValue = parser._parseNullTerminatedString(len); // Default value
+      info.IsAutoIncrement = (parser._parseByte() === 1); // Is auto increment?
+      info.IsUniqueKey = (parser._parseByte() === 1); // Is unuque key?
+      info.IsPrimaryKey = (parser._parseByte() === 1); // Is primary key?
+      info.IsReverseIndex = (parser._parseByte() === 1); // Reserve index?
+      info.IsReverseUnique = (parser._parseByte() === 1); // Reserve unique?
+      info.IsForeignKey = (parser._parseByte() === 1); // Is foreign key?
+      info.IsShared = (parser._parseByte() === 1); // Shared?
       this.infoArray[i] = info;
     }
 
-    this.totalTupleCount = parser._parseInt();
-    this.cache_reusable = parser._parseByte();
-    this.resultCount = parser._parseInt();
-    //read result info
+    this.totalTupleCount = parser._parseInt(); // Tuples count
+    this.cache_reusable = parser._parseByte(); // Cache reusable
+    this.resultCount = parser._parseInt(); // Result count
+    // Read result info
     for (i = 0; i < this.resultCount; i++) {
       var resultInfo = new ResultInfo();
-      resultInfo.StmtType = parser._parseByte();
-      resultInfo.ResultCount = parser._parseInt();
-      resultInfo.Oid = parser._parseBytes(DATA_TYPES.OID_SIZEOF);
-      resultInfo.CacheTimeSec = parser._parseInt();
-      resultInfo.CacheTimeUsec = parser._parseInt();
+      resultInfo.StmtType = parser._parseByte(); // Statement type
+      resultInfo.ResultCount = parser._parseInt(); // Result count
+      resultInfo.Oid = parser._parseBytes(DATA_TYPES.OID_SIZEOF); // OID
+      resultInfo.CacheTimeSec = parser._parseInt(); // Cache time seconds
+      resultInfo.CacheTimeUsec = parser._parseInt(); // Cache time milliseconds
       this.resultInfos[i] = resultInfo;
     }
   }
 
   if (this.statementType === CAS.CUBRIDStatementType.CUBRID_STMT_SELECT) {
-    var fetchCode = parser._parseInt();
-    this.tupleCount = parser._parseInt();
+    var fetchCode = parser._parseInt(); // Fetch code
+    this.tupleCount = parser._parseInt(); // Tuple count
     var columnNames = new Array(this.columnCount);
     var columnDataTypes = new Array(this.columnCount);
     var columnValues = new Array(this.tupleCount);
@@ -163,7 +163,7 @@ ExecuteQueryPacket.prototype.parse = function (parser) {
 
     columnValues = this._getData(parser, this.tupleCount);
 
-    return JSON.stringify(
+    this.resultSet =  JSON.stringify(
       {
         ColumnNames     : columnNames,
         ColumnDataTypes : columnDataTypes,
@@ -173,7 +173,7 @@ ExecuteQueryPacket.prototype.parse = function (parser) {
     );
   }
 
-  return parser;
+  return this;
 };
 
 /**
@@ -185,10 +185,10 @@ ExecuteQueryPacket.prototype._getData = function (parser, tupleCount) {
   var columnValues = new Array(tupleCount);
   for (var i = 0; i < tupleCount; i++) {
     columnValues[i] = new Array(this.columnCount);
-    var index = parser._parseInt();
-    var Oid = parser._parseBytes(DATA_TYPES.OID_SIZEOF);
+    var index = parser._parseInt(); // Column index
+    var Oid = parser._parseBytes(DATA_TYPES.OID_SIZEOF); // OID
     for (var j = 0; j < this.columnCount; j++) {
-      var size = parser._parseInt();
+      var size = parser._parseInt(); // Value size
       var val;
       if (size <= 0) {
         val = null;
@@ -199,13 +199,13 @@ ExecuteQueryPacket.prototype._getData = function (parser, tupleCount) {
           this.statementType === CAS.CUBRIDStatementType.CUBRID_STMT_EVALUATE ||
           this.statementType === CAS.CUBRIDStatementType.CUBRID_STMT_CALL_SP ||
           this.infoArray[j].ColumnType === CAS.CUBRIDDataType.CCI_U_TYPE_NULL) {
-          type = parser._parseByte();
+          type = parser._parseByte(); // Column data type
           size--;
         } else {
           type = this.infoArray[j].ColumnType;
         }
 
-        val = this._readValue(j, type, size, parser);
+        val = this._readValue(j, type, size, parser); // Read value
         columnValues[i][j] = val;
       }
     }

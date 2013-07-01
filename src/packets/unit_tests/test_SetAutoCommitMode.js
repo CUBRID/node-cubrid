@@ -11,12 +11,12 @@ function testSetAutoCommitModePacket_01() {
   var setAutoCommitModePacket = new SetAutoCommitModePacket(options);
 
   setAutoCommitModePacket.write(packetWriter);
-  assert.equal(packetWriter._toBuffer()[3], 1 + 4 * 4); //total length
+  assert.equal(packetWriter._toBuffer()[3], 1 + 4 * 4); // Total length
 
-  assert.equal(packetWriter._toBuffer()[4], 0); //casInfo
-  assert.equal(packetWriter._toBuffer()[5], 255); //casInfo
-  assert.equal(packetWriter._toBuffer()[6], 255); //casInfo
-  assert.equal(packetWriter._toBuffer()[7], 255); //casInfo
+  assert.equal(packetWriter._toBuffer()[4], 0); // CasInfo
+  assert.equal(packetWriter._toBuffer()[5], 255); // CasInfo
+  assert.equal(packetWriter._toBuffer()[6], 255); // CasInfo
+  assert.equal(packetWriter._toBuffer()[7], 255); // CasInfo
 
   assert.equal(packetWriter._toBuffer()[8], CAS.CASFunctionCode.CAS_FC_SET_DB_PARAMETER);
   assert.equal(packetWriter._toBuffer()[16], CAS.CCIDbParam.CCI_PARAM_AUTO_COMMIT);
@@ -29,10 +29,10 @@ function testSetAutoCommitModePacket_01() {
 
   setAutoCommitModePacket.parse(packetReader);
 
-  assert.equal(setAutoCommitModePacket.casInfo[0], 0); //casInfo
-  assert.equal(setAutoCommitModePacket.casInfo[1], 255); //casInfo
-  assert.equal(setAutoCommitModePacket.casInfo[2], 255); //casInfo
-  assert.equal(setAutoCommitModePacket.casInfo[3], 255); //casInfo
+  assert.equal(setAutoCommitModePacket.casInfo[0], 0); // CasInfo
+  assert.equal(setAutoCommitModePacket.casInfo[1], 255); // CasInfo
+  assert.equal(setAutoCommitModePacket.casInfo[2], 255); // CasInfo
+  assert.equal(setAutoCommitModePacket.casInfo[3], 255); // CasInfo
 
   assert.equal(setAutoCommitModePacket.responseCode, 0);
 

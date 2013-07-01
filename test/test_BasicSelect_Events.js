@@ -33,14 +33,14 @@ CUBRIDClient.on(CUBRIDClient.EVENT_FETCH_DATA_AVAILABLE, function (result, query
   Helpers.logInfo('*** Fetch data received for query: ' + queryHandle);
   Helpers.logInfo('*** Current fetch of data returned rows count: ' + Result2Array.RowsArray(result).length);
   Helpers.logInfo('*** First row: ' + Result2Array.RowsArray(result)[0].toString());
-  // continue to fetch...
+  // Continue to fetch...
   Helpers.logInfo('...');
   Helpers.logInfo('...fetching more rows...');
   Helpers.logInfo('...');
   setTimeout(function () {
     CUBRIDClient.fetch(queryHandle, function () {
     });
-  }, Math.random() * 500); // simulate different responses time for each fetch
+  }, Math.random() * 500); // Simulate different responses time for each fetch
 });
 
 CUBRIDClient.on(CUBRIDClient.EVENT_FETCH_NO_MORE_DATA_AVAILABLE, function (queryHandle) {
@@ -54,7 +54,7 @@ CUBRIDClient.on(CUBRIDClient.EVENT_QUERY_CLOSED, function (queryHandle) {
   Helpers.logInfo('Query closed: ' + queryHandle);
   Helpers.logInfo('Closing connection...');
 
-  //We had only one query opened - we can now close the connection
+  // We had only one query opened - we can now close the connection
   CUBRIDClient.close(function () {
   });
 });

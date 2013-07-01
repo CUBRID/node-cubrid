@@ -12,12 +12,12 @@ exports['test_SetAutoCommitModePacket'] = function (test) {
   var setAutoCommitModePacket = new SetAutoCommitModePacket(options);
 
   setAutoCommitModePacket.write(packetWriter);
-  test.equal(packetWriter._toBuffer()[3], 1 + 4 * 4); //total length
+  test.equal(packetWriter._toBuffer()[3], 1 + 4 * 4); // Total length
 
-  test.equal(packetWriter._toBuffer()[4], 0); //casInfo
-  test.equal(packetWriter._toBuffer()[5], 255); //casInfo
-  test.equal(packetWriter._toBuffer()[6], 255); //casInfo
-  test.equal(packetWriter._toBuffer()[7], 255); //casInfo
+  test.equal(packetWriter._toBuffer()[4], 0); // Casinfo
+  test.equal(packetWriter._toBuffer()[5], 255); // Casinfo
+  test.equal(packetWriter._toBuffer()[6], 255); // Casinfo
+  test.equal(packetWriter._toBuffer()[7], 255); // Casinfo
 
   test.equal(packetWriter._toBuffer()[8], CAS.CASFunctionCode.CAS_FC_SET_DB_PARAMETER);
   test.equal(packetWriter._toBuffer()[16], CAS.CCIDbParam.CCI_PARAM_AUTO_COMMIT);
@@ -30,10 +30,10 @@ exports['test_SetAutoCommitModePacket'] = function (test) {
 
   setAutoCommitModePacket.parse(packetReader);
 
-  test.equal(setAutoCommitModePacket.casInfo[0], 0); //casInfo
-  test.equal(setAutoCommitModePacket.casInfo[1], 255); //casInfo
-  test.equal(setAutoCommitModePacket.casInfo[2], 255); //casInfo
-  test.equal(setAutoCommitModePacket.casInfo[3], 255); //casInfo
+  test.equal(setAutoCommitModePacket.casInfo[0], 0); // Casinfo
+  test.equal(setAutoCommitModePacket.casInfo[1], 255); // Casinfo
+  test.equal(setAutoCommitModePacket.casInfo[2], 255); // Casinfo
+  test.equal(setAutoCommitModePacket.casInfo[3], 255); // Casinfo
 
   test.equal(setAutoCommitModePacket.responseCode, 0);
 

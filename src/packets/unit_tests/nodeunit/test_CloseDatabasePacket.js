@@ -12,12 +12,12 @@ exports['test_CloseConnectionPacket'] = function (test) {
   var closeDatabasePacket = new CloseDatabasePacket(options);
 
   closeDatabasePacket.write(packetWriter);
-  test.equal(packetWriter._toBuffer()[3], 1); //total length
+  test.equal(packetWriter._toBuffer()[3], 1); // Total length
 
-  test.equal(packetWriter._toBuffer()[4], 0); //casInfo
-  test.equal(packetWriter._toBuffer()[5], 255); //casInfo
-  test.equal(packetWriter._toBuffer()[6], 255); //casInfo
-  test.equal(packetWriter._toBuffer()[7], 255); //casInfo
+  test.equal(packetWriter._toBuffer()[4], 0); // CasInfo
+  test.equal(packetWriter._toBuffer()[5], 255); // CasInfo
+  test.equal(packetWriter._toBuffer()[6], 255); // CasInfo
+  test.equal(packetWriter._toBuffer()[7], 255); // CasInfo
 
   test.equal(packetWriter._toBuffer()[8], CAS.CASFunctionCode.CAS_FC_CON_CLOSE);
 
@@ -27,10 +27,10 @@ exports['test_CloseConnectionPacket'] = function (test) {
 
   closeDatabasePacket.parse(packetReader);
 
-  test.equal(closeDatabasePacket.casInfo[0], 0); //casInfo
-  test.equal(closeDatabasePacket.casInfo[1], 255); //casInfo
-  test.equal(closeDatabasePacket.casInfo[2], 255); //casInfo
-  test.equal(closeDatabasePacket.casInfo[3], 255); //casInfo
+  test.equal(closeDatabasePacket.casInfo[0], 0); // CasInfo
+  test.equal(closeDatabasePacket.casInfo[1], 255); // CasInfo
+  test.equal(closeDatabasePacket.casInfo[2], 255); // CasInfo
+  test.equal(closeDatabasePacket.casInfo[3], 255); // CasInfo
 
   test.equal(closeDatabasePacket.responseCode, 0);
 

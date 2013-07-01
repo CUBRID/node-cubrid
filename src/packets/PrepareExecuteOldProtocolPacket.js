@@ -23,27 +23,27 @@ function PrepareAndExecutePacket(options) {
   this.paramValues = options.paramValues;
   this.paramTypes = options.paramTypes;
 
-  this.resultset = '';
-  this.resultCacheLifetime = 0; //Cache lifetime
-  this.statementType = null; //
-  this.bindCount = 0; //Bind count
-  this.isUpdatable = false; //Is updatable
-  this.totalTupleCount = 0; //Total nomber of tuples
-  this.cache_reusable = 0; //Cache reusable
-  this.resultCount = 0; //Number of results
-  this.columnCount = 0; //Number of columns
-  this.infoArray = new ColumnMetaData(); //Column meta data
-  this.resultInfos = new ResultInfo(); //Result info
-  this.queryHandle = 0; //Query handle
-  this.currentTupleCount = 0; //Current number of returned tuples
-  this.tupleCount = 0; //Number of tuples
-  this.bindCount = 0; //Number of parameters to bind
+  this.resultSet = '';
+  this.resultCacheLifetime = 0; // Cache lifetime
+  this.statementType = null; // Statement type
+  this.bindCount = 0; // Bind count
+  this.isUpdatable = false; // Is updatable
+  this.totalTupleCount = 0; // Total nomber of tuples
+  this.cache_reusable = 0; // Cache reusable
+  this.resultCount = 0; // Number of results
+  this.columnCount = 0; // Number of columns
+  this.infoArray = new ColumnMetaData(); // Column meta data
+  this.resultInfos = new ResultInfo(); // Result info
+  this.queryHandle = 0; // Query handle
+  this.currentTupleCount = 0; // Current number of returned tuples
+  this.tupleCount = 0; // Number of tuples
+  this.bindCount = 0; // Number of parameters to bind
   this.isUpdatable = false;
   this.resultCacheLifetime = 0;
 
-  this.responseCode = 0; //Response code
-  this.errorCode = 0; //Error code
-  this.errorMsg = ''; //Error message
+  this.responseCode = 0; // Response code
+  this.errorCode = 0; // Error code
+  this.errorMsg = ''; // Error message
 }
 
 /**
@@ -55,16 +55,16 @@ PrepareAndExecutePacket.prototype.writePrepare = function (writer) {
     DATA_TYPES.BYTE_SIZEOF + DATA_TYPES.INT_SIZEOF + Buffer.byteLength(this.sql) + 1 +
     DATA_TYPES.INT_SIZEOF + DATA_TYPES.BYTE_SIZEOF + DATA_TYPES.INT_SIZEOF + DATA_TYPES.BYTE_SIZEOF;
 
-  //Prepare info
+  // Prepare info
   writer._writeInt(bufferLength - DATA_TYPES.DATA_LENGTH_SIZEOF - DATA_TYPES.CAS_INFO_SIZE);
   writer._writeBytes(DATA_TYPES.CAS_INFO_SIZE, this.casInfo);
 
   writer._writeByte(CAS.CASFunctionCode.CAS_FC_PREPARE);
-  writer._writeNullTerminatedString(this.sql);//sql string
+  writer._writeNullTerminatedString(this.sql); // Sql string
   writer._writeInt(DATA_TYPES.BYTE_SIZEOF);
-  writer._writeByte(CAS.CCIPrepareOption.CCI_PREPARE_NORMAL); //prepare flag
+  writer._writeByte(CAS.CCIPrepareOption.CCI_PREPARE_NORMAL); // Prepare flag
   writer._writeInt(DATA_TYPES.BYTE_SIZEOF);
-  writer._writeByte(this.autoCommit ? 1 : 0); //autocommit mode
+  writer._writeByte(this.autoCommit ? 1 : 0); // Autocommit mode
 
   return writer;
 };
@@ -98,27 +98,27 @@ PrepareAndExecutePacket.prototype.writeExecute = function (writer) {
   writer._writeInt(DATA_TYPES.INT_SIZEOF);
   writer._writeInt(this.queryHandle);
   writer._writeInt(DATA_TYPES.BYTE_SIZEOF);
-  writer._writeByte(CAS.CCIExecutionOption.CCI_EXEC_NORMAL); //execute flag
+  writer._writeByte(CAS.CCIExecutionOption.CCI_EXEC_NORMAL); // Execute flag
   writer._writeInt(DATA_TYPES.INT_SIZEOF);
-  writer._writeInt(0); //max col size;
+  writer._writeInt(0); // Max col size;
   writer._writeInt(DATA_TYPES.INT_SIZEOF);
-  writer._writeInt(0); //max row size;
-  writer._writeInt(0);//NULL
+  writer._writeInt(0); // Max row size;
+  writer._writeInt(0); // NULL
   writer._writeInt(DATA_TYPES.BYTE_SIZEOF);
   if (this.statementType !== CAS.CUBRIDStatementType.CUBRID_STMT_SELECT) {
-    writer._writeByte(0); // fetchFlag;
+    writer._writeByte(0); // FetchFlag;
   } else {
-    writer._writeByte(1); // fetchFlag;
+    writer._writeByte(1); // FetchFlag;
   }
   writer._writeInt(DATA_TYPES.BYTE_SIZEOF);
-  writer._writeByte(this.autoCommit ? 1 : 0); //autocommit mode
+  writer._writeByte(this.autoCommit ? 1 : 0); // Autocommit mode
   writer._writeInt(DATA_TYPES.BYTE_SIZEOF);
-  writer._writeByte(1); //forrward only cursor
-  writer._writeInt(2 * DATA_TYPES.INT_SIZEOF); // write cache time
-  writer._writeInt(0); //seconds
-  writer._writeInt(0); //useconds
+  writer._writeByte(1); // Forrward only cursor
+  writer._writeInt(2 * DATA_TYPES.INT_SIZEOF); // Write cache time
+  writer._writeInt(0); // Seconds
+  writer._writeInt(0); // Useconds
   writer._writeInt(DATA_TYPES.INT_SIZEOF);
-  writer._writeInt(0);//query timeout
+  writer._writeInt(0); // Query timeout
   writer._writeBuffer(paramsWriter._buffer);
 
   return writer;
@@ -140,34 +140,34 @@ PrepareAndExecutePacket.prototype.parsePrepare = function (parser) {
       this.errorMsg = Helpers._resolveErrorCode(this.errorCode);
     }
   } else {
-    this.queryHandle = this.responseCode;
-    this.resultCacheLifetime = parser._parseInt();
-    this.statementType = parser._parseByte();
-    this.bindCount = parser._parseInt();
-    this.isUpdatable = (parser._parseByte() === 1);
-    this.columnCount = parser._parseInt();
+    this.queryHandle = this.responseCode; // Query handle
+    this.resultCacheLifetime = parser._parseInt(); // Cache lifetime
+    this.statementType = parser._parseByte(); // Statement type
+    this.bindCount = parser._parseInt(); // Bind count
+    this.isUpdatable = (parser._parseByte() === 1); // Updatable?
+    this.columnCount = parser._parseInt(); // Column count
     this.infoArray = [];
     for (var i = 0; i < this.columnCount; i++) {
       var info = new ColumnMetaData();
-      info.ColumnType = parser._parseByte();
-      info.scale = parser._parseShort();
-      info.precision = parser._parseInt();
+      info.ColumnType = parser._parseByte(); // Column type
+      info.scale = parser._parseShort(); // Scale
+      info.precision = parser._parseInt(); // Precision
       var len = parser._parseInt();
-      info.Name = parser._parseNullTerminatedString(len);
+      info.Name = parser._parseNullTerminatedString(len); // Column name
       len = parser._parseInt();
-      info.RealName = parser._parseNullTerminatedString(len);
+      info.RealName = parser._parseNullTerminatedString(len); // Column real name
       len = parser._parseInt();
-      info.TableName = parser._parseNullTerminatedString(len);
-      info.IsNullable = (parser._parseByte() === 1);
+      info.TableName = parser._parseNullTerminatedString(len); // Table name
+      info.IsNullable = (parser._parseByte() === 1); // Nullable?
       len = parser._parseInt();
-      info.DafaultValue = parser._parseNullTerminatedString(len);
-      info.IsAutoIncrement = (parser._parseByte() === 1);
-      info.IsUniqueKey = (parser._parseByte() === 1);
-      info.IsPrimaryKey = (parser._parseByte() === 1);
-      info.IsReverseIndex = (parser._parseByte() === 1);
-      info.IsReverseUnique = (parser._parseByte() === 1);
-      info.IsForeignKey = (parser._parseByte() === 1);
-      info.IsShared = (parser._parseByte() === 1);
+      info.DafaultValue = parser._parseNullTerminatedString(len); // Default value
+      info.IsAutoIncrement = (parser._parseByte() === 1); // Auto-increment?
+      info.IsUniqueKey = (parser._parseByte() === 1); // Unique key?
+      info.IsPrimaryKey = (parser._parseByte() === 1); // Primary key?
+      info.IsReverseIndex = (parser._parseByte() === 1); // Reserved key index
+      info.IsReverseUnique = (parser._parseByte() === 1); // Reverse unique?
+      info.IsForeignKey = (parser._parseByte() === 1); // Foreign key?
+      info.IsShared = (parser._parseByte() === 1); // Shared?
       this.infoArray[i] = info;
     }
   }
@@ -193,20 +193,20 @@ PrepareAndExecutePacket.prototype.parseExecute = function (parser) {
     this.totalTupleCount = this.responseCode;
     this.cache_reusable = parser._parseByte();
     this.resultCount = parser._parseInt();
-    //read result info
+    // Read result info
     for (i = 0; i < this.resultCount; i++) {
       var resultInfo = new ResultInfo();
-      resultInfo.StmtType = parser._parseByte();
-      resultInfo.ResultCount = parser._parseInt();
-      resultInfo.Oid = parser._parseBytes(DATA_TYPES.OID_SIZEOF);
-      resultInfo.CacheTimeSec = parser._parseInt();
-      resultInfo.CacheTimeUsec = parser._parseInt();
+      resultInfo.StmtType = parser._parseByte(); // Statement type
+      resultInfo.ResultCount = parser._parseInt(); // Result count
+      resultInfo.Oid = parser._parseBytes(DATA_TYPES.OID_SIZEOF); // OID
+      resultInfo.CacheTimeSec = parser._parseInt(); // Cache time seconds
+      resultInfo.CacheTimeUsec = parser._parseInt(); // Cache time milliseconds
       this.resultInfos[i] = resultInfo;
     }
 
     if (this.statementType === CAS.CUBRIDStatementType.CUBRID_STMT_SELECT) {
-      var fetchCode = parser._parseInt();
-      this.tupleCount = parser._parseInt();
+      var fetchCode = parser._parseInt(); // Fetch code
+      this.tupleCount = parser._parseInt(); // Tuple count
       var columnNames = new Array(this.columnCount);
       var columnDataTypes = new Array(this.columnCount);
       var columnValues = new Array(this.tupleCount);
@@ -217,7 +217,7 @@ PrepareAndExecutePacket.prototype.parseExecute = function (parser) {
 
       columnValues = this._getData(parser, this.tupleCount);
 
-      return JSON.stringify(
+      this.resultSet = JSON.stringify(
         {
           ColumnNames     : columnNames,
           ColumnDataTypes : columnDataTypes,
@@ -225,12 +225,10 @@ PrepareAndExecutePacket.prototype.parseExecute = function (parser) {
           ColumnValues    : columnValues
         }
       );
-    } else {
-      return this.resultCount;
     }
   }
 
-  return parser;
+  return this;
 };
 
 /**

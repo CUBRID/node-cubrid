@@ -17,7 +17,7 @@ function ClientInfoExchangePacket() {
 ClientInfoExchangePacket.prototype.write = function (writer) {
   writer._writeFixedLengthString('CUBRK', 0, 5);
   writer._writeByte(3); // 3 = JDBC client type
-  writer._writeByte(DRIVER_VERSION.CAS_VER);
+  writer._writeByte(DRIVER_VERSION.CAS_VER); // CAS client/driver version
   writer._writeByte(0);
   writer._writeByte(0);
   writer._writeByte(0);
@@ -30,7 +30,7 @@ ClientInfoExchangePacket.prototype.write = function (writer) {
  * @param parser
  */
 ClientInfoExchangePacket.prototype.parse = function (parser) {
-  this.newConnectionPort = parser._parseInt();
+  this.newConnectionPort = parser._parseInt(); // (TCP/IP) Port value
 
   return this;
 };

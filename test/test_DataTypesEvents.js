@@ -64,7 +64,7 @@ CUBRIDClient.on(CUBRIDClient.EVENT_BATCH_COMMANDS_COMPLETED, function () {
 CUBRIDClient.on(CUBRIDClient.EVENT_QUERY_DATA_AVAILABLE, function (result, queryHandle) {
   Helpers.logInfo('Data received.');
   Helpers.logInfo('Returned active query handle: ' + queryHandle);
-  global.savedQueryHandle = queryHandle; // save handle - needed for further fetch operations
+  global.savedQueryHandle = queryHandle; // Save handle - needed for further fetch operations
   Helpers.logInfo('Total query result rows count: ' + Result2Array.TotalRowsCount(result));
   Helpers.logInfo('Returned rows count: ' + Result2Array.RowsArray(result).length);
   var arr = Result2Array.RowsArray(result);

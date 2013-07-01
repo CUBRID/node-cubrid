@@ -35,7 +35,7 @@ exports['test_Helpers'] = function (test) {
 
   test.equal(escaped, "insert into \"\"a values(\\b)");
 
-//Test Input validation functions
+  // Test Input validation functions
   test.ok(Helpers._validateInputBoolean(null) === false);
   test.ok(Helpers._validateInputBoolean(4) === false);
   test.ok(Helpers._validateInputBoolean(3.14) === false);

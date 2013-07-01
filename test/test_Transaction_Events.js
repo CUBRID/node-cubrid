@@ -61,7 +61,7 @@ CUBRIDClient.on(CUBRIDClient.EVENT_COMMIT_COMPLETED, function () {
 CUBRIDClient.on(CUBRIDClient.EVENT_QUERY_DATA_AVAILABLE, function (result, queryHandle) {
   Helpers.logInfo('Data received.');
   Helpers.logInfo('Returned active query handle: ' + queryHandle);
-  global.savedQueryHandle = queryHandle; // save handle - needed for further fetch operations
+  global.savedQueryHandle = queryHandle; // Save handle - needed for further fetch operations
   if (global.queryNo === 1) {
     assert(Result2Array.TotalRowsCount(result) === 1);
     CUBRIDClient.closeQuery(global.savedQueryHandle, null);

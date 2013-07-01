@@ -11,12 +11,12 @@ function testGetEngineVersionPacket_01() {
   var getEngineVersionPacket = new GetEngineVersionPacket(options);
 
   getEngineVersionPacket.write(packetWriter);
-  assert.equal(packetWriter._toBuffer()[3], 6); //total length
+  assert.equal(packetWriter._toBuffer()[3], 6); // Total length
 
-  assert.equal(packetWriter._toBuffer()[4], 0); //casInfo
-  assert.equal(packetWriter._toBuffer()[5], 255); //casInfo
-  assert.equal(packetWriter._toBuffer()[6], 255); //casInfo
-  assert.equal(packetWriter._toBuffer()[7], 255); //casInfo
+  assert.equal(packetWriter._toBuffer()[4], 0); // CasInfo
+  assert.equal(packetWriter._toBuffer()[5], 255); // CasInfo
+  assert.equal(packetWriter._toBuffer()[6], 255); // CasInfo
+  assert.equal(packetWriter._toBuffer()[7], 255); // CasInfo
 
   assert.equal(packetWriter._toBuffer()[8], CAS.CASFunctionCode.CAS_FC_GET_DB_VERSION);
   assert.equal(packetWriter._toBuffer()[12], 1);
@@ -29,10 +29,10 @@ function testGetEngineVersionPacket_01() {
   packetReader._append(new Buffer([0]));
   getEngineVersionPacket.parse(packetReader);
 
-  assert.equal(getEngineVersionPacket.casInfo[0], 0); //casInfo
-  assert.equal(getEngineVersionPacket.casInfo[1], 255); //casInfo
-  assert.equal(getEngineVersionPacket.casInfo[2], 255); //casInfo
-  assert.equal(getEngineVersionPacket.casInfo[3], 255); //casInfo
+  assert.equal(getEngineVersionPacket.casInfo[0], 0); // CasInfo
+  assert.equal(getEngineVersionPacket.casInfo[1], 255); // CasInfo
+  assert.equal(getEngineVersionPacket.casInfo[2], 255); // CasInfo
+  assert.equal(getEngineVersionPacket.casInfo[3], 255); // CasInfo
 
   assert.equal(getEngineVersionPacket.responseCode, 0);
 

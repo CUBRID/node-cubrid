@@ -31,7 +31,7 @@ var ClientInfoExchangePacket = require('./packets/' + '/ClientInfoExchangePacket
 
 module.exports = CUBRIDConnection;
 
-//Support custom events
+// Support custom events
 Util.inherits(CUBRIDConnection, EventEmitter);
 
 /**
@@ -45,10 +45,10 @@ Util.inherits(CUBRIDConnection, EventEmitter);
  * @constructor
  */
 function CUBRIDConnection(brokerServer, brokerPort, user, password, database, cacheTimeout) {
-  //Using EventEmitter.call on an object will do the setup of instance methods / properties
-  //(not inherited) of an EventEmitter.
-  //It is similar in purpose to super(...) in Java or base(...) in C#, but it is not implicit in Javascript.
-  //Because of this, we must manually call it ourselves:
+  // Using EventEmitter.call on an object will do the setup of instance methods / properties
+  // (not inherited) of an EventEmitter.
+  // It is similar in purpose to super(...) in Java or base(...) in C#, but it is not implicit in Javascript.
+  // Because of this, we must manually call it ourselves:
   EventEmitter.call(this);
 
   this._queryCache = null;
@@ -58,7 +58,7 @@ function CUBRIDConnection(brokerServer, brokerPort, user, password, database, ca
 
   this._socket = new Net.Socket();
 
-  //Connection parameters
+  // Connection parameters
   this.brokerServer = brokerServer || 'localhost';
   this.initialBrokerPort = brokerPort || 33000;
   this.connectionBrokerPort = -1;
@@ -66,16 +66,16 @@ function CUBRIDConnection(brokerServer, brokerPort, user, password, database, ca
   this.password = password || '';
   this.database = database || 'demodb';
 
-  //Session public variables
-  this.autoCommitMode = null; //will be initialized on connect
+  // Session public variables
+  this.autoCommitMode = null; // Will be initialized on connect
   this.sessionId = 0;
 
-  //Execution semaphore variables; prevent double-connect-attempts, overlapping-queries etc.
+  // Execution semaphore variables; prevent double-connect-attempts, overlapping-queries etc.
   this.connectionOpened = false;
   this.connectionPending = false;
   this.queryPending = false;
 
-  //Driver events
+  // Driver events
   this.EVENT_ERROR = 'error';
   this.EVENT_CONNECTED = 'connect';
   this.EVENT_ENGINE_VERSION_AVAILABLE = 'engine version';
@@ -96,11 +96,11 @@ function CUBRIDConnection(brokerServer, brokerPort, user, password, database, ca
   this.EVENT_SET_DB_PARAMETER_COMPLETED = 'set db parameter completed';
   this.EVENT_GET_DB_PARAMETER_COMPLETED = 'get db parameter completed';
 
-  //Auto-commit constants
+  // Auto-commit constants
   this.AUTOCOMMIT_ON = true;
   this.AUTOCOMMIT_OFF = !this.AUTOCOMMIT_ON;
 
-  //Database schema variables
+  // Database schema variables
   this.SCHEMA_TABLE = CASConstants.CUBRIDSchemaType.CCI_SCH_CLASS;
   this.SCHEMA_VIEW = CASConstants.CUBRIDSchemaType.CCI_SCH_VCLASS;
   this.SCHEMA_ATTRIBUTE = CASConstants.CUBRIDSchemaType.CCI_SCH_ATTRIBUTE;
@@ -110,7 +110,7 @@ function CUBRIDConnection(brokerServer, brokerPort, user, password, database, ca
   this.SCHEMA_EXPORTED_KEYS = CASConstants.CUBRIDSchemaType.CCI_SCH_EXPORTED_KEYS;
   this.SCHEMA_CLASS_PRIVILEGE = CASConstants.CUBRIDSchemaType.CCI_SCH_CLASS_PRIVILEGE;
 
-  //LOB types variables
+  // LOB types variables
   this.LOB_TYPE_BLOB = CASConstants.CUBRIDDataType.CCI_U_TYPE_BLOB;
   this.LOB_TYPE_CLOB = CASConstants.CUBRIDDataType.CCI_U_TYPE_CLOB;
 
@@ -120,13 +120,13 @@ function CUBRIDConnection(brokerServer, brokerPort, user, password, database, ca
   this._PREVENT_CONCURRENT_REQUESTS = true;
   this._LOB_MAX_IO_LENGTH = 128 * 1024;
 
-  //Database engine version
+  // Database engine version
   this._DB_ENGINE_VER = '';
 
-  //Timeout values (msec.)
+  // Timeout values (msec.)
   this._CONNECTION_TIMEOUT = 0;
 
-  //Enforce execute query using the old protocol
+  // Enforce execute query using the old protocol
   this._ENFORCE_OLD_QUERY_PROTOCOL = false;
 
   // Each element in the queries queue array contains:
@@ -162,14 +162,14 @@ function CUBRIDConnection(brokerServer, brokerPort, user, password, database, ca
   // Used for standard callbacks 'err' parameter
   this._NO_ERROR = null;
 
-  //Uncomment the following lines if you will not always provide an 'error' listener in your consumer code,
-  //to avoid any unexpected exception. Be aware that:
-  //Error events are treated as a special case in node. If there is no listener for it,
-  //then the default action is to print a stack trace and exit the program.
-  //http://nodejs.org/api/events.html
-  //this.on('error',function(err){
-  //Helpers.logError(err.message);
-  ////... (add your own error-handling code)
+  // Uncomment the following lines if you will not always provide an 'error' listener in your consumer code,
+  // to avoid any unexpected exception. Be aware that:
+  // Error events are treated as a special case in node. If there is no listener for it,
+  // then the default action is to print a stack trace and exit the program.
+  // http://nodejs.org/api/events.html
+  // this.on('error',function(err){
+  // Helpers.logError(err.message);
+  //// ... (add your own error-handling code)
   //});
 }
 
@@ -201,7 +201,7 @@ CUBRIDConnection.prototype._doGetBrokerPort = function (self, callback) {
   });
 
   self._socket.once('data', function (data) {
-    self._socket.setTimeout(0); //clear connection timeout
+    self._socket.setTimeout(0); // Clear connection timeout
     var packetReader = new PacketReader();
     packetReader.write(data);
     clientInfoExchangePacket.parse(packetReader);
@@ -262,7 +262,7 @@ CUBRIDConnection.prototype._doDatabaseLogin = function (self, callback) {
   });
 
   self._socket.on('data', function (data) {
-    self._socket.setTimeout(0); //clear connection timeout
+    self._socket.setTimeout(0); // Clear connection timeout
     responseData = Helpers._combineData(responseData, data);
     if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH &&
       responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
@@ -289,6 +289,7 @@ CUBRIDConnection.prototype._doDatabaseLogin = function (self, callback) {
 
 /**
  * Get the server database engine version
+ * @param self
  * @param callback
  */
 CUBRIDConnection.prototype._getEngineVersion = function (self, callback) {
@@ -375,7 +376,7 @@ CUBRIDConnection.prototype.connect = function (callback) {
     ],
 
     function (err) {
-      self.queryPending = false; //reset query execution status
+      self.queryPending = false; // Reset query execution status
       self.connectionPending = false;
       self.connectionOpened = !(typeof err !== 'undefined' && err !== null);
       Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_CONNECTED);
@@ -410,7 +411,7 @@ CUBRIDConnection.prototype.batchExecuteNoQuery = function (sqls, callback) {
 
   if (Array.isArray(sqls)) {
     if (sqls.length === 0) {
-      //no commands to execute
+      // No commands to execute
       Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_BATCH_COMMANDS_COMPLETED);
       if (callback && typeof(callback) === 'function') {
         callback.call(self, err);
@@ -715,11 +716,11 @@ CUBRIDConnection.prototype._queryNewProtocol = function (sql, callback) {
       },
 
       function (cb) {
-        //Check if data is already in cache
+        // Check if data is already in cache
         if (self._queryCache !== null) {
           if (self._queryCache.contains(sql)) {
             self.queryPending = false;
-            //query handle set to null, to prevent further fetch (cache is intended only for small data)
+            // Query handle set to null, to prevent further fetch (cache is intended only for small data)
             Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_QUERY_DATA_AVAILABLE, self._queryCache.get(sql), null);
             if (callback && typeof(callback) === 'function') {
               callback(err, self._queryCache.get(sql), null);
@@ -750,7 +751,7 @@ CUBRIDConnection.prototype._queryNewProtocol = function (sql, callback) {
             self._socket.removeAllListeners('data');
             var packetReader = new PacketReader();
             packetReader.write(responseData);
-            var result = executeQueryPacket.parse(packetReader);
+            var result = executeQueryPacket.parse(packetReader).resultSet;
             var errorCode = executeQueryPacket.errorCode;
             var errorMsg = executeQueryPacket.errorMsg;
             if (errorCode !== 0) {
@@ -881,7 +882,7 @@ CUBRIDConnection.prototype._queryOldProtocol = function (sql, arrParamsValues, a
             self._socket.removeAllListeners('data');
             var packetReader = new PacketReader();
             packetReader.write(responseData);
-            var result = prepareExecuteOldProtocolPacket.parseExecute(packetReader);
+            var result = prepareExecuteOldProtocolPacket.parseExecute(packetReader).resultSet;
             var errorCode = prepareExecuteOldProtocolPacket.errorCode;
             var errorMsg = prepareExecuteOldProtocolPacket.errorMsg;
             if (errorCode !== 0) {
@@ -957,7 +958,7 @@ CUBRIDConnection.prototype.fetch = function (queryHandle, callback) {
       self._socket.removeAllListeners('data');
       var packetReader = new PacketReader();
       packetReader.write(responseData);
-      var result = fetchPacket.parse(packetReader, self._queriesPacketList[i]);
+      var result = fetchPacket.parse(packetReader, self._queriesPacketList[i]).resultSet;
       var errorCode = fetchPacket.errorCode;
       var errorMsg = fetchPacket.errorMsg;
       if (errorCode !== 0) {
@@ -1045,12 +1046,12 @@ CUBRIDConnection.prototype.closeQuery = function (queryHandle, callback) {
     // Check if closing a query in the queriesQueue
     // In this case, if there is a query executing in a queue try to close later
     if (self._QUERIES_QUEUE_PROCESSOR_STARTED) {
-      // check if some query is still in execution
+      // Check if some query is still in execution
       for (i = 0; i < self._queriesQueue.length; i++) {
         if (self._queriesQueue[i][self._QUERY_INFO.HANDLE] === queryHandle &&
           self._queriesQueue[i][self._QUERY_INFO.STATUS] === self._QUERY_STATUS.IN_EXECUTION) {
           Helpers.logInfo('...found a query in execution: ' + self._queriesQueue[i][self._QUERY_INFO.SQL] + ' ...retrying later...]');
-          // retry queue processing after a while
+          // Retry queue processing after a while
           setTimeout(function () {
             self.closeQuery(queryHandle, callback);
           }, self._QUERIES_QUEUE_CHECK_INTERVAL);
@@ -1129,7 +1130,7 @@ CUBRIDConnection.prototype.close = function (callback) {
     return;
   }
 
-  //reset connection status
+  // Reset connection status
   self.queryPending = false;
   self.connectionPending = false;
   self.connectionOpened = false;
@@ -1147,7 +1148,7 @@ CUBRIDConnection.prototype.close = function (callback) {
           },
 
           function (err) {
-            //log non-blocking error
+            // Log non-blocking error
             if (typeof err !== 'undefined' && err !== null) {
               Helpers.logError(ErrorMessages.ERROR_ON_CLOSE_QUERY_HANDLE + err);
             }
@@ -1178,7 +1179,7 @@ CUBRIDConnection.prototype.close = function (callback) {
             var packetReader = new PacketReader();
             packetReader.write(responseData);
             closeDatabasePacket.parse(packetReader);
-            //Close internal socket connection
+            // Close internal socket connection
             self._socket.destroy();
             var errorCode = closeDatabasePacket.errorCode;
             var errorMsg = closeDatabasePacket.errorMsg;
@@ -1455,7 +1456,7 @@ CUBRIDConnection.prototype.getSchema = function (schemaType, tableNameFilter, ca
             self._socket.removeAllListeners('data');
             var packetReader = new PacketReader();
             packetReader.write(responseData);
-            var result = getSchemaPacket.parseFetchSchema(packetReader);
+            var result = getSchemaPacket.parseFetchSchema(packetReader).schemaInfo;
             var errorCode = getSchemaPacket.errorCode;
             var errorMsg = getSchemaPacket.errorMsg;
             if (errorCode !== 0) {
@@ -1522,7 +1523,8 @@ CUBRIDConnection.prototype.lobNew = function (lobType, callback) {
             self._socket.removeAllListeners('data');
             var packetReader = new PacketReader();
             packetReader.write(responseData);
-            var lobObject = lobNewPacket.parse(packetReader);
+            lobNewPacket.parse(packetReader);
+            var lobObject = lobNewPacket.result;
             var errorCode = lobNewPacket.errorCode;
             var errorMsg = lobNewPacket.errorMsg;
             if (errorCode !== 0) {
@@ -1610,7 +1612,8 @@ CUBRIDConnection.prototype.lobWrite = function (lobObject, position, dataBuffer,
           var packetReader = new PacketReader();
           packetReader.write(responseData);
           responseData = new Buffer(0);
-          realWriteLen = lobWritePacket.parse(packetReader);
+          lobWritePacket.parse(packetReader);
+          realWriteLen = lobWritePacket.wroteLength;
           position = position + realWriteLen;
           len -= realWriteLen;
           offset += realWriteLen;
@@ -1699,7 +1702,8 @@ CUBRIDConnection.prototype.lobRead = function (lobObject, position, length, call
           self._socket.removeAllListeners('data');
           var packetReader = new PacketReader();
           packetReader.write(responseData);
-          realReadLen = lobReadPacket.parse(packetReader);
+          lobReadPacket.parse(packetReader);
+          realReadLen = lobReadPacket.readLength;
           position += realReadLen;
           length -= realReadLen;
           totalReadLen += realReadLen;
@@ -1954,7 +1958,7 @@ CUBRIDConnection.prototype._executeQuery = function (idx) {
         self._queriesQueue[idx][self._QUERY_INFO.CALLBACK].call(self, err);
       }
 
-      //remove the statement from the queue
+      // Remove the statement from the queue
       self._queriesQueue.splice(idx, 1);
     });
   }
@@ -1973,10 +1977,10 @@ CUBRIDConnection.prototype._enableQueriesBackgroundProcessor = function () {
     return;
   }
 
-  // check if some query is still in execution
+  // Check if some query is still in execution
   for (i = 0; i < self._queriesQueue.length; i++) {
     if (self._queriesQueue[i][self._QUERY_INFO.STATUS] === self._QUERY_STATUS.IN_EXECUTION) {
-      // retry queue processing after a while
+      // Retry queue processing after a while
       setTimeout(function () {
         self._enableQueriesBackgroundProcessor();
       }, self._QUERIES_QUEUE_CHECK_INTERVAL);
@@ -1984,7 +1988,7 @@ CUBRIDConnection.prototype._enableQueriesBackgroundProcessor = function () {
     }
   }
 
-  // find the first query not started
+  // Find the first query not started
   for (i = 0; i < self._queriesQueue.length; i++) {
     if (self._queriesQueue[i][self._QUERY_INFO.STATUS] === self._QUERY_STATUS.NOT_STARTED) {
       self._queriesQueue[i][self._QUERY_INFO.STATUS] = self._QUERY_STATUS.IN_EXECUTION;
@@ -1993,7 +1997,7 @@ CUBRIDConnection.prototype._enableQueriesBackgroundProcessor = function () {
     }
   }
 
-  // re-execute queries processor
+  // Re-execute queries processor
   setTimeout(function () {
     self._enableQueriesBackgroundProcessor();
   }, self._QUERIES_QUEUE_CHECK_INTERVAL);

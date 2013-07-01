@@ -34,7 +34,7 @@ GetEngineVersionPacket.prototype.write = function (writer) {
   writer._writeBytes(DATA_TYPES.CAS_INFO_SIZE, this.casInfo);
   writer._writeByte(CAS.CASFunctionCode.CAS_FC_GET_DB_VERSION);
   writer._writeInt(DATA_TYPES.BYTE_SIZEOF);
-  writer._writeByte(1);
+  writer._writeByte(1); // Auto-commit mode
 
   return writer;
 };
@@ -54,7 +54,7 @@ GetEngineVersionPacket.prototype.parse = function (parser) {
       this.errorMsg = Helpers._resolveErrorCode(this.errorCode);
     }
   } else {
-    this.engineVersion = parser._parseNullTerminatedString(reponseLength - DATA_TYPES.INT_SIZEOF);
+    this.engineVersion = parser._parseNullTerminatedString(reponseLength - DATA_TYPES.INT_SIZEOF); // Engine version
   }
 
   return this;

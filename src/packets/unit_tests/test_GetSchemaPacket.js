@@ -15,12 +15,12 @@ function test_GetSchemaPacket_01() {
   var getSchemaPacket = new GetSchemaPacket(options);
 
   getSchemaPacket.writeRequestSchema(packetWriter);
-  assert.equal(packetWriter._toBuffer()[3], 1 + 5 * 4 + 1); //total length
+  assert.equal(packetWriter._toBuffer()[3], 1 + 5 * 4 + 1); // Total length
 
-  assert.equal(packetWriter._toBuffer()[4], 0); //casInfo
-  assert.equal(packetWriter._toBuffer()[5], 255); //casInfo
-  assert.equal(packetWriter._toBuffer()[6], 255); //casInfo
-  assert.equal(packetWriter._toBuffer()[7], 255); //casInfo
+  assert.equal(packetWriter._toBuffer()[4], 0); // CasInfo
+  assert.equal(packetWriter._toBuffer()[5], 255); // CasInfo
+  assert.equal(packetWriter._toBuffer()[6], 255); // CasInfo
+  assert.equal(packetWriter._toBuffer()[7], 255); // CasInfo
 
   assert.equal(packetWriter._toBuffer()[8], CAS.CASFunctionCode.CAS_FC_SCHEMA_INFO);
   assert.equal(packetWriter._toBuffer()[16], CAS.CUBRIDSchemaType.CCI_SCH_CLASS);
@@ -34,10 +34,10 @@ function test_GetSchemaPacket_01() {
 
   getSchemaPacket.parseRequestSchema(packetReader);
 
-  assert.equal(getSchemaPacket.casInfo[0], 0); //casInfo
-  assert.equal(getSchemaPacket.casInfo[1], 255); //casInfo
-  assert.equal(getSchemaPacket.casInfo[2], 255); //casInfo
-  assert.equal(getSchemaPacket.casInfo[3], 255); //casInfo
+  assert.equal(getSchemaPacket.casInfo[0], 0); // CasInfo
+  assert.equal(getSchemaPacket.casInfo[1], 255); // CasInfo
+  assert.equal(getSchemaPacket.casInfo[2], 255); // CasInfo
+  assert.equal(getSchemaPacket.casInfo[3], 255); // CasInfo
 
   assert.equal(getSchemaPacket.responseCode, 1);
 
@@ -46,12 +46,12 @@ function test_GetSchemaPacket_01() {
 
   packetWriter = new PacketWriter();
   getSchemaPacket.writeFetchSchema(packetWriter);
-  assert.equal(packetWriter._toBuffer()[3], 38); //total length
+  assert.equal(packetWriter._toBuffer()[3], 38); // Total length
 
-  assert.equal(packetWriter._toBuffer()[4], 0); //casInfo
-  assert.equal(packetWriter._toBuffer()[5], 255); //casInfo
-  assert.equal(packetWriter._toBuffer()[6], 255); //casInfo
-  assert.equal(packetWriter._toBuffer()[7], 255); //casInfo
+  assert.equal(packetWriter._toBuffer()[4], 0); // CasInfo
+  assert.equal(packetWriter._toBuffer()[5], 255); // CasInfo
+  assert.equal(packetWriter._toBuffer()[6], 255); // CasInfo
+  assert.equal(packetWriter._toBuffer()[7], 255); // CasInfo
 
   assert.equal(packetWriter._toBuffer()[8], CAS.CASFunctionCode.CAS_FC_FETCH);
   assert.equal(packetWriter._toBuffer()[16], 1);

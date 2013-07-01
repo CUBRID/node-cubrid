@@ -6,7 +6,7 @@ exports['test_ConnectCollision'] = function (test) {
   Helpers.logInfo(module.filename.toString() + ' started...');
 
   CUBRIDClient.connect(function () {
-    //close connection after 3 sec.
+    // Close connection after 3 sec.
     setTimeout(function (err) {
       if (err) {
         Helpers.logInfo('Error: ' + err.message);
@@ -25,7 +25,7 @@ exports['test_ConnectCollision'] = function (test) {
     }, 3000);
   });
 
-//try to connect again
+  // Try to connect again
   setTimeout(function () {
     CUBRIDClient.connect(function (err) {
       if (err) {

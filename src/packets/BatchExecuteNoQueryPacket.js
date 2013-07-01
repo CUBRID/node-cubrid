@@ -41,9 +41,10 @@ BatchExecuteNoQueryPacket.prototype.write = function (writer) {
   writer._writeBytes(DATA_TYPES.CAS_INFO_SIZE, this.casInfo);
   writer._writeByte(CAS.CASFunctionCode.CAS_FC_EXECUTE_BATCH);
   writer._writeInt(DATA_TYPES.BYTE_SIZEOF);
-  writer._writeByte(this.autoCommit ? 1 : 0); //Autocommit
+  writer._writeByte(this.autoCommit ? 1 : 0); // Auto-commit mode value
+  // For every sql statement in the batch
   for (var j = 0; j < this.SQLs.length; j++) {
-    writer._writeNullTerminatedString(this.SQLs[j]);
+    writer._writeNullTerminatedString(this.SQLs[j]); // SQL strings to be executed
   }
 
   return writer;
@@ -85,9 +86,9 @@ BatchExecuteNoQueryPacket.prototype.parse = function (parser) {
       } else {
         this.arrResultsCode.push(result);
         this.arrResultsMsg.push('');
-        parser._parseInt(); //not used
-        parser._parseShort(); //not used
-        parser._parseShort(); //not used
+        parser._parseInt(); // Not used
+        parser._parseShort(); // Not used
+        parser._parseShort(); // Not used
       }
     }
   }

@@ -26,7 +26,7 @@ exports['test_BasicSelect_Events'] = function (test) {
   CUBRIDClient.on(CUBRIDClient.EVENT_QUERY_DATA_AVAILABLE, function (result, queryHandle) {
     Helpers.logInfo('Data received.');
     Helpers.logInfo('Returned active query handle: ' + queryHandle);
-    global.savedQueryHandle = queryHandle; // save handle - needed for further fetch operations
+    global.savedQueryHandle = queryHandle; // Save handle - needed for further fetch operations
     Helpers.logInfo('Total query result rows count: ' + Result2Array.TotalRowsCount(result));
     Helpers.logInfo('First "batch" of data returned rows count: ' + Result2Array.RowsArray(result).length);
     Helpers.logInfo('Fetching more rows...');
@@ -38,14 +38,14 @@ exports['test_BasicSelect_Events'] = function (test) {
     Helpers.logInfo('*** Fetch data received.');
     Helpers.logInfo('*** Current fetch of data returned rows count: ' + Result2Array.RowsArray(result).length);
     Helpers.logInfo('*** First row: ' + Result2Array.RowsArray(result)[0].toString());
-    // continue to fetch...
+    // Continue to fetch...
     Helpers.logInfo('...');
     Helpers.logInfo('...fetching more rows...');
     Helpers.logInfo('...');
     setTimeout(function () {
       CUBRIDClient.fetch(global.savedQueryHandle, function () {
       });
-    }, Math.random() * 500); // simulate different responses time for each fetch
+    }, Math.random() * 500); // Simulate different responses time for each fetch
   });
 
   CUBRIDClient.on(CUBRIDClient.EVENT_FETCH_NO_MORE_DATA_AVAILABLE, function () {

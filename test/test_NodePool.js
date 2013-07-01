@@ -1,6 +1,6 @@
 var Helpers = require('../src/utils/Helpers'),
-//generic_pool = require('generic-pool'),
-  generic_pool = require('c:/Program Files (x86)/nodejs/node_modules/generic-pool'),
+  generic_pool = require('generic-pool'),
+  //generic_pool = require('c:/Program Files (x86)/nodejs/node_modules/generic-pool'),
   CUBRIDConnection = require('../src/CUBRIDConnection'),
   Result2Array = require('../src/resultset/Result2Array'),
   assert = require('assert');
@@ -51,7 +51,7 @@ pool.acquire(function (err, client) {
             Helpers.logError(err);
           } else {
             Helpers.logInfo('[1] Query closed.');
-            // return object back to pool
+            // Return object back to pool
             pool.release(client);
           }
         });
@@ -80,7 +80,7 @@ pool.acquire(function (err, client) {
             Helpers.logError(err);
           } else {
             Helpers.logInfo('[2] Query closed.');
-            // return object back to pool
+            // Return object back to pool
             pool.release(client);
           }
         });
@@ -109,7 +109,7 @@ pool.acquire(function (err, client) {
             Helpers.logError(err);
           } else {
             Helpers.logInfo('[3] Query closed.');
-            // return object back to pool
+            // Return object back to pool
             pool.release(client);
           }
         });

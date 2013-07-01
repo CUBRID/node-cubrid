@@ -16,12 +16,12 @@ exports['test_GetSchemaPacket'] = function (test) {
   var getSchemaPacket = new GetSchemaPacket(options);
 
   getSchemaPacket.writeRequestSchema(packetWriter);
-  test.equal(packetWriter._toBuffer()[3], 1 + 5 * 4 + 1); //total length
+  test.equal(packetWriter._toBuffer()[3], 1 + 5 * 4 + 1); // Total length
 
-  test.equal(packetWriter._toBuffer()[4], 0); //casInfo
-  test.equal(packetWriter._toBuffer()[5], 255); //casInfo
-  test.equal(packetWriter._toBuffer()[6], 255); //casInfo
-  test.equal(packetWriter._toBuffer()[7], 255); //casInfo
+  test.equal(packetWriter._toBuffer()[4], 0); // Casinfo
+  test.equal(packetWriter._toBuffer()[5], 255); // Casinfo
+  test.equal(packetWriter._toBuffer()[6], 255); // Casinfo
+  test.equal(packetWriter._toBuffer()[7], 255); // Casinfo
 
   test.equal(packetWriter._toBuffer()[8], CAS.CASFunctionCode.CAS_FC_SCHEMA_INFO);
   test.equal(packetWriter._toBuffer()[16], CAS.CUBRIDSchemaType.CCI_SCH_CLASS);
@@ -35,10 +35,10 @@ exports['test_GetSchemaPacket'] = function (test) {
 
   getSchemaPacket.parseRequestSchema(packetReader);
 
-  test.equal(getSchemaPacket.casInfo[0], 0); //casInfo
-  test.equal(getSchemaPacket.casInfo[1], 255); //casInfo
-  test.equal(getSchemaPacket.casInfo[2], 255); //casInfo
-  test.equal(getSchemaPacket.casInfo[3], 255); //casInfo
+  test.equal(getSchemaPacket.casInfo[0], 0); // Casinfo
+  test.equal(getSchemaPacket.casInfo[1], 255); // Casinfo
+  test.equal(getSchemaPacket.casInfo[2], 255); // Casinfo
+  test.equal(getSchemaPacket.casInfo[3], 255); // Casinfo
 
   test.equal(getSchemaPacket.responseCode, 1);
 
@@ -49,10 +49,10 @@ exports['test_GetSchemaPacket'] = function (test) {
   getSchemaPacket.writeFetchSchema(packetWriter);
   test.equal(packetWriter._toBuffer()[3], 38); //total length
 
-  test.equal(packetWriter._toBuffer()[4], 0); //casInfo
-  test.equal(packetWriter._toBuffer()[5], 255); //casInfo
-  test.equal(packetWriter._toBuffer()[6], 255); //casInfo
-  test.equal(packetWriter._toBuffer()[7], 255); //casInfo
+  test.equal(packetWriter._toBuffer()[4], 0); // Casinfo
+  test.equal(packetWriter._toBuffer()[5], 255); // Casinfo
+  test.equal(packetWriter._toBuffer()[6], 255); // Casinfo
+  test.equal(packetWriter._toBuffer()[7], 255); // Casinfo
 
   test.equal(packetWriter._toBuffer()[8], CAS.CASFunctionCode.CAS_FC_FETCH);
   test.equal(packetWriter._toBuffer()[16], 1);

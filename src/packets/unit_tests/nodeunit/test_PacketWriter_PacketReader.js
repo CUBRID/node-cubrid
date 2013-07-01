@@ -264,23 +264,23 @@ exports['test_PacketWriter_PachetReader'] = function (testing) {
   test.expect(42);
   console.log('Unit test ' + module.filename.toString() + ' started...');
 
-  //Test integer-types
+  // Test integer-types
   testByte(bValue);
   testShort(shortValue);
   testInt(iValue);
 
-  //Test signed integer-types
+  // Test signed integer-types
   testShortSigned(shortValueSigned, -32767);
   //testShortSigned(shortValueSigned, -1);
   testIntSigned(iValueSigned, -2147483647);
   //testIntSigned(iValueSigned, -1);
 
-  //Test strings
+  // Test strings
   testChar(cValue);
   testString(sValue);
   testFixedLengthString(sValue);
 
-  //Test dates
+  // Test dates
   testDate(dValue.getFullYear(), dValue.getMonth(), dValue.getDate());
   testTime(dValue.getHours(), dValue.getMinutes(), dValue.getSeconds());
   testDateTime(dValue.getFullYear(), dValue.getMonth(), dValue.getDate(),
@@ -288,7 +288,7 @@ exports['test_PacketWriter_PachetReader'] = function (testing) {
   testTimestamp(dValue.getFullYear(), dValue.getMonth(), dValue.getDate(),
     dValue.getHours(), dValue.getMinutes(), dValue.getSeconds());
 
-  //Other tests
+  // Other tests
   testAllTypes(bValue, iValue, sValue);
   testPacketReaderBytes();
   testPacketReaderBuffer();

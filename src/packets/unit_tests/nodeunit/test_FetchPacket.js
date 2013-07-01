@@ -36,7 +36,7 @@ exports['test_FetchPacket'] = function (test) {
   packetWriter = new PacketWriter();
   var fetchPacket = new FetchPacket(options);
   fetchPacket.write(packetWriter, executeQueryPacket);
-  test.equal(packetWriter._toBuffer()[3], 38); //total length
+  test.equal(packetWriter._toBuffer()[3], 38); // Total length
   test.equal(packetWriter._toBuffer()[8], CAS.CASFunctionCode.CAS_FC_FETCH);
   test.equal(packetWriter._toBuffer()[16], 4);
   test.equal(packetWriter._toBuffer()[24], 7);
@@ -50,10 +50,10 @@ exports['test_FetchPacket'] = function (test) {
                                  0, 0, 0, 0]));
   fetchPacket.parse(packetReader, executeQueryPacket);
 
-  test.equal(fetchPacket.casInfo[0], 0); //casInfo
-  test.equal(fetchPacket.casInfo[1], 255); //casInfo
-  test.equal(fetchPacket.casInfo[2], 255); //casInfo
-  test.equal(fetchPacket.casInfo[3], 255); //casInfo
+  test.equal(fetchPacket.casInfo[0], 0); // Casinfo
+  test.equal(fetchPacket.casInfo[1], 255); // Casinfo
+  test.equal(fetchPacket.casInfo[2], 255); // Casinfo
+  test.equal(fetchPacket.casInfo[3], 255); // Casinfo
 
   test.equal(fetchPacket.responseCode, 0);
   test.equal(fetchPacket.errorCode, 0);

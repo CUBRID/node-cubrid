@@ -1,7 +1,7 @@
 var fs = require('fs');
 var db_helper = require("./db_helper.js");
 
-var delay = (Math.random() * 100) + 200; // "artificial" operations delay, to simulate a higher network response time
+var delay = (Math.random() * 100) + 200; // "Artificial" operations delay, to simulate a higher network response time
 var page_size = 10;
 
 var http = require('http').createServer(function (req, res) {
@@ -51,7 +51,7 @@ io.sockets.on('connection', function (client) {
 
   // Populate data on first page load
   db_helper.setup(function () {
-    populateClient(client, 1, page_size); // first 10 rows
+    populateClient(client, 1, page_size); // First 10 rows
   });
 
   client.on('page', function (startFrom, selectCount) {

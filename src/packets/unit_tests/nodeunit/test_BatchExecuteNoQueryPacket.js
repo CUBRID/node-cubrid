@@ -13,12 +13,12 @@ exports['test_BatchExecuteNoQueryPacket'] = function (test) {
   var batchExecuteNoQueryPacket = new BatchExecuteNoQueryPacket(options);
 
   batchExecuteNoQueryPacket.write(packetWriter);
-  test.equal(packetWriter._toBuffer()[3], 52); //total length
+  test.equal(packetWriter._toBuffer()[3], 52); // Total length
 
-  test.equal(packetWriter._toBuffer()[4], 0); //casInfo
-  test.equal(packetWriter._toBuffer()[5], 255); //casInfo
-  test.equal(packetWriter._toBuffer()[6], 255); //casInfo
-  test.equal(packetWriter._toBuffer()[7], 255); //casInfo
+  test.equal(packetWriter._toBuffer()[4], 0); // CasInfo
+  test.equal(packetWriter._toBuffer()[5], 255); // CasInfo
+  test.equal(packetWriter._toBuffer()[6], 255); // CasInfo
+  test.equal(packetWriter._toBuffer()[7], 255); // CasInfo
 
   test.equal(packetWriter._toBuffer()[8], CAS.CASFunctionCode.CAS_FC_EXECUTE_BATCH);
   test.equal(packetWriter._toBuffer()[13], 1);
@@ -28,10 +28,10 @@ exports['test_BatchExecuteNoQueryPacket'] = function (test) {
   packetReader.write(new Buffer([0, 0, 0, 0, 0, 255, 255, 255, 0, 0, 0, 0]));
   batchExecuteNoQueryPacket.parse(packetReader);
 
-  test.equal(batchExecuteNoQueryPacket.casInfo[0], 0); //casInfo
-  test.equal(batchExecuteNoQueryPacket.casInfo[1], 255); //casInfo
-  test.equal(batchExecuteNoQueryPacket.casInfo[2], 255); //casInfo
-  test.equal(batchExecuteNoQueryPacket.casInfo[3], 255); //casInfo
+  test.equal(batchExecuteNoQueryPacket.casInfo[0], 0); // CasInfo
+  test.equal(batchExecuteNoQueryPacket.casInfo[1], 255); // CasInfo
+  test.equal(batchExecuteNoQueryPacket.casInfo[2], 255); // CasInfo
+  test.equal(batchExecuteNoQueryPacket.casInfo[3], 255); // CasInfo
 
   test.equal(batchExecuteNoQueryPacket.responseCode, 0);
 

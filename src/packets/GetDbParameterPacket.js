@@ -35,7 +35,7 @@ GetDbParameterPacket.prototype.write = function (writer) {
   writer._writeBytes(DATA_TYPES.CAS_INFO_SIZE, this.casInfo);
   writer._writeByte(CAS.CASFunctionCode.CAS_FC_GET_DB_PARAMETER);
   writer._writeInt(DATA_TYPES.INT_SIZEOF);
-  writer._writeInt(this.parameter);
+  writer._writeInt(this.parameter); // Parameter type
 
   return writer;
 };

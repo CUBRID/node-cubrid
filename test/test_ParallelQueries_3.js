@@ -54,7 +54,7 @@ setTimeout(function () {
   Helpers.logInfo('Test passed.');
 }, 10000);
 
-//Open 10 connections and for each, execute a query
+// Open 10 connections and for each, execute a query
 for (var i = 1; i <= 10; i++) {
   RunQueryInSeparateConnection(i);
 }

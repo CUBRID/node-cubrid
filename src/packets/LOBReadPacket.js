@@ -24,6 +24,7 @@ function LOBReadPacket(options) {
   this.responseCode = 0;
   this.errorCode = 0;
   this.errorMsg = '';
+  this.readLength = 0;
 }
 
 /**
@@ -39,12 +40,12 @@ LOBReadPacket.prototype.write = function (writer) {
   writer._writeBytes(DATA_TYPES.CAS_INFO_SIZE, this.casInfo);
 
   writer._writeByte(CAS.CASFunctionCode.CAS_FC_LOB_READ);
-  writer._writeInt(this.lobObject.packedLobHandle.length); //LOB handle size
-  writer._writeBytes(this.lobObject.packedLobHandle.length, this.lobObject.packedLobHandle); //LOB handle
+  writer._writeInt(this.lobObject.packedLobHandle.length); // LOB handle size
+  writer._writeBytes(this.lobObject.packedLobHandle.length, this.lobObject.packedLobHandle); // LOB handle
   writer._writeInt(DATA_TYPES.LONG_SIZEOF);
-  writer._writeLong(this.position); //start position from witch to read
+  writer._writeLong(this.position); // Start position from witch to read
   writer._writeInt(DATA_TYPES.INT_SIZEOF);
-  writer._writeInt(this.lengthToRead); //number of bytes to read
+  writer._writeInt(this.lengthToRead); // Number of bytes to read
 
   return writer;
 };
@@ -72,11 +73,13 @@ LOBReadPacket.prototype.parse = function (parser) {
       if (this.lobObject.lobType === CAS.CUBRIDDataType.CCI_U_TYPE_CLOB) {
         this.lobBuffer = parser._parseString(this.responseCode);
       } else {
-        Helpers.logInfo(ErrorMessages.ERROR_INVALID_LOB_TYPE); //log non-blocking error
+        Helpers.logInfo(ErrorMessages.ERROR_INVALID_LOB_TYPE); // Log non-blocking error
       }
     }
-    return this.responseCode;
+    this.readLength = this.responseCode;
   }
+
+  return this;
 };
 
 

@@ -34,9 +34,9 @@ SetAutoCommitModePacket.prototype.write = function (writer) {
   writer._writeBytes(DATA_TYPES.CAS_INFO_SIZE, this.casInfo);
   writer._writeByte(CAS.CASFunctionCode.CAS_FC_SET_DB_PARAMETER);
   writer._writeInt(DATA_TYPES.INT_SIZEOF);
-  writer._writeInt(CAS.CCIDbParam.CCI_PARAM_AUTO_COMMIT);
+  writer._writeInt(CAS.CCIDbParam.CCI_PARAM_AUTO_COMMIT); // Parameter type auto-commit mode
   writer._writeInt(DATA_TYPES.INT_SIZEOF);
-  writer._writeInt(this.autoCommitMode ? 1 : 0);
+  writer._writeInt(this.autoCommitMode ? 1 : 0); // Parameter value
 
   return writer;
 };

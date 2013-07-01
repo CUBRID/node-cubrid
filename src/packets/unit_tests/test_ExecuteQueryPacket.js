@@ -11,12 +11,12 @@ function testExecuteQueryPacket_01() {
   var executeQueryPacket = new ExecuteQueryPacket(options);
 
   executeQueryPacket.write(packetWriter);
-  assert.equal(packetWriter._toBuffer()[3], 87); //total length
+  assert.equal(packetWriter._toBuffer()[3], 87); // Total length
 
-  assert.equal(packetWriter._toBuffer()[4], 0); //casInfo
-  assert.equal(packetWriter._toBuffer()[5], 255); //casInfo
-  assert.equal(packetWriter._toBuffer()[6], 255); //casInfo
-  assert.equal(packetWriter._toBuffer()[7], 255); //casInfo
+  assert.equal(packetWriter._toBuffer()[4], 0); // CasInfo
+  assert.equal(packetWriter._toBuffer()[5], 255); // CasInfo
+  assert.equal(packetWriter._toBuffer()[6], 255); // CasInfo
+  assert.equal(packetWriter._toBuffer()[7], 255); // CasInfo
 
   assert.equal(packetWriter._toBuffer()[8], CAS.CASFunctionCode.CAS_FC_PREPARE_AND_EXECUTE);
   assert.equal(packetWriter._toBuffer()[16], 3);

@@ -148,12 +148,12 @@ PacketReader.prototype._parseNullTerminatedString = function (length) {
     return '';
   }
 
-  var valueLen = length - 1; //get the actual null-terminated string length
+  var valueLen = length - 1; // Get the actual null-terminated string length
   var buffer = this._buffer.slice(this._offset, this._offset + valueLen);
   var value = buffer.toString();
 
   this._offset += valueLen;
-  this._parseByte(); //read also the null-terminate
+  this._parseByte(); // Read also the null-terminate
 
   return value;
 };
@@ -312,7 +312,7 @@ PacketReader.prototype._parseBlob = function (size) {
   var fileLocator = packedLobHandle.slice(16, packedLobHandle.length - 1).toString();
 
   return {
-    lobType         : CAS.CUBRIDDataType.CCI_U_TYPE_BLOB, //BLOB type
+    lobType         : CAS.CUBRIDDataType.CCI_U_TYPE_BLOB, // BLOB type
     packedLobHandle : packedLobHandle,
     fileLocator     : fileLocator,
     lobLength       : lobSize
@@ -334,7 +334,7 @@ PacketReader.prototype._parseClob = function (size) {
   var fileLocator = packedLobHandle.slice(16, packedLobHandle.length - 1).toString();
 
   return {
-    lobType         : CAS.CUBRIDDataType.CCI_U_TYPE_CLOB, //CLOB type
+    lobType         : CAS.CUBRIDDataType.CCI_U_TYPE_CLOB, // CLOB type
     packedLobHandle : packedLobHandle,
     fileLocator     : fileLocator,
     lobLength       : lobSize
@@ -350,7 +350,7 @@ PacketReader.prototype._parseSequence = function () {
   var size = this._parseInt();
   this._offset += count * size;
 
-  return null; //Not supported
+  return null; // Not supported
 };
 
 /**
@@ -360,7 +360,7 @@ PacketReader.prototype._parseSequence = function () {
 PacketReader.prototype._parseResultSet = function () {
   this._offset += DATA_TYPES.RESULTSET_SIZEOF;
 
-  return null; //Not supported
+  return null; // Not supported
 };
 
 /**

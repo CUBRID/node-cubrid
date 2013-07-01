@@ -17,7 +17,7 @@ exports['test_SetDbParameterPacket'] = function (test) {
   var setDbParameterPacket = new SetDbParameterPacket(options);
 
   setDbParameterPacket.write(packetWriter);
-  test.equal(packetWriter._toBuffer()[3], 17); //total length
+  test.equal(packetWriter._toBuffer()[3], 17); // Total length
   test.equal(packetWriter._toBuffer()[8], CAS.CASFunctionCode.CAS_FC_SET_DB_PARAMETER);
   test.equal(packetWriter._toBuffer()[12], 4);
   test.equal(packetWriter._toBuffer()[16], CAS.CCIDbParam.CCI_PARAM_MAX_STRING_LENGTH);
@@ -29,10 +29,10 @@ exports['test_SetDbParameterPacket'] = function (test) {
                                  0, 0, 0, 0]));
   setDbParameterPacket.parse(packetReader);
 
-  test.equal(setDbParameterPacket.casInfo[0], 0); //casInfo
-  test.equal(setDbParameterPacket.casInfo[1], 255); //casInfo
-  test.equal(setDbParameterPacket.casInfo[2], 255); //casInfo
-  test.equal(setDbParameterPacket.casInfo[3], 255); //casInfo
+  test.equal(setDbParameterPacket.casInfo[0], 0); // Casinfo
+  test.equal(setDbParameterPacket.casInfo[1], 255); // Casinfo
+  test.equal(setDbParameterPacket.casInfo[2], 255); // Casinfo
+  test.equal(setDbParameterPacket.casInfo[3], 255); // Casinfo
 
   test.equal(setDbParameterPacket.responseCode, 0);
   test.equal(setDbParameterPacket.errorCode, 0);
