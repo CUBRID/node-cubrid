@@ -1,6 +1,6 @@
 var CUBRID = require('../../../'),
     config = {
-      host: 'windows',
+      host: 'localhost',
       port: 33000,
       user: 'public',
       password: '',
