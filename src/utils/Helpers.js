@@ -1,4 +1,4 @@
-var DEBUG_ENABLED = require('../Config').DEBUG_ENABLED,
+var DEBUG_ENABLED = require('../config').DEBUG_ENABLED,
   DATA_TYPES = require('../constants/DataTypes'),
   ErrorMessages = require('../constants/ErrorMessages'),
   CAS = require('../constants/CASConstants');
