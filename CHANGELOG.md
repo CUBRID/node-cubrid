@@ -3,3 +3,4 @@
 ## Version 2.1.0 (Unreleased)
 
 - Ref: cleanup package.json.
+- Ref: revert version to 2.0.2.
