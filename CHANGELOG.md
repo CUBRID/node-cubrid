@@ -8,5 +8,6 @@
 - Ref: code cleanup.
 - Ref: prefer files names to start with small letters.
 - Ref: test on Node.js 0.10 as well.
+- Ref: moved testing framework dependencies from Travis script to package.json.
 - Ref: ignore `node_modules`.
 - Doc: update supported CUBRID version.

@@ -23,6 +23,11 @@
     "node": "*"
   },
   "scripts": {
-    "test": "nodeunit src/packets/unit_tests/nodeunit src/utils/unit_tests/nodeunit test/nodeunit"
+    "test": "node_module/bin/nodeunit src/packets/unit_tests/nodeunit src/utils/unit_tests/nodeunit test/nodeunit"
+  },
+  "devDependencies": {
+    "async": "~0.2.9",
+    "generic-pool": "~2.0.3",
+    "nodeunit": "~0.8.1"
   }
 }
