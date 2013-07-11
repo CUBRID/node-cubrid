@@ -3,6 +3,5 @@
  * @type {Boolean}
  * @private
  */
-var _DEBUG_ENABLED = false;
-exports.DEBUG_ENABLED = _DEBUG_ENABLED;
+exports.DEBUG_ENABLED = false;
 
