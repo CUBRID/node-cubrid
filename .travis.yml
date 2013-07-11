@@ -1,9 +1,11 @@
 language: node_js
 
 node_js:
-  - 0.8
-  - 0.6
-  
+  # Quote the version number as Travis will interpret 0.10 as 0.1 unless quoted.
+  - "0.10"
+  - "0.8"
+  - "0.6"
+
 before_script:
   - cat /etc/hosts
   - sudo hostname localhost
