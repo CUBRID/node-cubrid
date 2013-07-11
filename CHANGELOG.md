@@ -8,4 +8,5 @@
 - Ref: code cleanup.
 - Ref: prefer files names to start with small letters.
 - Ref: test on Node.js 0.10 as well.
+- Ref: ignore `node_modules`.
 - Doc: update supported CUBRID version.
