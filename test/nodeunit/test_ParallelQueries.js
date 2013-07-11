@@ -1,6 +1,6 @@
-var CUBRIDConnection = require('../../src/CUBRIDConnection');
 var Helpers = require('../../src/utils/Helpers'),
-  Result2Array = require('../../src/resultset/Result2Array');
+    testSetup = require('./testSetup/test_Setup'),
+    Result2Array = require('../../src/resultset/Result2Array');
 
 exports['test_ParallelQueries'] = function (test) {
   test.expect(0);
@@ -24,7 +24,7 @@ exports['test_ParallelQueries'] = function (test) {
   function A() {
     Helpers.logInfo('Function A called.');
     Helpers.logInfo('Connecting... [A].');
-    var CUBRIDClient = new CUBRIDConnection('localhost', 33000, 'public', '', 'demodb');
+    var CUBRIDClient = testSetup.createDefaultCUBRIDDemodbConnection();
     CUBRIDClient.connect(function (err) {
       if (err) {
         errorHandler(err);
@@ -58,7 +58,7 @@ exports['test_ParallelQueries'] = function (test) {
 
   function B() {
     Helpers.logInfo('Function B called.');
-    var CUBRIDClient2 = new CUBRIDConnection('localhost', 33000, 'public', '', 'demodb');
+    var CUBRIDClient2 = testSetup.createDefaultCUBRIDDemodbConnection();
     Helpers.logInfo('Connecting... [B].');
     CUBRIDClient2.connect(function (err) {
       if (err) {

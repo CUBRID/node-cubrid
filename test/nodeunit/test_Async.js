@@ -1,7 +1,4 @@
-var CUBRIDClient = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection,
-//TODO Update this with your own async installation path
-  //Async = require('c:/Program Files (x86)/nodejs/node_modules/async/index.js'),
-  //Async = require('G:/node_modules/async/lib/async.js'),
+var CUBRIDClient = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
   Async = require('async'),
   Helpers = require('../../src/utils/Helpers'),
   Result2Array = require('../../src/resultset/Result2Array');

@@ -1,4 +1,4 @@
-var CUBRIDClient = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection,
+var CUBRIDClient = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
   ActionQueue = require('../../src/utils/ActionQueue'),
   Helpers = require('../../src/utils/Helpers');
 

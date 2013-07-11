@@ -12,4 +12,5 @@
 - Ref: moved testing framework dependencies from Travis script to package.json.
 - Ref: ignore `node_modules`.
 - Ref: preparing the module for code coverage.
+- Ref: keep connection configurations for test in one place and reuse it.
 - Doc: update supported CUBRID version.

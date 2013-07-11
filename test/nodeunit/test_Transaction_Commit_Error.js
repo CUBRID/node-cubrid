@@ -3,13 +3,7 @@ var CUBRIDConnection = require('../../src/CUBRIDConnection'),
   Result2Array = require('../../src/resultset/Result2Array'),
   Helpers = require('../../src/utils/Helpers'),
   async = require('async'),
-  dbConf = {
-    host: 'localhost',
-    port: 33000,
-    user: 'public',
-    password: '',
-    database: 'demodb'
-  },
+  dbConf = require('./testSetup/test_Setup').config,
   client = new CUBRIDConnection(dbConf.host, dbConf.port, dbConf.user, dbConf.password, dbConf.database);
 
 

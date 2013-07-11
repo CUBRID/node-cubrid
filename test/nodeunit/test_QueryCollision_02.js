@@ -1,7 +1,7 @@
 var Result2Array = require('../../src/resultset/Result2Array'),
   events = require('events'),
   Helpers = require('../../src/utils/Helpers'),
-  CUBRIDclient = require('./testSetup/test_Setup.js').createDefaultCUBRIDDemodbConnection;
+  CUBRIDclient = require('./testSetup/test_Setup.js').createDefaultCUBRIDDemodbConnection();
 
 exports['test_QueryCollision_02'] = function (test) {
   test.expect(2);

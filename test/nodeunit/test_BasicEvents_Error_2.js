@@ -1,4 +1,5 @@
 var CUBRIDConnection = require('../../src/CUBRIDConnection'),
+    config = require('./testSetup/test_Setup').config,
   Helpers = require('../../src/utils/Helpers'),
   Result2Array = require('../../src/resultset/Result2Array');
 
@@ -8,7 +9,7 @@ exports['test_BasicEvents_Error_2'] = function (test) {
   test.expect(1);
   Helpers.logInfo(module.filename.toString() + ' started...');
 
-  CUBRIDClient = new CUBRIDConnection('localhost', 33000, 'unknown_user', 'xyz', 'demodb');
+  CUBRIDClient = new CUBRIDConnection(config.host, config.port, 'unknown_user', 'xyz', config.database);
   CUBRIDClient.connect(null);
 
   CUBRIDClient.on(CUBRIDClient.EVENT_ERROR, function (err) {

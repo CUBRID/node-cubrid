@@ -1,7 +1,8 @@
 var CUBRIDConnection = require('../../src/CUBRIDConnection'),
+    config = require('./testSetup/test_Setup').config,
   Helpers = require('../../src/utils/Helpers')
 
-var client = new CUBRIDConnection('localhost', 80, 'public', '', 'demodb');
+var client = new CUBRIDConnection(config.host, 80, config.user, config.password, config.database);
 
 exports['test_BadPort'] = function (test) {
   test.expect(1);

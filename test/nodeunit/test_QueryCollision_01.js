@@ -1,4 +1,4 @@
-var CUBRIDClient = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection,
+var CUBRIDClient = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
   Helpers = require('../../src/utils/Helpers');
 
 exports['test_QueryCollision_01'] = function (test) {

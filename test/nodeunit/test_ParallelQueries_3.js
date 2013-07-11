@@ -1,7 +1,6 @@
-var CUBRIDConnection = require('../../src/CUBRIDConnection');
-
-var Helpers = require('../../src/utils/Helpers'),
-  Result2Array = require('../../src/resultset/Result2Array');
+var testSetup = require('./testSetup/test_Setup'),
+    Helpers = require('../../src/utils/Helpers'),
+    Result2Array = require('../../src/resultset/Result2Array');
 
 exports['test_ParallelQueries_3'] = function (test) {
   test.expect(0);
@@ -16,7 +15,7 @@ exports['test_ParallelQueries_3'] = function (test) {
   function RunQueryInSeparateConnection(i) {
     setTimeout(function () {
       Helpers.logInfo('Opening connecting no. ' + i + '...');
-      var CUBRIDClient = new CUBRIDConnection('localhost', 33000, 'public', '', 'demodb');
+      var CUBRIDClient = testSetup.createDefaultCUBRIDDemodbConnection();
       CUBRIDClient.connect(function (err) {
         if (err) {
           errorHandler(err);

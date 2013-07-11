@@ -1,8 +1,6 @@
 var Helpers = require('../../src/utils/Helpers'),
-//TODO Update this with your own node-pool installation path
   generic_pool = require('generic-pool'),
-  //generic_pool = require('c:/Program Files (x86)/nodejs/node_modules/generic-pool'),
-  CUBRIDConnection = require('../../src/CUBRIDConnection'),
+    testSetup = require('./testSetup/test_Setup'),
   Result2Array = require('../../src/resultset/Result2Array');
 
 exports['test_NodePool'] = function (test) {
@@ -12,7 +10,7 @@ exports['test_NodePool'] = function (test) {
     name              : 'cubrid-node-pool',
     max               : 2,
     create            : function (callback) {
-      var CUBRIDClient = new CUBRIDConnection('localhost', 33000, 'public', '', 'demodb');
+      var CUBRIDClient = testSetup.createDefaultCUBRIDDemodbConnection();
       CUBRIDClient.connect(function (err) {
         if (err == null) {
           Helpers.logInfo('Connection opened.');

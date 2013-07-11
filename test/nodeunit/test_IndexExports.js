@@ -1,4 +1,4 @@
-var CUBRIDClient = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection,
+var CUBRIDClient = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
   Helpers = require('../../index').Helpers,
   Result2Array = require('../../index').Result2Array;
 

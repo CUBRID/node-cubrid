@@ -1,4 +1,4 @@
-var CUBRIDClient = require('../../index.js').createCUBRIDConnection('127.0.0.1', 33000, 'public', '', 'demodb'),
+var CUBRIDClient = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
   Helpers = require('../../src/utils/Helpers');
 
 function errorHandler(err) {

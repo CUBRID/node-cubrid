@@ -1,3 +1,13 @@
-var CUBRIDConnection = require('../../../src/CUBRIDConnection');
+var CUBRID = require('../../../'),
+    config = {
+      host: 'windows',
+      port: 33000,
+      user: 'public',
+      password: '',
+      database: 'demodb'
+    };
 
-exports.createDefaultCUBRIDDemodbConnection = new CUBRIDConnection('localhost', 33000, 'public', '', 'demodb');
+exports.config = config;
+exports.createDefaultCUBRIDDemodbConnection = function () {
+  return new CUBRID.createCUBRIDConnection(config.host, config.port, config.user, config.password, config.database);
+};

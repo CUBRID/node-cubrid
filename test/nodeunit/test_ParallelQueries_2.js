@@ -1,9 +1,9 @@
-var CUBRIDConnection = require('../../src/CUBRIDConnection');
+var testSetup = require('./testSetup/test_Setup');
 
 // First connection
-var CUBRIDClient = new CUBRIDConnection('localhost', 33000, 'public', '', 'demodb');
+var CUBRIDClient = testSetup.createDefaultCUBRIDDemodbConnection();
 // Second connection
-var CUBRIDClient2 = new CUBRIDConnection('localhost', 33000, 'public', '', 'demodb');
+var CUBRIDClient2 = testSetup.createDefaultCUBRIDDemodbConnection();
 
 var Helpers = require('../../src/utils/Helpers'),
   Result2Array = require('../../src/resultset/Result2Array');
