@@ -11,4 +11,5 @@
 - Ref: test on Node.js 0.10 as well.
 - Ref: moved testing framework dependencies from Travis script to package.json.
 - Ref: ignore `node_modules`.
+- Ref: preparing the module for code coverage.
 - Doc: update supported CUBRID version.
