@@ -1,53 +1,28 @@
 {
-  "author" : "CUBRID <contact@cubrid.org> (http://www.cubrid.org/)",
-
-  "contributors" : [
-    {
-      "name" : "CUBRID API team",
-      "url"  : "www.cubrid.org"
-    }
-  ],
-
   "name" : "node-cubrid",
-
-  "description" : "This is a native Node.js driver for CUBRID (www.cubrid.org). It is developed entirely in JavaScript, so it doesn't require specific platform compilation.",
-
   "version" : "3.0.0",
-
+  "description" : "This is a Node.js driver for CUBRID RDBMS. It is developed in 100% JavaScript and does not require specific platform compilation.",
+  "author" : "CUBRID <contact@cubrid.org> (http://www.cubrid.org/)",
   "repository" : {
     "type" : "git",
     "url"  : "git://github.com/cubrid/node-cubrid.git"
   },
-
   "licenses" : [
     {
       "type" : "MIT",
       "url"  : "http://github.com/cubrid/node-cubrid/raw/master/LICENSE"
     }
   ],
-  
   "main": "index.js",
-
   "keywords" : [
     "native",
     "CUBRID",
     "module"
   ],
-
   "engines" : {
     "node" : "*"
   },
-  
   "scripts": {
     "test": "nodeunit src/packets/unit_tests/nodeunit src/utils/unit_tests/nodeunit test/nodeunit"
-  },
-
-  "dependencies" : {
-  },
-
-  "devDependencies" : {
-  },
-
-  "optionalDependencies" : {
   }
 }
