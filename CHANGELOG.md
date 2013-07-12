@@ -5,7 +5,6 @@
 - New: APIS-566, Release 3.0 - Add Travis support.
 - Enh: APIS-568, Release 3.0 - Fix inconsistent function return values.
 - Enh: APIS-567, Release 3.0 - Fix and improve code comments.
-- Enh: refactored tests suite to prepare for code coverage.
 - Fix: test path for `node_modules`.
 - Fix: host name for tests.
 - Ref: cleanup package.json.
@@ -18,6 +17,8 @@
 - Ref: ignore `node_modules`.
 - Ref: preparing the module for code coverage.
 - Ref: keep connection configurations for test in one place and reuse it.
+- Ref: refactored tests suite to prepare for code coverage.
+- Ref: moved old tests into `old_tests` directory.
 - Doc: updated supported CUBRID version.
 
 ## Version 2.0.2 (Apr 12, 2013)
