@@ -21,6 +21,7 @@
 - Ref: moved old tests into `old_tests` directory.
 - Ref: moved `packets` unit tests outside of `src` to the main `test` directory.
 - Ref: moved `utils` unit tests outside of `src` to the main `test` directory.
+- Ref: moved all unit tests in `src` outside to the main `test` directory.
 - Ref: merged unit tests in `test/nodeunit` directory with the main `test` directory.
 - Doc: updated supported CUBRID version.
 
