@@ -1,9 +1,8 @@
-var Cache = require('../../src/utils/Cache'),
-  Helpers = require('../../src/utils/Helpers');
+var Cache = require('../../src' + (process.env.CODE_COV ? '-cov' : '') + '/utils/Cache'),
+  Helpers = require('../../src' + (process.env.CODE_COV ? '-cov' : '') + '/utils/Helpers');
 
 exports['test_Cache'] = function (test) {
   test.expect(9);
-  console.log('Unit test ' + module.filename.toString() + ' started...');
 
   var cache = new Cache();
 

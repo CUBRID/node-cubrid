@@ -1,6 +1,7 @@
-var CUBRIDClient = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-  Helpers = require('../../index').Helpers,
-  Result2Array = require('../../index').Result2Array;
+var CUBRID = require('../../'),
+		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+		Helpers = CUBRID.Helpers,
+		Result2Array = CUBRID.Result2Array;
 
 function errorHandler(err) {
   throw err.message;
@@ -10,31 +11,37 @@ exports['test_IndexExports'] = function (test) {
   test.expect(4);
   Helpers.logInfo(module.filename.toString() + ' started...');
 
-  CUBRIDClient.connect(function (err) {
+  client.connect(function (err) {
     if (err) {
       errorHandler(err);
     } else {
       Helpers.logInfo('Connected.');
       Helpers.logInfo('Querying: select * from nation');
-      CUBRIDClient.query('select * from nation', function (err, result, queryHandle) {
+	    
+      client.query('select * from nation', function (err, result, queryHandle) {
         if (err) {
           errorHandler(err);
         } else {
           test.ok(Result2Array.TotalRowsCount(result) === 215);
           Helpers.logInfo('Query result rows count: ' + Result2Array.TotalRowsCount(result));
-          var arr = Result2Array.RowsArray(result);
-          test.ok(arr.length === 215);
+
+	        var arr = Result2Array.RowsArray(result);
+
+	        test.ok(arr.length === 215);
           test.ok(arr[0].toString() === 'SRB,Serbia,Europe,Beograd');
           test.ok(arr[arr.length - 1].toString() === 'AFG,Afghanistan,Asia,Kabul');
-          for (var j = 0; j < 1; j++) {
+
+	        for (var j = 0; j < 1; j++) {
             Helpers.logInfo(arr[j].toString());
           }
-          CUBRIDClient.closeQuery(queryHandle, function (err) {
+
+	        client.closeQuery(queryHandle, function (err) {
             if (err) {
               errorHandler(err);
             } else {
               Helpers.logInfo('Query closed.');
-              CUBRIDClient.close(function (err) {
+
+	            client.close(function (err) {
                 if (err) {
                   errorHandler(err);
                 } else {

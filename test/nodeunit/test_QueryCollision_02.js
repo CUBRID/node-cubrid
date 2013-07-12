@@ -1,7 +1,8 @@
-var Result2Array = require('../../src/resultset/Result2Array'),
-  events = require('events'),
-  Helpers = require('../../src/utils/Helpers'),
-  CUBRIDclient = require('./testSetup/test_Setup.js').createDefaultCUBRIDDemodbConnection();
+var CUBRID = require('../../'),
+		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+	  events = require('events'),
+		Helpers = CUBRID.Helpers,
+		Result2Array = CUBRID.Result2Array;
 
 exports['test_QueryCollision_02'] = function (test) {
   test.expect(2);
@@ -31,7 +32,7 @@ exports['test_QueryCollision_02'] = function (test) {
   getSingleValue.prototype = new events.EventEmitter();
 
   try {
-    var getMyValue = new getSingleValue('select count(*) from game', CUBRIDclient);
+    var getMyValue = new getSingleValue('select count(*) from game', client);
   }
   catch (ex) {
     Helpers.logInfo(ex.message);
@@ -41,7 +42,7 @@ exports['test_QueryCollision_02'] = function (test) {
   getMyValue.on('return', function (result) {
     test.ok(result === 8653);
     setTimeout(function(){
-      CUBRIDclient.close(function () {
+      client.close(function () {
       });
     }, 100);
   });
@@ -59,7 +60,7 @@ exports['test_QueryCollision_02'] = function (test) {
   });
 
   try {
-    var getMyValue2 = new getSingleValue('select wrong_count(*) from game', CUBRIDclient);
+    var getMyValue2 = new getSingleValue('select wrong_count(*) from game', client);
 
     getMyValue2.on('return', function () {
       throw 'We should not get here!';

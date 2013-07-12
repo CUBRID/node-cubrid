@@ -1,7 +1,9 @@
-var CUBRIDClient = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-  Helpers = require('../../src/utils/Helpers'),
-  Result2Array = require('../../src/resultset/Result2Array');
+var CUBRID = require('../../'),
+		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+		Helpers = CUBRID.Helpers,
+		Result2Array = CUBRID.Result2Array;
 
+// TODO: avoid using global variables.
 global.savedQueryHandle = null;
 global.batchExecuteNo = 0;
 
@@ -9,17 +11,17 @@ exports['test_DataTypesEvents'] = function (test) {
   test.expect(21);
   Helpers.logInfo(module.filename.toString() + ' started...');
 
-  CUBRIDClient.connect(null);
+  client.connect(null);
 
-  CUBRIDClient.on(CUBRIDClient.EVENT_ERROR, function (err) {
+  client.on(client.EVENT_ERROR, function (err) {
     Helpers.logError('Error: ' + err.message);
     throw 'We should not get here!';
   });
 
-  CUBRIDClient.on(CUBRIDClient.EVENT_CONNECTED, function () {
+  client.on(client.EVENT_CONNECTED, function () {
     Helpers.logInfo('Connected.');
     Helpers.logInfo('Batch execute: create table and insert.');
-    CUBRIDClient.batchExecuteNoQuery(
+    client.batchExecuteNoQuery(
       [
         'drop table if exists test_data_types',
         'CREATE TABLE test_data_types(' +
@@ -49,20 +51,20 @@ exports['test_DataTypesEvents'] = function (test) {
       null);
   });
 
-  CUBRIDClient.on(CUBRIDClient.EVENT_BATCH_COMMANDS_COMPLETED, function () {
+  client.on(client.EVENT_BATCH_COMMANDS_COMPLETED, function () {
     if (global.batchExecuteNo === 0) {
       Helpers.logInfo('Batch execute done.');
       Helpers.logInfo('Querying: select * from test_data_types');
       global.batchExecuteNo = 1;
-      CUBRIDClient.query('select * from test_data_types', null);
+      client.query('select * from test_data_types', null);
     } else {
       Helpers.logInfo('Batch execute done.');
       Helpers.logInfo('Closing query...');
-      CUBRIDClient.closeQuery(global.savedQueryHandle, null);
+      client.closeQuery(global.savedQueryHandle, null);
     }
   });
 
-  CUBRIDClient.on(CUBRIDClient.EVENT_QUERY_DATA_AVAILABLE, function (result, queryHandle) {
+  client.on(client.EVENT_QUERY_DATA_AVAILABLE, function (result, queryHandle) {
     Helpers.logInfo('Data received.');
     Helpers.logInfo('Returned active query handle: ' + queryHandle);
     global.savedQueryHandle = queryHandle; // Save handle - needed for further fetch operations
@@ -91,20 +93,20 @@ exports['test_DataTypesEvents'] = function (test) {
     test.ok(arr[0][17].toString().startsWith('2012-10-02') === true);
     test.ok(arr[0][18] === 'varchar');
 
-    CUBRIDClient.batchExecuteNoQuery('drop table test_data_types', null);
+    client.batchExecuteNoQuery('drop table test_data_types', null);
   });
 
-  CUBRIDClient.on(CUBRIDClient.EVENT_QUERY_CLOSED, function () {
+  client.on(client.EVENT_QUERY_CLOSED, function () {
     Helpers.logInfo('Query closed.');
     global.savedQueryHandle = null;
     Helpers.logInfo('Closing connection...');
-    CUBRIDClient.close(null);
+    client.close(null);
   });
 
-  CUBRIDClient.on(CUBRIDClient.EVENT_CONNECTION_CLOSED, function () {
+  client.on(client.EVENT_CONNECTION_CLOSED, function () {
     Helpers.logInfo('Connection closed.');
     Helpers.logInfo('Test passed.');
-    CUBRIDClient.removeAllListeners();
+    client.removeAllListeners();
     test.done();
   });
 };

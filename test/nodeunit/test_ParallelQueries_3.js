@@ -1,6 +1,7 @@
-var testSetup = require('./testSetup/test_Setup'),
-    Helpers = require('../../src/utils/Helpers'),
-    Result2Array = require('../../src/resultset/Result2Array');
+var CUBRID = require('../../'),
+		testSetup = require('./testSetup/test_Setup'),
+		Helpers = CUBRID.Helpers,
+		Result2Array = CUBRID.Result2Array;
 
 exports['test_ParallelQueries_3'] = function (test) {
   test.expect(0);
@@ -15,24 +16,27 @@ exports['test_ParallelQueries_3'] = function (test) {
   function RunQueryInSeparateConnection(i) {
     setTimeout(function () {
       Helpers.logInfo('Opening connecting no. ' + i + '...');
-      var CUBRIDClient = testSetup.createDefaultCUBRIDDemodbConnection();
-      CUBRIDClient.connect(function (err) {
+	    var client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection();
+      
+	    client.connect(function (err) {
         if (err) {
           errorHandler(err);
         } else {
-          Helpers.logInfo('Connection no. ' + i + ' was opened on port: ' + CUBRIDClient.connectionBrokerPort);
-          CUBRIDClient.query('select * from nation', function (err, result, queryHandle) {
+          Helpers.logInfo('Connection no. ' + i + ' was opened on port: ' + client.connectionBrokerPort);
+
+          client.query('select * from nation', function (err, result, queryHandle) {
             Helpers.logInfo('On connection no. ' + i + ' we are executing query: select * from nation');
             if (err) {
               errorHandler(err);
             } else {
               Helpers.logInfo('On connection no. ' + i + ' we got query result rows count: ' + Result2Array.TotalRowsCount(result));
-              CUBRIDClient.closeQuery(queryHandle, function (err) {
+              client.closeQuery(queryHandle, function (err) {
                 if (err) {
                   errorHandler(err);
                 } else {
                   Helpers.logInfo('Query closed for connection no. ' + i + '.');
-                  CUBRIDClient.close(function (err) {
+
+	                client.close(function (err) {
                     if (err) {
                       errorHandler(err);
                     } else {
@@ -57,7 +61,7 @@ exports['test_ParallelQueries_3'] = function (test) {
   }, 10000);
 
   // Open 10 connections and for each, execute a query
-  for (var i = 1; i <= 10; i++) {
+  for (var i = 1; i <= 10; ++i) {
     RunQueryInSeparateConnection(i);
   }
 };

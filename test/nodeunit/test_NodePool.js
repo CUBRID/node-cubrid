@@ -1,21 +1,24 @@
-var Helpers = require('../../src/utils/Helpers'),
-  generic_pool = require('generic-pool'),
-    testSetup = require('./testSetup/test_Setup'),
-  Result2Array = require('../../src/resultset/Result2Array');
+var CUBRID = require('../../'),
+		Helpers = CUBRID.Helpers,
+		Result2Array = CUBRID.Result2Array,
+		testSetup = require('./testSetup/test_Setup'),
+    generic_pool = require('generic-pool');
 
 exports['test_NodePool'] = function (test) {
   test.expect(8);
   Helpers.logInfo(module.filename.toString() + ' started...');
+
   var pool = generic_pool.Pool({
     name              : 'cubrid-node-pool',
     max               : 2,
     create            : function (callback) {
-      var CUBRIDClient = testSetup.createDefaultCUBRIDDemodbConnection();
-      CUBRIDClient.connect(function (err) {
+	    var client = testSetup.createDefaultCUBRIDDemodbConnection();
+
+      client.connect(function (err) {
         if (err == null) {
           Helpers.logInfo('Connection opened.');
         }
-        callback(err, CUBRIDClient);
+        callback(err, client);
       });
     },
     destroy           : function (db) {

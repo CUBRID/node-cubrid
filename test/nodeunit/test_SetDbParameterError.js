@@ -1,13 +1,16 @@
-var CUBRIDClient = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-  Helpers = require('../../src/utils/Helpers'),
-  CAS = require('../../src/constants/CASConstants');
+var CUBRID = require('../../'),
+		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+		Helpers = CUBRID.Helpers,
+		CAS = require('../../src' + (process.env.CODE_COV ? '-cov' : '') + '/constants/CASConstants');
 
 exports['test_SetDbParameterError'] = function (test) {
   test.expect(1);
   function errorHandler(err) {
     Helpers.logInfo(err.message);
-    test.ok(err.message === '-1011:CAS_ER_PARAM_NAME');
-    CUBRIDClient.close(function (err) {
+
+	  test.ok(err.message === '-1011:CAS_ER_PARAM_NAME');
+
+    client.close(function (err) {
       if (err) {
         errorHandler(err);
       } else {
@@ -20,12 +23,12 @@ exports['test_SetDbParameterError'] = function (test) {
 
   Helpers.logInfo(module.filename.toString() + ' started...');
 
-  CUBRIDClient.connect(function (err) {
+  client.connect(function (err) {
     if (err) {
       errorHandler(err);
     } else {
       Helpers.logInfo('Connected OK.');
-      CUBRIDClient.setDatabaseParameter(CAS.CCIDbParam.CCI_PARAM_MAX_STRING_LENGTH, 99, function (err) {
+      client.setDatabaseParameter(CAS.CCIDbParam.CCI_PARAM_MAX_STRING_LENGTH, 99, function (err) {
         if (err) {
           errorHandler(err);
         } else {

@@ -1,38 +1,40 @@
-var CUBRIDClient = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-  Helpers = require('../../src/utils/Helpers'),
-  ActionQueue = require('../../src/utils/ActionQueue'),
-  Result2Array = require('../../src/resultset/Result2Array');
-
-var SQL_A = 'SELECT * from event';
-var SQL_B = 'SELECT * from game';
-var SQL_C = 'SELECT * from participant';
-var SQL_A_fetchResult;
-var SQL_B_fetchResult;
-var SQL_C_fetchResult;
+var CUBRID = require('../../'),
+		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+		Helpers = CUBRID.Helpers,
+	  ActionQueue = CUBRID.ActionQueue,
+		Result2Array = CUBRID.Result2Array,
+		SQL_A = 'SELECT * from event',
+		SQL_B = 'SELECT * from game',
+		SQL_C = 'SELECT * from participant',
+		SQL_A_fetchResult, SQL_B_fetchResult, SQL_C_fetchResult;
 
 exports['test_QueriesQueue_MultiFetch'] = function (test) {
   test.expect(6);
   Helpers.logInfo(module.filename.toString() + ' started...');
-  CUBRIDClient.connect(function (err) {
+
+	client.connect(function (err) {
     if (err) {
       throw err;
     } else {
       Helpers.logInfo('Connection opened...');
-      CUBRIDClient.addQuery(SQL_A, function (err, result, queryHandle) {
+
+	    client.addQuery(SQL_A, function (err, result, queryHandle) {
         if (err) {
           throw err;
         } else {
           Helpers.logInfo(SQL_A + ' executed! - handle: ' + queryHandle);
-          var arr = Result2Array.RowsArray(result);
-          test.ok(Result2Array.TotalRowsCount(result) === 422);
+
+	        var arr = Result2Array.RowsArray(result);
+
+	        test.ok(Result2Array.TotalRowsCount(result) === 422);
           test.ok(arr[0].toString() === '20421,Wrestling,Greco-Roman 97kg,M,1');
-          ActionQueue.while(
+
+	        ActionQueue.while(
             function () {
               return SQL_A_fetchResult !== null;
             },
-
             function (callback) {
-              CUBRIDClient.fetch(queryHandle, function (err, result) {
+              client.fetch(queryHandle, function (err, result) {
                 if (err) {
                   throw err;
                 } else {
@@ -48,12 +50,11 @@ exports['test_QueriesQueue_MultiFetch'] = function (test) {
                 }
               });
             },
-
             function (err) {
               if (err) {
                 throw err;
               } else {
-                CUBRIDClient.closeQuery(queryHandle, function (err) {
+                client.closeQuery(queryHandle, function (err) {
                   if (err) {
                     throw err;
                   } else {
@@ -66,21 +67,23 @@ exports['test_QueriesQueue_MultiFetch'] = function (test) {
         }
       });
 
-      CUBRIDClient.addQuery(SQL_B, function (err, result, queryHandle) {
+      client.addQuery(SQL_B, function (err, result, queryHandle) {
         if (err) {
           throw err;
         } else {
           Helpers.logInfo(SQL_B + ' executed! - handle: ' + queryHandle);
-          var arr = Result2Array.RowsArray(result);
-          test.ok(arr.length === 235);
+
+	        var arr = Result2Array.RowsArray(result);
+
+	        test.ok(arr.length === 235);
           test.ok(arr[0].toString() === '2004,20021,14345,30116,NGR,B,2004-08-28T00:00:00.000Z');
-          ActionQueue.while(
+
+	        ActionQueue.while(
             function () {
               return SQL_B_fetchResult !== null;
             },
-
             function (callback) {
-              CUBRIDClient.fetch(queryHandle, function (err, result) {
+              client.fetch(queryHandle, function (err, result) {
                 if (err) {
                   throw err;
                 } else {
@@ -96,12 +99,11 @@ exports['test_QueriesQueue_MultiFetch'] = function (test) {
                 }
               });
             },
-
             function (err) {
               if (err) {
                 throw err;
               } else {
-                CUBRIDClient.closeQuery(queryHandle, function (err) {
+                client.closeQuery(queryHandle, function (err) {
                   if (err) {
                     throw err;
                   } else {
@@ -114,7 +116,7 @@ exports['test_QueriesQueue_MultiFetch'] = function (test) {
         }
       });
 
-      CUBRIDClient.addQuery(SQL_C, function (err, result, queryHandle) {
+      client.addQuery(SQL_C, function (err, result, queryHandle) {
         if (err) {
           throw err;
         } else {
@@ -126,9 +128,8 @@ exports['test_QueriesQueue_MultiFetch'] = function (test) {
             function () {
               return SQL_C_fetchResult !== null;
             },
-
             function (callback) {
-              CUBRIDClient.fetch(queryHandle, function (err, result) {
+              client.fetch(queryHandle, function (err, result) {
                 if (err) {
                   throw err;
                 } else {
@@ -144,12 +145,11 @@ exports['test_QueriesQueue_MultiFetch'] = function (test) {
                 }
               });
             },
-
             function (err) {
               if (err) {
                 throw err;
               } else {
-                CUBRIDClient.closeQuery(queryHandle, function (err) {
+                client.closeQuery(queryHandle, function (err) {
                   if (err) {
                     throw err;
                   } else {
@@ -163,7 +163,7 @@ exports['test_QueriesQueue_MultiFetch'] = function (test) {
       });
 
       setTimeout(function () {
-        CUBRIDClient.close(function (err) {
+        client.close(function (err) {
           if (err) {
             throw err;
           } else {

@@ -1,6 +1,7 @@
-var CUBRIDClient = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-  Helpers = require('../../src/utils/Helpers'),
-  Result2Array = require('../../src/resultset/Result2Array');
+var CUBRID = require('../../'),
+		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+		Helpers = CUBRID.Helpers,
+		Result2Array = CUBRID.Result2Array;
 
 function errorHandler(err) {
   throw err.message;
@@ -10,13 +11,13 @@ exports['test_Named_Functions'] = function (test) {
   test.expect(0);
   Helpers.logInfo(module.filename.toString() + ' started...');
 
-  CUBRIDClient.connect(connect_callback);
+  client.connect(connect_callback);
 
   function connect_callback(err) {
     if (err) {
       errorHandler(err);
     } else {
-      CUBRIDClient.query('select * from game', query_callback);
+      client.query('select * from game', query_callback);
     }
   }
 
@@ -30,7 +31,7 @@ exports['test_Named_Functions'] = function (test) {
       Helpers.logInfo('First "batch" of data returned rows count: ' + Result2Array.RowsArray(result).length);
       Helpers.logInfo('*** First row: ' + Result2Array.RowsArray(result)[0].toString());
       Helpers.logInfo('Fetching more rows...');
-      CUBRIDClient.fetch(queryHandle, fetch_callback);
+      client.fetch(queryHandle, fetch_callback);
     }
   }
 
@@ -42,7 +43,7 @@ exports['test_Named_Functions'] = function (test) {
       Helpers.logInfo('*** Fetch data received.');
       Helpers.logInfo('*** Current fetch of data returned rows count: ' + Result2Array.RowsArray(result).length);
       Helpers.logInfo('*** First row: ' + Result2Array.RowsArray(result)[0].toString());
-      CUBRIDClient.close(close_callback);
+      client.close(close_callback);
     }
   }
 

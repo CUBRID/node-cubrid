@@ -1,6 +1,7 @@
-var CUBRIDClient = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-  Helpers = require('../../src/utils/Helpers'),
-  Result2Array = require('../../src/resultset/Result2Array');
+var CUBRID = require('../../'),
+		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+		Helpers = CUBRID.Helpers,
+		Result2Array = CUBRID.Result2Array;
 
 function errorHandler(err) {
   throw err.message;
@@ -10,12 +11,12 @@ exports['test_ExecuteWithTypedParams'] = function (test) {
   test.expect(19);
   Helpers.logInfo(module.filename.toString() + ' started...');
 
-  CUBRIDClient.connect(function (err) {
+  client.connect(function (err) {
     if (err) {
       errorHandler(err);
     } else {
       Helpers.logInfo('Connected.');
-      CUBRIDClient.batchExecuteNoQuery(
+      client.batchExecuteNoQuery(
         [
           'drop table if exists test_params',
           'CREATE TABLE test_params(' +
@@ -51,7 +52,7 @@ exports['test_ExecuteWithTypedParams'] = function (test) {
             date.setUTCMinutes(25);
             date.setUTCSeconds(45);
             date.setUTCMilliseconds(0);
-            CUBRIDClient.executeWithTypedParams('insert into test_params values( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            client.executeWithTypedParams('insert into test_params values( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
               [15, bitValue, varBitValue, 'a', date, date, 1.5, 2.5, 14, 3.14, '9' , '95', 16, 'varnchar', date, date, 'varchar'],
               ['bigint', 'bit', 'varbit', 'char', 'date', 'datetime', 'double', 'float', 'int', 'monetary',
                'nchar', 'varnchar', 'numeric', 'varchar', 'time', 'timestamp', 'varchar'],
@@ -59,7 +60,7 @@ exports['test_ExecuteWithTypedParams'] = function (test) {
                 if (err) {
                   errorHandler(err);
                 } else {
-                  CUBRIDClient.query('select * from test_params', function (err, result, queryHandle) {
+                  client.query('select * from test_params', function (err, result, queryHandle) {
                     if (err) {
                       errorHandler(err);
                     } else {
@@ -88,11 +89,11 @@ exports['test_ExecuteWithTypedParams'] = function (test) {
                       for (var j = 0; j < arr.length; j++) {
                         Helpers.logInfo(arr[j].toString());
                       }
-                      CUBRIDClient.execute('drop table test_params', function (err) {
+                      client.execute('drop table test_params', function (err) {
                         if (err) {
                           errorHandler(err);
                         } else {
-                          CUBRIDClient.close(function (err) {
+                          client.close(function (err) {
                             if (err) {
                               errorHandler(err);
                             } else {
@@ -112,4 +113,3 @@ exports['test_ExecuteWithTypedParams'] = function (test) {
     }
   });
 };
-

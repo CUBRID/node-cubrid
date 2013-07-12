@@ -1,27 +1,28 @@
-var CUBRIDClient = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-  Helpers = require('../../src/utils/Helpers'),
-  Result2Array = require('../../src/resultset/Result2Array');
-
-var SQL_A = 'SELECT * FROM event';
-var SQL_B = 'SELECT * FROM record';
+var CUBRID = require('../../'),
+		Helpers = CUBRID.Helpers,
+		Result2Array = CUBRID.Result2Array,
+		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+		SQL_A = 'SELECT * FROM event',
+		SQL_B = 'SELECT * FROM record';
 
 exports['test_Basic_QueriesQueue_Events'] = function (test) {
   test.expect(4);
   Helpers.logInfo(module.filename.toString() + ' started...');
-  CUBRIDClient.connect();
 
-  CUBRIDClient.on(CUBRIDClient.EVENT_ERROR, function (err) {
+  client.connect();
+
+  client.on(client.EVENT_ERROR, function (err) {
     Helpers.logError('Error!: ' + err.message);
     throw err;
   });
 
-  CUBRIDClient.on(CUBRIDClient.EVENT_CONNECTED, function () {
+  client.on(client.EVENT_CONNECTED, function () {
     Helpers.logInfo('Connected.');
-    CUBRIDClient.addQuery(SQL_A, null);
-    CUBRIDClient.addQuery(SQL_B, null);
+    client.addQuery(SQL_A, null);
+    client.addQuery(SQL_B, null);
   });
 
-  CUBRIDClient.on(CUBRIDClient.EVENT_QUERY_DATA_AVAILABLE, function (result, queryHandle, sql) {
+  client.on(client.EVENT_QUERY_DATA_AVAILABLE, function (result, queryHandle, sql) {
     Helpers.logInfo('[' + sql + '] executed - query handle is: ' + queryHandle);
     var arr = Result2Array.RowsArray(result);
     Helpers.logInfo('Query result first row: ' + arr[0]);
@@ -35,34 +36,34 @@ exports['test_Basic_QueriesQueue_Events'] = function (test) {
         test.ok(arr[0].toString() === '2000,20243,14214,G,681.1,Score');
     }
     Helpers.logInfo('...let\'s fetch more data...');
-    CUBRIDClient.fetch(queryHandle);
+    client.fetch(queryHandle);
   });
 
-  CUBRIDClient.on(CUBRIDClient.EVENT_FETCH_DATA_AVAILABLE, function (result, queryHandle) {
+  client.on(client.EVENT_FETCH_DATA_AVAILABLE, function (result, queryHandle) {
     Helpers.logInfo('Fetch executed for queryHandle: ' + queryHandle);
     var arr = Result2Array.RowsArray(result);
     Helpers.logInfo('Fetch results - first row: ' + queryHandle + ': ' + arr[0]);
-    CUBRIDClient.closeQuery(queryHandle, null);
+    client.closeQuery(queryHandle, null);
   });
 
-  CUBRIDClient.on(CUBRIDClient.EVENT_FETCH_NO_MORE_DATA_AVAILABLE, function (queryHandle) {
+  client.on(client.EVENT_FETCH_NO_MORE_DATA_AVAILABLE, function (queryHandle) {
     Helpers.logInfo('There is no more data to fetch for query with handle: ' + queryHandle);
-    CUBRIDClient.closeQuery(queryHandle, null);
+    client.closeQuery(queryHandle, null);
   });
 
-  CUBRIDClient.on(CUBRIDClient.EVENT_QUERY_CLOSED, function (queryHandle) {
+  client.on(client.EVENT_QUERY_CLOSED, function (queryHandle) {
     Helpers.logInfo('Query with handle: ' + queryHandle + ' was closed!');
-    if (CUBRIDClient.queriesQueueIsEmpty()) {
-      CUBRIDClient.close();
+    if (client.queriesQueueIsEmpty()) {
+      client.close();
     } else {
       Helpers.logInfo('(...it\'s not the right time to close the connection! - there are some queries still pending execution...)');
     }
   });
 
-  CUBRIDClient.on(CUBRIDClient.EVENT_CONNECTION_CLOSED, function () {
+  client.on(client.EVENT_CONNECTION_CLOSED, function () {
     Helpers.logInfo('Connection closed.');
     Helpers.logInfo('Test passed.');
-    CUBRIDClient.removeAllListeners();
+    client.removeAllListeners();
     test.done();
   });
 };

@@ -1,7 +1,7 @@
 var events = require('events'),
-  Helpers = require('../../src/utils/Helpers.js');
-
-var testing;
+		CUBRID = require('../../'),
+		Helpers = CUBRID.Helpers,
+		testing;
 
 var Test = function (err) {
   this.err = err;

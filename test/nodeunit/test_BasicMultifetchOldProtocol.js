@@ -1,15 +1,15 @@
-var CUBRIDClient = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-  Helpers = require('../../src/utils/Helpers'),
-  ActionQueue = require('../../src/utils/ActionQueue'),
-  Result2Array = require('../../src/resultset/Result2Array');
-
-var fetchResult;
+var CUBRID = require('../../'),
+		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+		Helpers = CUBRID.Helpers,
+		ActionQueue = CUBRID.ActionQueue,
+		Result2Array = CUBRID.Result2Array,
+		fetchResult;
 
 exports['test_BasicMultifetchOldProtocol'] = function (test) {
   test.expect(41);
   Helpers.logInfo(module.filename.toString() + ' started...');
 
-  CUBRIDClient.connect(function (err) {
+  client.connect(function (err) {
     var errHandler = function (err) {
       Helpers.logInfo('Error - ' + err.message);
       throw err.message;
@@ -19,13 +19,13 @@ exports['test_BasicMultifetchOldProtocol'] = function (test) {
       errHandler(err);
     } else {
       Helpers.logInfo('Connected.');
-      CUBRIDClient.getEngineVersion(function (err, result) {
+      client.getEngineVersion(function (err, result) {
         if (err) {
           errHandler(err);
         } else {
-          CUBRIDClient.setEnforceOldQueryProtocol(true);
+          client.setEnforceOldQueryProtocol(true);
           Helpers.logInfo('CUBRID engine version: ' + result);
-          CUBRIDClient.query('select * from game', function (err, result, queryHandle) {
+          client.query('select * from game', function (err, result, queryHandle) {
             if (err) {
               errHandler(err);
             } else {
@@ -48,9 +48,8 @@ exports['test_BasicMultifetchOldProtocol'] = function (test) {
                 function () {
                   return fetchResult !== null;
                 },
-
                 function (callback) {
-                  CUBRIDClient.fetch(queryHandle, function (err, result) {
+                  client.fetch(queryHandle, function (err, result) {
                     if (err) {
                       errHandler(err);
                     } else {
@@ -69,21 +68,20 @@ exports['test_BasicMultifetchOldProtocol'] = function (test) {
                     }
                   });
                 },
-
                 function (err) {
                   if (err) {
                     errHandler(err);
                   } else {
-                    CUBRIDClient.closeQuery(queryHandle, function (err) {
+                    client.closeQuery(queryHandle, function (err) {
                       if (err) {
                         errHandler(err);
                       } else {
                         Helpers.logInfo('Query closed.');
-                        CUBRIDClient.close(function (err) {
+                        client.close(function (err) {
                           if (err) {
                             errHandler(err);
                           } else {
-                            CUBRIDClient.setEnforceOldQueryProtocol(false);
+                            client.setEnforceOldQueryProtocol(false);
                             Helpers.logInfo('Connection closed.');
                             Helpers.logInfo('Test passed.');
                             test.done();

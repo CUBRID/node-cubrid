@@ -1,5 +1,6 @@
-var CUBRIDClient = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-  Helpers = require('../../src/utils/Helpers');
+var CUBRID = require('../../'),
+		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+		Helpers = CUBRID.Helpers;
 
 exports['test_Connect'] = function (test) {
   test.expect(0);
@@ -9,17 +10,17 @@ exports['test_Connect'] = function (test) {
     throw err.message;
   }
 
-  CUBRIDClient.connect(function (err) {
+  client.connect(function (err) {
     if (err) {
       errorHandler(err);
     } else {
       Helpers.logInfo('Connected OK.');
-      CUBRIDClient.getEngineVersion(function (err, result) {
+      client.getEngineVersion(function (err, result) {
         if (err) {
           errorHandler(err);
         } else {
           Helpers.logInfo('CUBRID engine version: ' + result);
-          CUBRIDClient.close(function (err) {
+          client.close(function (err) {
             if (err) {
               errorHandler(err);
             } else {

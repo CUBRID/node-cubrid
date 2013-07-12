@@ -1,6 +1,7 @@
-var CUBRIDClient = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-  Helpers = require('../../src/utils/Helpers'),
-  Result2Array = require('../../src/resultset/Result2Array');
+var CUBRID = require('../../'),
+		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+		Helpers = CUBRID.Helpers,
+		Result2Array = CUBRID.Result2Array;
 
 var sql = 'select * from nation where continent = ?';
 var arrValues = ['Oceania'];
@@ -13,13 +14,13 @@ exports['test_QueryWithParams'] = function (test) {
   test.expect(2);
   Helpers.logInfo(module.filename.toString() + ' started...');
 
-  CUBRIDClient.connect(function (err) {
+  client.connect(function (err) {
     if (err) {
       errorHandler(err);
     } else {
       Helpers.logInfo('Connected.');
       Helpers.logInfo('Querying: ' + sql);
-      CUBRIDClient.queryWithParams(sql, arrValues, [], function (err, result, queryHandle) {
+      client.queryWithParams(sql, arrValues, [], function (err, result, queryHandle) {
         if (err) {
           errorHandler(err);
         } else {
@@ -27,12 +28,12 @@ exports['test_QueryWithParams'] = function (test) {
           test.ok(Result2Array.TotalRowsCount(result) === 15);
           var arr = Result2Array.RowsArray(result);
           test.ok(arr[0].toString() === 'KIR,Kiribati,Oceania,Tarawa');
-          CUBRIDClient.closeQuery(queryHandle, function (err) {
+          client.closeQuery(queryHandle, function (err) {
             if (err) {
               errorHandler(err);
             } else {
               Helpers.logInfo('Query closed.');
-              CUBRIDClient.close(function (err) {
+              client.close(function (err) {
                 if (err) {
                   errorHandler(err);
                 } else {

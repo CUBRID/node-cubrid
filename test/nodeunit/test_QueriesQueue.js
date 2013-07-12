@@ -1,20 +1,20 @@
-var CUBRIDClient = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-  Helpers = require('../../src/utils/Helpers'),
-  Result2Array = require('../../src/resultset/Result2Array');
-
-var SQL_A = 'SELECT * from nation';
-var SQL_B = 'SELECT * from code';
-var SQL_C = 'SELECT * from game';
+var CUBRID = require('../../'),
+		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+		Helpers = CUBRID.Helpers,
+		Result2Array = CUBRID.Result2Array,
+		SQL_A = 'SELECT * from nation',
+		SQL_B = 'SELECT * from code',
+		SQL_C = 'SELECT * from game';
 
 exports['test_QueriesQueue'] = function (test) {
   test.expect(8);
   Helpers.logInfo(module.filename.toString() + ' started...');
-  CUBRIDClient.connect(function (err) {
+  client.connect(function (err) {
     if (err) {
       throw err;
     } else {
       Helpers.logInfo('Connection opened...');
-      CUBRIDClient.addQuery(SQL_A, function (err, result, queryHandle) {
+      client.addQuery(SQL_A, function (err, result, queryHandle) {
         if (err) {
           throw err;
         } else {
@@ -22,7 +22,7 @@ exports['test_QueriesQueue'] = function (test) {
           var arr = Result2Array.RowsArray(result);
           test.ok(arr.length === 215);
           test.ok(arr[0].toString() === 'SRB,Serbia,Europe,Beograd');
-          CUBRIDClient.fetch(queryHandle, function (err, result, handle) {
+          client.fetch(queryHandle, function (err, result, handle) {
             if (err) {
               throw err;
             } else {
@@ -32,7 +32,7 @@ exports['test_QueriesQueue'] = function (test) {
               } else {
                 Helpers.logInfo('There was no data to fetch.');
               }
-              CUBRIDClient.closeQuery(handle, function (err) {
+              client.closeQuery(handle, function (err) {
                 if (err) {
                   throw err;
                 } else {
@@ -44,7 +44,7 @@ exports['test_QueriesQueue'] = function (test) {
         }
       });
 
-      CUBRIDClient.addQuery(SQL_B, function (err, result, queryHandle) {
+      client.addQuery(SQL_B, function (err, result, queryHandle) {
         if (err) {
           throw err;
         } else {
@@ -52,7 +52,7 @@ exports['test_QueriesQueue'] = function (test) {
           var arr = Result2Array.RowsArray(result);
           test.ok(arr.length === 6);
           test.ok(arr[0].toString() === 'X,Mixed');
-          CUBRIDClient.fetch(queryHandle, function (err, result, handle) {
+          client.fetch(queryHandle, function (err, result, handle) {
             if (err) {
               throw err;
             } else {
@@ -62,7 +62,7 @@ exports['test_QueriesQueue'] = function (test) {
               } else {
                 Helpers.logInfo('There was no data to fetch.');
               }
-              CUBRIDClient.closeQuery(handle, function (err) {
+              client.closeQuery(handle, function (err) {
                 if (err) {
                   throw err;
                 } else {
@@ -74,7 +74,7 @@ exports['test_QueriesQueue'] = function (test) {
         }
       });
 
-      CUBRIDClient.addQuery(SQL_C, function (err, result, queryHandle) {
+      client.addQuery(SQL_C, function (err, result, queryHandle) {
         if (err) {
           throw err;
         } else {
@@ -82,7 +82,7 @@ exports['test_QueriesQueue'] = function (test) {
           var arr = Result2Array.RowsArray(result);
           test.ok(arr.length === 235);
           test.ok(arr[0].toString() === '2004,20021,14345,30116,NGR,B,2004-08-28T00:00:00.000Z');
-          CUBRIDClient.fetch(queryHandle, function (err, result, handle) {
+          client.fetch(queryHandle, function (err, result, handle) {
             if (err) {
               throw err;
             } else {
@@ -95,7 +95,7 @@ exports['test_QueriesQueue'] = function (test) {
               } else {
                 Helpers.logInfo('There was no data to fetch.');
               }
-              CUBRIDClient.closeQuery(handle, function (err) {
+              client.closeQuery(handle, function (err) {
                 if (err) {
                   throw err;
                 } else {
@@ -108,7 +108,7 @@ exports['test_QueriesQueue'] = function (test) {
       });
 
       setTimeout(function () {
-        CUBRIDClient.close(function (err) {
+        client.close(function (err) {
           if (err) {
             throw err;
           } else {

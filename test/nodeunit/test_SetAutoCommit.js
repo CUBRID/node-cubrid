@@ -1,5 +1,6 @@
-var CUBRIDClient = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-  Helpers = require('../../src/utils/Helpers');
+var CUBRID = require('../../'),
+		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+		Helpers = CUBRID.Helpers;
 
 exports['test_SetAutoCommit'] = function (test) {
   test.expect(2);
@@ -9,22 +10,25 @@ exports['test_SetAutoCommit'] = function (test) {
     throw err.message;
   }
 
-  CUBRIDClient.connect(function (err) {
+  client.connect(function (err) {
     if (err) {
       errorHandler(err);
     } else {
       Helpers.logInfo('Connected...');
-      CUBRIDClient.setAutoCommitMode(false, function (err) {
+
+      client.setAutoCommitMode(false, function (err) {
         if (err) {
           errorHandler(err);
         } else {
-          test.ok(CUBRIDClient.autoCommitMode === false, 'AutoCommitMode not set correctly!');
-          CUBRIDClient.setAutoCommitMode(true, function (err) {
+          test.ok(client.autoCommitMode === false, 'AutoCommitMode not set correctly!');
+
+	        client.setAutoCommitMode(true, function (err) {
             if (err) {
               errorHandler(err);
             } else {
-              test.ok(CUBRIDClient.autoCommitMode === true, 'AutoCommitMode not set correctly!');
-              CUBRIDClient.close(function (err) {
+              test.ok(client.autoCommitMode === true, 'AutoCommitMode not set correctly!');
+
+              client.close(function (err) {
                 if (err) {
                   errorHandler(err);
                 } else {

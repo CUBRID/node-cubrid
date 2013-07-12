@@ -1,25 +1,26 @@
-var CUBRIDClient = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-  Helpers = require('../../src/utils/Helpers'),
-  Result2Array = require('../../src/resultset/Result2Array'),
-  CAS = require('../../src/constants/CASConstants');
+var CUBRID = require('../../'),
+		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+		Helpers = CUBRID.Helpers,
+		Result2Array = CUBRID.Result2Array,
+		CAS = require('../../src' + (process.env.CODE_COV ? '-cov' : '') + '/constants/CASConstants');
 
 exports['test_GetDbParameter_Events'] = function (test) {
   test.expect(0);
   Helpers.logInfo(module.filename.toString() + ' started...');
 
-  CUBRIDClient.connect();
+  client.connect();
 
-  CUBRIDClient.on(CUBRIDClient.EVENT_ERROR, function (err) {
+  client.on(client.EVENT_ERROR, function (err) {
     Helpers.logInfo('Error: ' + err.message);
     throw 'We should not get here!';
   });
 
-  CUBRIDClient.on(CUBRIDClient.EVENT_CONNECTED, function () {
+  client.on(client.EVENT_CONNECTED, function () {
     Helpers.logInfo('Connected.');
-    CUBRIDClient.getDatabaseParameter(CAS.CCIDbParam.CCI_PARAM_ISOLATION_LEVEL, null);
+    client.getDatabaseParameter(CAS.CCIDbParam.CCI_PARAM_ISOLATION_LEVEL, null);
   });
 
-  CUBRIDClient.on(CUBRIDClient.EVENT_GET_DB_PARAMETER_COMPLETED, function (value) {
+  client.on(client.EVENT_GET_DB_PARAMETER_COMPLETED, function (value) {
     var isolationLevel = '';
 
     if (typeof value === 'undefined') {
@@ -55,13 +56,13 @@ exports['test_GetDbParameter_Events'] = function (test) {
     }
 
     Helpers.logInfo('Get Db parameter completed: ' + isolationLevel);
-    CUBRIDClient.close();
+    client.close();
   });
 
-  CUBRIDClient.on(CUBRIDClient.EVENT_CONNECTION_CLOSED, function () {
+  client.on(client.EVENT_CONNECTION_CLOSED, function () {
     Helpers.logInfo('Connection closed.');
     Helpers.logInfo('Test passed.');
-    CUBRIDClient.removeAllListeners();
+    client.removeAllListeners();
     test.done();
   });
 };

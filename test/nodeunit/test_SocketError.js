@@ -1,5 +1,6 @@
-var CUBRIDClient = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-  Helpers = require('../../src/utils/Helpers');
+var CUBRID = require('../../'),
+		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+		Helpers = CUBRID.Helpers;
 
 exports['test_SocketError'] = function (test) {
   test.expect(1);
@@ -12,19 +13,19 @@ exports['test_SocketError'] = function (test) {
     test.done();
   }
 
-  CUBRIDClient.connect(function (err) {
+  client.connect(function (err) {
     if (err) {
       errorHandler(err);
     } else {
       Helpers.logInfo('Connected.');
       Helpers.logInfo('Querying: select * from nation');
-      CUBRIDClient._socket.destroy();
-      CUBRIDClient.query('select * from nation', function (err) {
+      client._socket.destroy();
+      client.query('select * from nation', function (err) {
         if (err) {
           errorHandler(err);
         } else {
           Helpers.logInfo('We should not get here!');
-          CUBRIDClient.close(null);
+          client.close(null);
         }
       });
     }

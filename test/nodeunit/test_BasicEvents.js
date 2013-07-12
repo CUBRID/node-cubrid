@@ -1,28 +1,29 @@
-var CUBRIDClient = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-  Helpers = require('../../src/utils/Helpers'),
-  Result2Array = require('../../src/resultset/Result2Array');
+var CUBRID = require('../../'),
+		Helpers = CUBRID.Helpers,
+		Result2Array = CUBRID.Result2Array,
+		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection();
 
 exports['test_BasicEvents'] = function (test) {
   Helpers.logInfo('Unit test ' + module.filename.toString() + ' started...');
   test.expect(0);
 
-  CUBRIDClient.connect(function () {
-    CUBRIDClient.close(function () {
+  client.connect(function () {
+    client.close(function () {
     });
   });
 
-  CUBRIDClient.on(CUBRIDClient.EVENT_ERROR, function () {
+  client.on(client.EVENT_ERROR, function () {
     throw 'We should not get here!';
   });
 
-  CUBRIDClient.on(CUBRIDClient.EVENT_CONNECTED, function () {
+  client.on(client.EVENT_CONNECTED, function () {
     Helpers.logInfo('Connected.');
   });
 
-  CUBRIDClient.on(CUBRIDClient.EVENT_CONNECTION_CLOSED, function () {
+  client.on(client.EVENT_CONNECTION_CLOSED, function () {
     Helpers.logInfo('Connection closed.');
     Helpers.logInfo('Test passed.');
-    CUBRIDClient.removeAllListeners();
+    client.removeAllListeners();
     test.done();
   });
 };

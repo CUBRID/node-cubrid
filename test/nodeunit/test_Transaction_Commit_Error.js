@@ -1,17 +1,14 @@
-var CUBRIDConnection = require('../../src/CUBRIDConnection'),
-  ActionQueue = require('../../src/utils/ActionQueue'),
-  Result2Array = require('../../src/resultset/Result2Array'),
-  Helpers = require('../../src/utils/Helpers'),
-  async = require('async'),
-  dbConf = require('./testSetup/test_Setup').config,
-  client = new CUBRIDConnection(dbConf.host, dbConf.port, dbConf.user, dbConf.password, dbConf.database);
-
+var CUBRID = require('../../'),
+		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+    async = require('async'),
+		Helpers = CUBRID.Helpers,
+		ActionQueue = CUBRID.ActionQueue,
+		Result2Array = CUBRID.Result2Array;
 
 exports['test_Transaction_Commit_Error'] = function (test) {
   Helpers.logInfo(module.filename.toString() + ' started...');
   test.expect(2);
-  var recordsToPopulate = 1000,
-    shards = [0, 1];
+  var shards = [0, 1];
 
   client.connect(function (err) {
     if (err) {

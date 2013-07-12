@@ -1,12 +1,11 @@
-var testSetup = require('./testSetup/test_Setup');
-
-// First connection
-var CUBRIDClient = testSetup.createDefaultCUBRIDDemodbConnection();
-// Second connection
-var CUBRIDClient2 = testSetup.createDefaultCUBRIDDemodbConnection();
-
-var Helpers = require('../../src/utils/Helpers'),
-  Result2Array = require('../../src/resultset/Result2Array');
+var CUBRID = require('../../'),
+		Helpers = CUBRID.Helpers,
+		Result2Array = CUBRID.Result2Array,
+		testSetup = require('./testSetup/test_Setup'),
+		// First connection
+		client = testSetup.createDefaultCUBRIDDemodbConnection(),
+		// Second connection
+		client2 = testSetup.createDefaultCUBRIDDemodbConnection();
 
 exports['test_ParallelQueries_2'] = function (test) {
   test.expect(0);
@@ -19,23 +18,23 @@ exports['test_ParallelQueries_2'] = function (test) {
   function A() {
     Helpers.logInfo('Function A called.');
     Helpers.logInfo('Connecting... [A].');
-    CUBRIDClient.connect(function (err) {
+    client.connect(function (err) {
       if (err) {
         errorHandler(err);
       } else {
-        Helpers.logInfo('Connected [A], on port: ' + CUBRIDClient.connectionBrokerPort);
-        setTimeout(CUBRIDClient.query('select * from nation', function (err, result, queryHandle) {
+        Helpers.logInfo('Connected [A], on port: ' + client.connectionBrokerPort);
+        setTimeout(client.query('select * from nation', function (err, result, queryHandle) {
           Helpers.logInfo('Querying [A]: select * from nation');
           if (err) {
             errorHandler(err);
           } else {
             Helpers.logInfo('Query result rows count [A]: ' + Result2Array.TotalRowsCount(result));
-            CUBRIDClient.closeQuery(queryHandle, function (err) {
+            client.closeQuery(queryHandle, function (err) {
               if (err) {
                 errorHandler(err);
               } else {
                 Helpers.logInfo('Query closed [A].');
-                CUBRIDClient.close(function (err) {
+                client.close(function (err) {
                   if (err) {
                     errorHandler(err);
                   } else {
@@ -53,23 +52,23 @@ exports['test_ParallelQueries_2'] = function (test) {
   function B() {
     Helpers.logInfo('Function B called.');
     Helpers.logInfo('Connecting... [B].');
-    CUBRIDClient2.connect(function (err) {
+    client2.connect(function (err) {
       if (err) {
         errorHandler(err);
       } else {
-        Helpers.logInfo('Connected [B], on port: ' + CUBRIDClient2.connectionBrokerPort);
-        CUBRIDClient2.query('select * from game', function (err, result, queryHandle) {
+        Helpers.logInfo('Connected [B], on port: ' + client2.connectionBrokerPort);
+        client2.query('select * from game', function (err, result, queryHandle) {
           Helpers.logInfo('Querying [B]: select * from game');
           if (err) {
             errorHandler(err);
           } else {
             Helpers.logInfo('Query result rows count [B]: ' + Result2Array.TotalRowsCount(result));
-            CUBRIDClient2.closeQuery(queryHandle, function (err) {
+            client2.closeQuery(queryHandle, function (err) {
               if (err) {
                 errorHandler(err);
               } else {
                 Helpers.logInfo('Query closed [B].');
-                CUBRIDClient2.close(function (err) {
+                client2.close(function (err) {
                   if (err) {
                     errorHandler(err);
                   } else {
@@ -92,4 +91,3 @@ exports['test_ParallelQueries_2'] = function (test) {
     test.done();
   }, 5000);
 };
-
