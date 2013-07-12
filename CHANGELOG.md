@@ -19,6 +19,7 @@
 - Ref: keep connection configurations for test in one place and reuse it.
 - Ref: refactored tests suite to prepare for code coverage.
 - Ref: moved old tests into `old_tests` directory.
+- Ref: moved `packets` unit tests outside of `src` to the main `test` directory.
 - Doc: updated supported CUBRID version.
 
 ## Version 2.0.2 (Apr 12, 2013)
