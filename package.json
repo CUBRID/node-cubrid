@@ -23,7 +23,7 @@
     "node": "*"
   },
   "scripts": {
-    "test": "./node_modules/.bin/nodeunit test test/nodeunit"
+    "test": "./node_modules/.bin/nodeunit test"
   },
   "devDependencies": {
     "async": "~0.2.9",
