@@ -1,31 +1,31 @@
-var CUBRIDClient = require('./test_Setup').createDefaultCUBRIDDemodbConnection,
-  ActionQueue = require('../src/utils/ActionQueue'),
-  Helpers = require('../src/utils/Helpers');
+exports['test_ConnectSequence'] = function (test) {
+	var CUBRID = require('../'),
+			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+			Helpers = CUBRID.Helpers,
+			ActionQueue = CUBRID.ActionQueue;
 
-Helpers.logInfo(module.filename.toString() + ' started...');
+	test.expect(1);
+  Helpers.logInfo(module.filename.toString() + ' started...');
 
-ActionQueue.enqueue(
-  [
+  ActionQueue.enqueue([
     function (callback) {
-      CUBRIDClient.connect(callback);
+      client.connect(callback);
     },
-
     function (callback) {
-      CUBRIDClient.getEngineVersion(callback);
+      client.getEngineVersion(callback);
     },
-
     function (version, callback) {
+      test.notEqual(version, null);
       Helpers.logInfo('Engine version: ' + version);
-      CUBRIDClient.close(callback);
+      client.close(callback);
     }
   ],
-
   function (err) {
     if (err) {
       throw err.message;
     } else {
       Helpers.logInfo('Test passed.');
+      test.done();
     }
-  }
-);
-
+  });
+};

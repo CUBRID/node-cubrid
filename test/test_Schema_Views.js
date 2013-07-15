@@ -1,32 +1,30 @@
-var CUBRIDClient = require('./test_Setup').createDefaultCUBRIDDemodbConnection,
-  ActionQueue = require('../src/utils/ActionQueue'),
-  Helpers = require('../src/utils/Helpers'),
-  Result2Array = require('../src/resultset/Result2Array'),
-  assert = require('assert');
+exports['test_Schema_Views'] = function (test) {
+	var CUBRID = require('../'),
+			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+			Helpers = CUBRID.Helpers,
+			ActionQueue = CUBRID.ActionQueue;
 
-Helpers.logInfo(module.filename.toString() + ' started...');
+	test.expect(1);
+  Helpers.logInfo(module.filename.toString() + ' started...');
 
-ActionQueue.enqueue(
-  [
+  ActionQueue.enqueue([
     function (callback) {
-      CUBRIDClient.connect(callback);
+      client.connect(callback);
     },
-
     function (callback) {
-      CUBRIDClient.getSchema(CUBRIDClient.SCHEMA_VIEW, null, callback);
+      client.getSchema(client.SCHEMA_VIEW, null, callback);
     },
-
     function (result, callback) {
       for (var i = 0; i < result.length; i++) {
         Helpers.logInfo(result[i]);
       }
 
-      if (CUBRIDClient._DB_ENGINE_VER.startsWith('8.4')) {
-        assert(result.length === 16);
+      if (client._DB_ENGINE_VER.startsWith('8.4')) {
+        test.ok(result.length === 16);
       }
       else {
-        if (CUBRIDClient._DB_ENGINE_VER.startsWith('9.1')) {
-          assert(result.length === 17);
+        if (client._DB_ENGINE_VER.startsWith('9')) {
+          test.ok(result.length === 17);
         }
       }
 
@@ -34,15 +32,15 @@ ActionQueue.enqueue(
     },
 
     function (callback) {
-      CUBRIDClient.close(callback);
+      client.close(callback);
     }
   ],
-
   function (err) {
     if (err) {
       throw err.message;
     } else {
       Helpers.logInfo('Test passed.');
+      test.done();
     }
-  }
-);
+  });
+};

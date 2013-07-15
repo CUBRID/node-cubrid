@@ -1,48 +1,49 @@
-var CUBRIDClient = require('./test_Setup').createDefaultCUBRIDDemodbConnection,
-  Helpers = require('../src/utils/Helpers'),
-  Result2Array = require('../src/resultset/Result2Array'),
-  assert = require('assert');
+exports['test_QueryWithParams_2'] = function (test) {
+	var CUBRID = require('../'),
+			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+			Helpers = CUBRID.Helpers,
+			Result2Array = CUBRID.Result2Array,
+			sql = 'SELECT * FROM ? WHERE ? LIKE ? AND LENGTH(?) > ?',
+			arrValues = ['nation', 'code', 'A%', 'capital', '5'],
+			arrDelimiters = ['`', '', '\'', '', ''];
 
-var sql = 'SELECT * FROM ? WHERE ? LIKE ? AND LENGTH(?) > ?';
-var arrValues = ['nation', 'code', 'A%', 'capital', '5'];
-var arrDelimiters = ['`', '', '\'', '', ''];
+	function errorHandler(err) {
+		throw err.message;
+	}
 
-function errorHandler(err) {
-  throw err.message;
+	test.expect(1);
+  Helpers.logInfo(module.filename.toString() + ' started...');
+
+  client.connect(function (err) {
+    if (err) {
+      errorHandler(err);
+    } else {
+      Helpers.logInfo('Connected.');
+      Helpers.logInfo('Querying: ' + sql);
+      client.queryWithParams(sql, arrValues, arrDelimiters, function (err, result, queryHandle) {
+        if (err) {
+          errorHandler(err);
+        } else {
+          Helpers.logInfo('Query result rows count: ' + Result2Array.TotalRowsCount(result));
+          test.ok(Result2Array.TotalRowsCount(result) === 12);
+          client.closeQuery(queryHandle, function (err) {
+            if (err) {
+              errorHandler(err);
+            } else {
+              Helpers.logInfo('Query closed.');
+              client.close(function (err) {
+                if (err) {
+                  errorHandler(err);
+                } else {
+                  Helpers.logInfo('Connection closed.');
+                  Helpers.logInfo('Test passed.');
+                  test.done();
+                }
+              });
+            }
+          });
+        }
+      });
+    }
+  });
 }
-
-Helpers.logInfo(module.filename.toString() + ' started...');
-
-CUBRIDClient.connect(function (err) {
-  if (err) {
-    errorHandler(err);
-  } else {
-    Helpers.logInfo('Connected.');
-    Helpers.logInfo('Querying: ' + sql);
-    CUBRIDClient.queryWithParams(sql, arrValues, arrDelimiters, function (err, result, queryHandle) {
-      if (err) {
-        errorHandler(err);
-      } else {
-        Helpers.logInfo('Query result rows count: ' + Result2Array.TotalRowsCount(result));
-        assert(Result2Array.TotalRowsCount(result) === 12);
-        CUBRIDClient.closeQuery(queryHandle, function (err) {
-          if (err) {
-            errorHandler(err);
-          } else {
-            Helpers.logInfo('Query closed.');
-            CUBRIDClient.close(function (err) {
-              if (err) {
-                errorHandler(err);
-              } else {
-                Helpers.logInfo('Connection closed.');
-                Helpers.logInfo('Test passed.');
-              }
-            });
-          }
-        });
-      }
-    });
-  }
-});
-
-

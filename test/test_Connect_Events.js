@@ -1,31 +1,36 @@
-var CUBRIDClient = require('./test_Setup').createDefaultCUBRIDDemodbConnection,
-  Helpers = require('../src/utils/Helpers');
+exports['test_Connect_Events'] = function (test) {
+	var CUBRID = require('../'),
+			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+			Helpers = CUBRID.Helpers;
 
-Helpers.logInfo(module.filename.toString() + ' started...');
+	test.expect(0);
+  Helpers.logInfo(module.filename.toString() + ' started...');
 
-CUBRIDClient.connect();
+  client.connect();
 
-CUBRIDClient.on(CUBRIDClient.EVENT_ERROR, function (err) {
-  throw err.message;
-});
-
-CUBRIDClient.on(CUBRIDClient.EVENT_CONNECTED, function () {
-  Helpers.logInfo('Connection opened.');
-  CUBRIDClient.query('select * from game');
-});
-
-CUBRIDClient.on(CUBRIDClient.EVENT_QUERY_DATA_AVAILABLE, function (result, queryHandle) {
-  CUBRIDClient.closeQuery(queryHandle, function () {
+  client.on(client.EVENT_ERROR, function (err) {
+    throw err.message;
   });
-});
 
-CUBRIDClient.on(CUBRIDClient.EVENT_QUERY_CLOSED, function () {
-  CUBRIDClient.close();
-});
+  client.on(client.EVENT_CONNECTED, function () {
+    Helpers.logInfo('Connection opened.');
+    client.query('select * from game');
+  });
 
-CUBRIDClient.on(CUBRIDClient.EVENT_CONNECTION_CLOSED, function () {
-  Helpers.logInfo('Connection closed');
-  Helpers.logInfo('Test passed');
-});
+  client.on(client.EVENT_QUERY_DATA_AVAILABLE, function (result, queryHandle) {
+    client.closeQuery(queryHandle, function () {
+    });
+  });
 
+  client.on(client.EVENT_QUERY_CLOSED, function () {
+    client.close();
+  });
+
+  client.on(client.EVENT_CONNECTION_CLOSED, function () {
+    Helpers.logInfo('Connection closed');
+    Helpers.logInfo('Test passed');
+    client.removeAllListeners();
+    test.done();
+  });
+};
 

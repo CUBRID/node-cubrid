@@ -1,28 +1,33 @@
-var CUBRIDClient = require('./test_Setup').createDefaultCUBRIDDemodbConnection,
-  Helpers = require('../src/utils/Helpers'),
-  Result2Array = require('../src/resultset/Result2Array'),
-  assert = require('assert');
+exports['test_Basic_QueriesQueue_Events_Error'] = function (test) {
+	var CUBRID = require('../'),
+			Helpers = CUBRID.Helpers,
+			Result2Array = CUBRID.Result2Array,
+			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+			SQL_A = 'SELECT * from x_code';
 
-var SQL_A = 'SELECT * from x_code';
+	test.expect(1);
 
-CUBRIDClient.connect(function () {
-});
+  Helpers.logInfo(module.filename.toString() + ' started...');
 
-CUBRIDClient.on(CUBRIDClient.EVENT_ERROR, function (err) {
-  Helpers.logError('Error!: ' + err.message);
-  assert(err.message === '-493:Syntax: Unknown class "x_code". select * from x_code');
-  CUBRIDClient.close();
-});
+	client.connect();
 
-CUBRIDClient.on(CUBRIDClient.EVENT_CONNECTED, function () {
-  Helpers.logInfo('Connected.');
-  CUBRIDClient.addQuery(SQL_A, null);
-});
+  client.on(client.EVENT_ERROR, function (err) {
+    Helpers.logError('Error!: ' + err.message);
+    test.ok(err.message === '-493:Syntax: Unknown class "x_code". select * from x_code');
+    client.close();
+  });
 
-CUBRIDClient.on(CUBRIDClient.EVENT_CONNECTION_CLOSED, function () {
-  Helpers.logInfo('Connection closed.');
-  Helpers.logInfo('Test passed.');
-  setTimeout(function () {
-    process.exit();
-  }, 1000);
-});
+  client.on(client.EVENT_CONNECTED, function () {
+    Helpers.logInfo('Connected.');
+    client.addQuery(SQL_A, null);
+  });
+
+  client.on(client.EVENT_CONNECTION_CLOSED, function () {
+    Helpers.logInfo('Connection closed.');
+    Helpers.logInfo('Test passed.');
+    setTimeout(function () {
+      client.removeAllListeners();
+      test.done();
+    }, 1000);
+  });
+};

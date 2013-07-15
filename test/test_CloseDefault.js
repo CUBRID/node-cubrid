@@ -1,48 +1,57 @@
-var CUBRIDClient = require('./test_Setup').createDefaultCUBRIDDemodbConnection,
-  Helpers = require('../src/utils/Helpers'),
-  assert = require('assert');
+exports['test_CloseDefault'] = function (test) {
+	var CUBRID = require('../'),
+			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+			Helpers = CUBRID.Helpers;
 
-function errorHandler(err) {
-  throw err.message;
-}
+	test.expect(2);
+  Helpers.logInfo(module.filename.toString() + ' started...');
 
-Helpers.logInfo(module.filename.toString() + ' started...');
+  function errorHandler(err) {
+    throw err.message;
+  }
 
-CUBRIDClient.connect(function () {
-  Helpers.logInfo('Connected.');
-  Helpers.logInfo('Executing query...');
-  CUBRIDClient.query('select * from nation', function (err, result, queryHandle) {
+  client.connect(function (err) {
     if (err) {
       errorHandler(err);
     } else {
-      var foundQueryHandle = false;
-      for (var i = 0; i < CUBRIDClient._queriesPacketList.length; i++) {
-        if (CUBRIDClient._queriesPacketList[i].queryHandle === queryHandle) {
-          foundQueryHandle = true;
-          break;
-        }
-      }
-
-      assert(foundQueryHandle === true);
-
-      CUBRIDClient.close(function (err) {
+      Helpers.logInfo('Connected.');
+      Helpers.logInfo('Executing query...');
+      client.query('select * from nation', function (err, result, queryHandle) {
         if (err) {
           errorHandler(err);
         } else {
-          Helpers.logInfo('Connection closed.');
-          foundQueryHandle = false;
-          for (var i = 0; i < CUBRIDClient._queriesPacketList.length; i++) {
-            if (CUBRIDClient._queriesPacketList[i].handle === queryHandle) {
+          var foundQueryHandle = false;
+          for (var i = 0; i < client._queriesPacketList.length; i++) {
+            if (client._queriesPacketList[i].queryHandle === queryHandle) {
               foundQueryHandle = true;
               break;
             }
           }
 
-          assert(foundQueryHandle === false);
+          test.ok(foundQueryHandle === true);
 
-          Helpers.logInfo('Test passed.');
+          client.close(function (err) {
+            if (err) {
+              errorHandler(err);
+            } else {
+              Helpers.logInfo('Connection closed.');
+              foundQueryHandle = false;
+              for (var i = 0; i < client._queriesPacketList.length; i++) {
+                if (client._queriesPacketList[i].handle === queryHandle) {
+                  foundQueryHandle = true;
+                  break;
+                }
+              }
+
+              test.ok(foundQueryHandle === false);
+
+              Helpers.logInfo('Test passed.');
+              test.done();
+            }
+          });
         }
       });
     }
   });
-});
+};
+
