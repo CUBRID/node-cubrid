@@ -31,6 +31,7 @@
 - Ref: use CUBRID Chef Cookbook to install different versions of CUBRID to run tests against.
 - Ref: `demodb` recipe will install CUBRID as a prerequisite, so no need to specify explicitly.
 - Ref: modified the test to handle incorrect error message when CUBRID is installed/started as root.
+- Ref: install JSCoverage to instrument code covered version of the node-cubrid module.
 - Doc: updated supported CUBRID version.
 - Doc: updated README documentation.
 

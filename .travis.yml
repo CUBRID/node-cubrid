@@ -29,4 +29,7 @@ before_script:
   - sudo chef-solo -c test/testSetup/solo.rb -j cubrid_chef.json -r http://sourceforge.net/projects/cubrid/files/CUBRID-Demo-Virtual-Machines/Vagrant/chef-cookbooks.tar.gz/download
 
 after_script:
+  # Install JSCoverage to instrument code covered version of the node-cubrid module.
+  - wget http://siliconforks.com/jscoverage/download/jscoverage-0.5.1.tar.bz2
+  - tar jxf jscoverage-0.5.1.tar.bz2 && cd jscoverage-0.5.1/ && ./configure && make && sudo make install
   - npm run cover
