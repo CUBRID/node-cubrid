@@ -12,7 +12,7 @@ env:
 before_script:
   - sudo hostname localhost
   # Install Chef Solo prerequisites.
-  - duso apt-get install ruby ruby-dev libopenssl-ruby rdoc ri irb build-essential ssl-cert
+  - sudo apt-get install ruby ruby-dev libopenssl-ruby rdoc ri irb build-essential ssl-cert
   # Install Chef Solo.
   # Chef Solo 11.4.4 is broken, so install a previous version.
   # The bug is planned to be fixed in 11.4.5 which haven't been released yet.
