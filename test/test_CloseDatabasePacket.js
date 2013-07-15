@@ -1,10 +1,10 @@
-var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
-		PacketReader = require('../src' + codeCoveragePath + '/packets/PacketReader'),
-		PacketWriter = require('../src' + codeCoveragePath + '/packets/PacketWriter'),
-		CloseDatabasePacket = require('../src' + codeCoveragePath + '/packets/CloseDatabasePacket'),
-		CAS = require('../src' + codeCoveragePath + '/constants/CASConstants');
-
 exports['test_CloseConnectionPacket'] = function (test) {
+	var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
+			PacketReader = require('../src' + codeCoveragePath + '/packets/PacketReader'),
+			PacketWriter = require('../src' + codeCoveragePath + '/packets/PacketWriter'),
+			CloseDatabasePacket = require('../src' + codeCoveragePath + '/packets/CloseDatabasePacket'),
+			CAS = require('../src' + codeCoveragePath + '/constants/CASConstants');
+
 	test.expect(14);
 	var packetReader = new PacketReader();
 	var packetWriter = new PacketWriter();

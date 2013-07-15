@@ -1,11 +1,11 @@
-var CUBRID = require('../'),
-		Helpers = CUBRID.Helpers,
-		Result2Array = CUBRID.Result2Array,
-		testSetup = require('./testSetup/test_Setup'),
-    generic_pool = require('generic-pool');
-
 exports['test_NodePool'] = function (test) {
-  test.expect(8);
+	var CUBRID = require('../'),
+			Helpers = CUBRID.Helpers,
+			Result2Array = CUBRID.Result2Array,
+			testSetup = require('./testSetup/test_Setup'),
+			generic_pool = require('generic-pool');
+
+	test.expect(8);
   Helpers.logInfo(module.filename.toString() + ' started...');
 
   var pool = generic_pool.Pool({

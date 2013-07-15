@@ -1,11 +1,11 @@
-var CUBRID = require('../'),
-		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-	  events = require('events'),
-		Helpers = CUBRID.Helpers,
-		Result2Array = CUBRID.Result2Array;
-
 exports['test_QueryCollision_02'] = function (test) {
-  test.expect(2);
+	var CUBRID = require('../'),
+			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+			events = require('events'),
+			Helpers = CUBRID.Helpers,
+			Result2Array = CUBRID.Result2Array;
+
+	test.expect(2);
   Helpers.logInfo(module.filename.toString() + ' started...');
 
   var getSingleValue = function (sql, client) {

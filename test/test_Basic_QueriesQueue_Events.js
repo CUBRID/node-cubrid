@@ -1,12 +1,13 @@
-var CUBRID = require('../'),
-		Helpers = CUBRID.Helpers,
-		Result2Array = CUBRID.Result2Array,
-		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-		SQL_A = 'SELECT * FROM event',
-		SQL_B = 'SELECT * FROM record';
-
 exports['test_Basic_QueriesQueue_Events'] = function (test) {
-  test.expect(4);
+	var CUBRID = require('../'),
+			Helpers = CUBRID.Helpers,
+			Result2Array = CUBRID.Result2Array,
+			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+			SQL_A = 'SELECT * FROM event',
+			SQL_B = 'SELECT * FROM record';
+
+	test.expect(4);
+
   Helpers.logInfo(module.filename.toString() + ' started...');
 
   client.connect();

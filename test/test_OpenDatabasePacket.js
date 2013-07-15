@@ -1,11 +1,11 @@
-var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
-		PacketReader = require('../src' + codeCoveragePath + '/packets/PacketReader'),
-		PacketWriter = require('../src' + codeCoveragePath + '/packets/PacketWriter'),
-		OpenDatabasePacket = require('../src' + codeCoveragePath + '/packets/OpenDatabasePacket'),
-		CAS = require('../src' + codeCoveragePath + '/constants/CASConstants'),
-		assert = require('assert');
-
 exports['test_OpenDatabasePacket'] = function (test) {
+	var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
+			PacketReader = require('../src' + codeCoveragePath + '/packets/PacketReader'),
+			PacketWriter = require('../src' + codeCoveragePath + '/packets/PacketWriter'),
+			OpenDatabasePacket = require('../src' + codeCoveragePath + '/packets/OpenDatabasePacket'),
+			CAS = require('../src' + codeCoveragePath + '/constants/CASConstants'),
+			assert = require('assert');
+
 	test.expect(12);
 	var packetReader = new PacketReader();
 	var packetWriter = new PacketWriter();

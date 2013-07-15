@@ -1,10 +1,10 @@
-var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
-		PacketReader = require('../src' + codeCoveragePath + '/packets/PacketReader'),
-		PacketWriter = require('../src' + codeCoveragePath + '/packets/PacketWriter'),
-		RollbackPacket = require('../src' + codeCoveragePath + '/packets/RollbackPacket'),
-		CAS = require('../src' + codeCoveragePath + '/constants/CASConstants');
-
 exports['test_RollbackPacket'] = function (test) {
+	var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
+			PacketReader = require('../src' + codeCoveragePath + '/packets/PacketReader'),
+			PacketWriter = require('../src' + codeCoveragePath + '/packets/PacketWriter'),
+			RollbackPacket = require('../src' + codeCoveragePath + '/packets/RollbackPacket'),
+			CAS = require('../src' + codeCoveragePath + '/constants/CASConstants');
+
 	test.expect(16);
 	var packetReader = new PacketReader();
 	var packetWriter = new PacketWriter();

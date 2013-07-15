@@ -1,11 +1,11 @@
-var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
-		PacketReader = require('../src' + codeCoveragePath + '/packets/PacketReader'),
-		PacketWriter = require('../src' + codeCoveragePath + '/packets/PacketWriter'),
-		SetAutoCommitModePacket = require('../src' + codeCoveragePath + '/packets/SetAutoCommitModePacket'),
-		CAS = require('../src' + codeCoveragePath + '/constants/CASConstants'),
-		assert = require('assert');
-
 function testSetAutoCommitModePacket_01() {
+	var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
+			PacketReader = require('../src' + codeCoveragePath + '/packets/PacketReader'),
+			PacketWriter = require('../src' + codeCoveragePath + '/packets/PacketWriter'),
+			SetAutoCommitModePacket = require('../src' + codeCoveragePath + '/packets/SetAutoCommitModePacket'),
+			CAS = require('../src' + codeCoveragePath + '/constants/CASConstants'),
+			assert = require('assert');
+
 	var packetReader = new PacketReader();
 	var packetWriter = new PacketWriter();
 	var options = {casInfo : [0, 255, 255, 255], autoCommitMode : 1};

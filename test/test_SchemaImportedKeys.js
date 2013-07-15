@@ -1,10 +1,10 @@
-var CUBRID = require('../'),
-		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-		Helpers = CUBRID.Helpers,
-		ActionQueue = CUBRID.ActionQueue;
-
 exports['test_SchemaImportedKeys'] = function (test) {
-  test.expect(17);
+	var CUBRID = require('../'),
+			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+			Helpers = CUBRID.Helpers,
+			ActionQueue = CUBRID.ActionQueue;
+
+	test.expect(17);
   Helpers.logInfo(module.filename.toString() + ' started...');
 
   ActionQueue.enqueue([

@@ -1,17 +1,17 @@
-var CUBRID = require('../'),
-		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-		Helpers = CUBRID.Helpers,
-		Result2Array = CUBRID.Result2Array,
-		sql = 'SELECT * FROM ? WHERE ? LIKE ? AND LENGTH(?) > ?',
-		arrValues = ['nation', 'code', 'A%', 'capital', '5'],
-		arrDelimiters = ['`', '', '\'', '', ''];
-
-function errorHandler(err) {
-  throw err.message;
-}
-
 exports['test_QueryWithParams_2'] = function (test) {
-  test.expect(1);
+	var CUBRID = require('../'),
+			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+			Helpers = CUBRID.Helpers,
+			Result2Array = CUBRID.Result2Array,
+			sql = 'SELECT * FROM ? WHERE ? LIKE ? AND LENGTH(?) > ?',
+			arrValues = ['nation', 'code', 'A%', 'capital', '5'],
+			arrDelimiters = ['`', '', '\'', '', ''];
+
+	function errorHandler(err) {
+		throw err.message;
+	}
+
+	test.expect(1);
   Helpers.logInfo(module.filename.toString() + ' started...');
 
   client.connect(function (err) {

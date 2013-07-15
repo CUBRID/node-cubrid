@@ -1,10 +1,11 @@
-var CUBRID = require('../'),
-		Helpers = CUBRID.Helpers,
-		testSetup = require('./testSetup/test_Setup'),
-		client = testSetup.createDefaultCUBRIDDemodbConnection();
-
 exports['test_BadSQLSyntax'] = function (test) {
+	var CUBRID = require('../'),
+			Helpers = CUBRID.Helpers,
+			testSetup = require('./testSetup/test_Setup'),
+			client = testSetup.createDefaultCUBRIDDemodbConnection();
+
 	Helpers.logInfo(module.filename.toString() + ' started...');
+
 	test.expect(1);
 
 	function errorHandler(err) {

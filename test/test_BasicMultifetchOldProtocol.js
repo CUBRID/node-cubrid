@@ -1,12 +1,12 @@
-var CUBRID = require('../'),
-		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-		Helpers = CUBRID.Helpers,
-		ActionQueue = CUBRID.ActionQueue,
-		Result2Array = CUBRID.Result2Array,
-		fetchResult;
-
 exports['test_BasicMultifetchOldProtocol'] = function (test) {
-  test.expect(41);
+	var CUBRID = require('../'),
+			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+			Helpers = CUBRID.Helpers,
+			ActionQueue = CUBRID.ActionQueue,
+			Result2Array = CUBRID.Result2Array,
+			fetchResult;
+
+	test.expect(41);
   Helpers.logInfo(module.filename.toString() + ' started...');
 
   client.connect(function (err) {

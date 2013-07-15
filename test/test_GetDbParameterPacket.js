@@ -1,19 +1,18 @@
-var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
-		PacketReader = require('../src' + codeCoveragePath + '/packets/PacketReader'),
-		PacketWriter = require('../src' + codeCoveragePath + '/packets/PacketWriter'),
-		GetDbParameterPacket = require('../src' + codeCoveragePath + '/packets/GetDbParameterPacket'),
-		CAS = require('../src' + codeCoveragePath + '/constants/CASConstants');
-
 exports['test_GetDbPatameterPacket'] = function (test) {
+	var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
+			PacketReader = require('../src' + codeCoveragePath + '/packets/PacketReader'),
+			PacketWriter = require('../src' + codeCoveragePath + '/packets/PacketWriter'),
+			GetDbParameterPacket = require('../src' + codeCoveragePath + '/packets/GetDbParameterPacket'),
+			CAS = require('../src' + codeCoveragePath + '/constants/CASConstants'),
+			packetReader = new PacketReader(),
+			packetWriter = new PacketWriter(),
+			options = {
+				casInfo: [0, 255, 255, 255],
+				parameter: CAS.CCIDbParam.CCI_PARAM_MAX_STRING_LENGTH
+			},
+			getDbParameterPacket = new GetDbParameterPacket(options);
+
 	test.expect(12);
-	var packetReader = new PacketReader();
-	var packetWriter = new PacketWriter();
-	var options =
-	{
-		casInfo   : [0, 255, 255, 255],
-		parameter : CAS.CCIDbParam.CCI_PARAM_MAX_STRING_LENGTH
-	};
-	var getDbParameterPacket = new GetDbParameterPacket(options);
 
 	getDbParameterPacket.write(packetWriter);
 	test.equal(packetWriter._toBuffer()[3], 9); // Total length

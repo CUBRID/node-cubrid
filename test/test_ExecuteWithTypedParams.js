@@ -1,14 +1,14 @@
-var CUBRID = require('../'),
-		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-		Helpers = CUBRID.Helpers,
-		Result2Array = CUBRID.Result2Array;
-
-function errorHandler(err) {
-  throw err.message;
-}
-
 exports['test_ExecuteWithTypedParams'] = function (test) {
-  test.expect(19);
+	var CUBRID = require('../'),
+			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+			Helpers = CUBRID.Helpers,
+			Result2Array = CUBRID.Result2Array;
+
+	function errorHandler(err) {
+		throw err.message;
+	}
+
+	test.expect(19);
   Helpers.logInfo(module.filename.toString() + ' started...');
 
   client.connect(function (err) {

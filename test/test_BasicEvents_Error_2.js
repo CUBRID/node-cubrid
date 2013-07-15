@@ -1,11 +1,11 @@
-var CUBRID = require('../'),
-		config = require('./testSetup/test_Setup').config,
-		client = CUBRID.createCUBRIDConnection(config.host, config.port, 'unknown_user', 'xyz', config.database),
-		Helpers = CUBRID.Helpers,
-		Result2Array = CUBRID.Result2Array;
-
 exports['test_BasicEvents_Error_2'] = function (test) {
-  test.expect(1);
+	var CUBRID = require('../'),
+			config = require('./testSetup/test_Setup').config,
+			client = CUBRID.createCUBRIDConnection(config.host, config.port, 'unknown_user', 'xyz', config.database),
+			Helpers = CUBRID.Helpers;
+
+	test.expect(1);
+
   Helpers.logInfo(module.filename.toString() + ' started...');
 
   client.connect(null);

@@ -1,15 +1,15 @@
-var CUBRID = require('../'),
-		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-		Helpers = CUBRID.Helpers,
-	  ActionQueue = CUBRID.ActionQueue,
-		Result2Array = CUBRID.Result2Array,
-		SQL_A = 'SELECT * from event',
-		SQL_B = 'SELECT * from game',
-		SQL_C = 'SELECT * from participant',
-		SQL_A_fetchResult, SQL_B_fetchResult, SQL_C_fetchResult;
-
 exports['test_QueriesQueue_MultiFetch'] = function (test) {
-  test.expect(6);
+	var CUBRID = require('../'),
+			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+			Helpers = CUBRID.Helpers,
+			ActionQueue = CUBRID.ActionQueue,
+			Result2Array = CUBRID.Result2Array,
+			SQL_A = 'SELECT * from event',
+			SQL_B = 'SELECT * from game',
+			SQL_C = 'SELECT * from participant',
+			SQL_A_fetchResult, SQL_B_fetchResult, SQL_C_fetchResult;
+
+	test.expect(6);
   Helpers.logInfo(module.filename.toString() + ' started...');
 
 	client.connect(function (err) {

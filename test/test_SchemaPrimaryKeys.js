@@ -1,10 +1,10 @@
-var CUBRID = require('../'),
-		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-		Helpers = CUBRID.Helpers,
-		ActionQueue = CUBRID.ActionQueue;
-
 exports['test_PrimaryKeys'] = function (test) {
-  test.expect(4);
+	var CUBRID = require('../'),
+			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+			Helpers = CUBRID.Helpers,
+			ActionQueue = CUBRID.ActionQueue;
+
+	test.expect(4);
   Helpers.logInfo(module.filename.toString() + ' started...');
 
   ActionQueue.enqueue([

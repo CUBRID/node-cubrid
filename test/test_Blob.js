@@ -1,11 +1,11 @@
-var CUBRID = require('../'),
-		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-		Helpers = CUBRID.Helpers,
-		ActionQueue = CUBRID.ActionQueue,
-		Result2Array = CUBRID.Result2Array;
-
 exports['test_Blob'] = function (test) {
-  Helpers.logInfo(module.filename.toString() + ' started...');
+	var CUBRID = require('../'),
+			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+			Helpers = CUBRID.Helpers,
+			ActionQueue = CUBRID.ActionQueue,
+			Result2Array = CUBRID.Result2Array;
+
+	Helpers.logInfo(module.filename.toString() + ' started...');
 
   ActionQueue.enqueue([
     function (cb) {

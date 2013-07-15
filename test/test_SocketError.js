@@ -1,9 +1,9 @@
-var CUBRID = require('../'),
-		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-		Helpers = CUBRID.Helpers;
-
 exports['test_SocketError'] = function (test) {
-  test.expect(1);
+	var CUBRID = require('../'),
+			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+			Helpers = CUBRID.Helpers;
+
+	test.expect(1);
   Helpers.logInfo(module.filename.toString() + ' started...');
 
   function errorHandler(err) {

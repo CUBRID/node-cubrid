@@ -1,15 +1,18 @@
-var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
-		PacketReader = require('../src' + codeCoveragePath + '/packets/PacketReader'),
-		PacketWriter = require('../src' + codeCoveragePath + '/packets/PacketWriter'),
-		CloseQueryPacket = require('../src' + codeCoveragePath + '/packets/CloseQueryPacket'),
-		CAS = require('../src' + codeCoveragePath + '/constants/CASConstants');
-
 exports['test_CloseQueryPacket'] = function (test) {
+	var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
+			PacketReader = require('../src' + codeCoveragePath + '/packets/PacketReader'),
+			PacketWriter = require('../src' + codeCoveragePath + '/packets/PacketWriter'),
+			CloseQueryPacket = require('../src' + codeCoveragePath + '/packets/CloseQueryPacket'),
+			CAS = require('../src' + codeCoveragePath + '/constants/CASConstants'),
+			packetReader = new PacketReader(),
+			packetWriter = new PacketWriter(),
+			options = {
+				casInfo: [0, 255, 255, 255],
+				dbVersion : '8.4.1'
+			},
+			closeQueryPacket = new CloseQueryPacket(options);
+
 	test.expect(18);
-	var packetReader = new PacketReader();
-	var packetWriter = new PacketWriter();
-	var options = {casInfo : [0, 255, 255, 255], dbVersion : '8.4.1'};
-	var closeQueryPacket = new CloseQueryPacket(options);
 
 	closeQueryPacket.write(packetWriter);
 	test.equal(packetWriter._toBuffer()[3], 14); // Total length

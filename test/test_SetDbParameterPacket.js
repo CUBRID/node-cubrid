@@ -1,10 +1,10 @@
-var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
-		PacketReader = require('../src' + codeCoveragePath + '/packets/PacketReader'),
-		PacketWriter = require('../src' + codeCoveragePath + '/packets/PacketWriter'),
-		SetDbParameterPacket = require('../src' + codeCoveragePath + '/packets/SetDbParameterPacket'),
-		CAS = require('../src' + codeCoveragePath + '/constants/CASConstants');
-
 exports['test_SetDbParameterPacket'] = function (test) {
+	var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
+			PacketReader = require('../src' + codeCoveragePath + '/packets/PacketReader'),
+			PacketWriter = require('../src' + codeCoveragePath + '/packets/PacketWriter'),
+			SetDbParameterPacket = require('../src' + codeCoveragePath + '/packets/SetDbParameterPacket'),
+			CAS = require('../src' + codeCoveragePath + '/constants/CASConstants');
+
 	test.expect(13);
 	var packetReader = new PacketReader();
 	var packetWriter = new PacketWriter();

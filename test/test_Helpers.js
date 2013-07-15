@@ -1,7 +1,7 @@
-var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
-		Helpers = require('../src' + codeCoveragePath + '/utils/Helpers');
-
 exports['test_Helpers'] = function (test) {
+	var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
+			Helpers = require('../src' + codeCoveragePath + '/utils/Helpers');
+
 	test.expect(32);
 
 	var buffer = new Buffer(5);

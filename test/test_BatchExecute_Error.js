@@ -1,12 +1,12 @@
-var CUBRID = require('../'),
-		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-		Helpers = CUBRID.Helpers;
-
-function errorHandler(err) {
-	throw err.message;
-}
-
 exports['test_BatchExecute_Error'] = function (test) {
+	var CUBRID = require('../'),
+			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+			Helpers = CUBRID.Helpers;
+
+	function errorHandler(err) {
+		throw err.message;
+	}
+
 	Helpers.logInfo(module.filename.toString() + ' started...');
 
 	client.connect(function (err) {

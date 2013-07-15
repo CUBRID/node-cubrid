@@ -1,9 +1,9 @@
-var CUBRID = require('../'),
-		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-		Helpers = CUBRID.Helpers;
-
 exports['test_Connect_Events'] = function (test) {
-  test.expect(0);
+	var CUBRID = require('../'),
+			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+			Helpers = CUBRID.Helpers;
+
+	test.expect(0);
   Helpers.logInfo(module.filename.toString() + ' started...');
 
   client.connect();

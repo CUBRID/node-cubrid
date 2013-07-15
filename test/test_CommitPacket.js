@@ -1,15 +1,18 @@
-var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
-		PacketReader = require('../src' + codeCoveragePath + '/packets/PacketReader'),
-		PacketWriter = require('../src' + codeCoveragePath + '/packets/PacketWriter'),
-		CommitPacket = require('../src' + codeCoveragePath + '/packets/CommitPacket'),
-		CAS = require('../src' + codeCoveragePath + '/constants/CASConstants');
-
 exports['test_CommitPacket'] = function (test) {
+	var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
+			PacketReader = require('../src' + codeCoveragePath + '/packets/PacketReader'),
+			PacketWriter = require('../src' + codeCoveragePath + '/packets/PacketWriter'),
+			CommitPacket = require('../src' + codeCoveragePath + '/packets/CommitPacket'),
+			CAS = require('../src' + codeCoveragePath + '/constants/CASConstants'),
+			packetReader = new PacketReader(),
+			packetWriter = new PacketWriter(),
+			options = {
+				casInfo: [0, 255, 255, 255],
+				dbVersion : '8.4.1'
+			},
+			commitPacket = new CommitPacket(options);
+
 	test.expect(16);
-	var packetReader = new PacketReader();
-	var packetWriter = new PacketWriter();
-	var options = {casInfo : [0, 255, 255, 255], dbVersion : '8.4.1'};
-	var commitPacket = new CommitPacket(options);
 
 	commitPacket.write(packetWriter);
 	test.equal(packetWriter._toBuffer()[3], 6); // Total length

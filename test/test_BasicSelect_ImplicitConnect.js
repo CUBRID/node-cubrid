@@ -1,10 +1,10 @@
-var CUBRID = require('../'),
-		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-		Helpers = CUBRID.Helpers,
-		Result2Array = CUBRID.Result2Array;
-
 exports['test_BasicSelect_ImplicitConnect'] = function (test) {
-  test.expect(4);
+	var CUBRID = require('../'),
+			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+			Helpers = CUBRID.Helpers,
+			Result2Array = CUBRID.Result2Array;
+
+	test.expect(4);
   Helpers.logInfo(module.filename.toString() + ' started...');
 
   function errorHandler(err) {
@@ -35,7 +35,7 @@ exports['test_BasicSelect_ImplicitConnect'] = function (test) {
           errorHandler(err);
         } else {
           Helpers.logInfo('Query closed.');
-	        
+
           client.close(function (err) {
             if (err) {
               errorHandler(err);

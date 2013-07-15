@@ -1,11 +1,10 @@
-var CUBRID = require('../'),
-		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-		Helpers = CUBRID.Helpers,
-		Result2Array = CUBRID.Result2Array,
-		currentSchemaToReceive = 0;
-
 exports['test_Schema_Events'] = function (test) {
-  test.expect(2);
+	var CUBRID = require('../'),
+			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+			Helpers = CUBRID.Helpers,
+			currentSchemaToReceive = 0;
+
+	test.expect(2);
   Helpers.logInfo(module.filename.toString() + ' started...');
 
   client.connect();

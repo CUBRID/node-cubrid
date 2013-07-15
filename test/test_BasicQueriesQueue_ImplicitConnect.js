@@ -1,17 +1,17 @@
-var CUBRID = require('../'),
-		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-		Helpers = CUBRID.Helpers,
-		Result2Array = CUBRID.Result2Array,
-		SQL_1 = 'SELECT COUNT(*) FROM [code]',
-		SQL_2 = 'SELECT * FROM [code] WHERE s_name = \'X\'',
-		SQL_3 = 'SELECT COUNT(*) FROM [code] WHERE f_name LIKE \'M%\'';
-
-function errorHandler(err) {
-  throw err.message;
-}
-
 exports['test_BasicQueriesQueue_ImplicitConnect'] = function (test) {
-  test.expect(3);
+	var CUBRID = require('../'),
+			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+			Helpers = CUBRID.Helpers,
+			Result2Array = CUBRID.Result2Array,
+			SQL_1 = 'SELECT COUNT(*) FROM [code]',
+			SQL_2 = 'SELECT * FROM [code] WHERE s_name = \'X\'',
+			SQL_3 = 'SELECT COUNT(*) FROM [code] WHERE f_name LIKE \'M%\'';
+
+	function errorHandler(err) {
+		throw err.message;
+	}
+
+	test.expect(3);
   Helpers.logInfo(module.filename.toString() + ' started...');
   Helpers.logInfo('Executing [1]: ' + SQL_1);
   client.addQuery(SQL_1, function (err, result) {

@@ -1,10 +1,10 @@
-var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
-		PacketReader = require('../src' + codeCoveragePath + '/packets/PacketReader'),
-		PacketWriter = require('../src' + codeCoveragePath + '/packets/PacketWriter'),
-		LOBWritePacket = require('../src' + codeCoveragePath + '/packets/LOBWritePacket'),
-		CAS = require('../src' + codeCoveragePath + '/constants/CASConstants');
-
 exports['test_LOBWritePacket'] = function (test) {
+	var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
+			PacketReader = require('../src' + codeCoveragePath + '/packets/PacketReader'),
+			PacketWriter = require('../src' + codeCoveragePath + '/packets/PacketWriter'),
+			LOBWritePacket = require('../src' + codeCoveragePath + '/packets/LOBWritePacket'),
+			CAS = require('../src' + codeCoveragePath + '/constants/CASConstants');
+
 	test.expect(116);
 	var packetReader = new PacketReader();
 	var packetWriter = new PacketWriter();

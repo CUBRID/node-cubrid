@@ -1,16 +1,20 @@
-var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
-		PacketReader = require('../src' + codeCoveragePath + '/packets/PacketReader'),
-		PacketWriter = require('../src' + codeCoveragePath + '/packets/PacketWriter'),
-		BatchExecuteNoQueryPacket = require('../src' + codeCoveragePath + '/packets/BatchExecuteNoQueryPacket'),
-		CAS = require('../src' + codeCoveragePath + '/constants/CASConstants');
-
 exports['test_BatchExecuteNoQueryPacket'] = function (test) {
+	var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
+			PacketReader = require('../src' + codeCoveragePath + '/packets/PacketReader'),
+			PacketWriter = require('../src' + codeCoveragePath + '/packets/PacketWriter'),
+			BatchExecuteNoQueryPacket = require('../src' + codeCoveragePath + '/packets/BatchExecuteNoQueryPacket'),
+			CAS = require('../src' + codeCoveragePath + '/constants/CASConstants'),
+			packetReader = new PacketReader(),
+			packetWriter = new PacketWriter(),
+			options = {
+				SQLs: ['create table t1(id int)', 'drop table t1'],
+				casInfo: [0, 255, 255, 255],
+				autoCommitMode: 1,
+				dbVersion: '8.4.1'
+			},
+			batchExecuteNoQueryPacket = new BatchExecuteNoQueryPacket(options);
+
 	test.expect(16);
-	var packetReader = new PacketReader();
-	var packetWriter = new PacketWriter();
-	var options = {SQLs : ['create table t1(id int)', 'drop table t1'], casInfo : [0, 255, 255, 255],
-		autoCommitMode : 1, dbVersion : '8.4.1'};
-	var batchExecuteNoQueryPacket = new BatchExecuteNoQueryPacket(options);
 
 	batchExecuteNoQueryPacket.write(packetWriter);
 	test.equal(packetWriter._toBuffer()[3], 52); // Total length

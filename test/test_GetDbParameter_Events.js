@@ -1,11 +1,10 @@
-var CUBRID = require('../'),
-		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-		Helpers = CUBRID.Helpers,
-		Result2Array = CUBRID.Result2Array,
-		CAS = require('../src' + (process.env.CODE_COV ? '-cov' : '') + '/constants/CASConstants');
-
 exports['test_GetDbParameter_Events'] = function (test) {
-  test.expect(0);
+	var CUBRID = require('../'),
+			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+			Helpers = CUBRID.Helpers,
+			CAS = require('../src' + (process.env.CODE_COV ? '-cov' : '') + '/constants/CASConstants');
+
+	test.expect(0);
   Helpers.logInfo(module.filename.toString() + ' started...');
 
   client.connect();

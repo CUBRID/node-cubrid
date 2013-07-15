@@ -1,11 +1,11 @@
-var CUBRID = require('../'),
-		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-		Helpers = CUBRID.Helpers,
-		ActionQueue = CUBRID.ActionQueue,
-		Result2Array = CUBRID.Result2Array;
-
 exports['test_Clob_Insert'] = function (test) {
-  test.expect(2);
+	var CUBRID = require('../'),
+			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+			Helpers = CUBRID.Helpers,
+			ActionQueue = CUBRID.ActionQueue,
+			Result2Array = CUBRID.Result2Array;
+
+	test.expect(2);
   Helpers.logInfo(module.filename.toString() + ' started...');
 
   ActionQueue.enqueue([

@@ -1,13 +1,13 @@
-var CUBRID = require('../'),
-		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-		Helpers = CUBRID.Helpers,
-		Result2Array = CUBRID.Result2Array,
-		SQL_DELETE = 'DELETE FROM [code] WHERE s_name = \'A\'',
-		SQL_INSERT = 'INSERT INTO [code] VALUES(\'A\', \'ABC\')',
-		SQL_COUNT = 'SELECT COUNT(*) from [code]';
-
 exports['test_QueriesQueue_Mixed'] = function (test) {
-  test.expect(3);
+	var CUBRID = require('../'),
+			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+			Helpers = CUBRID.Helpers,
+			Result2Array = CUBRID.Result2Array,
+			SQL_DELETE = 'DELETE FROM [code] WHERE s_name = \'A\'',
+			SQL_INSERT = 'INSERT INTO [code] VALUES(\'A\', \'ABC\')',
+			SQL_COUNT = 'SELECT COUNT(*) from [code]';
+
+	test.expect(3);
   Helpers.logInfo(module.filename.toString() + ' started...');
   client.connect(function (err) {
     if (err) {

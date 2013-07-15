@@ -1,11 +1,10 @@
-var CUBRID = require('../'),
-		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-		Helpers = CUBRID.Helpers,
-		ActionQueue = CUBRID.ActionQueue,
-		Result2Array = CUBRID.Result2Array;
-
 exports['test_SchemaAttribute'] = function (test) {
-  test.expect(9);
+	var CUBRID = require('../'),
+			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+			Helpers = CUBRID.Helpers,
+			ActionQueue = CUBRID.ActionQueue;
+
+	test.expect(9);
   Helpers.logInfo(module.filename.toString() + ' started...');
 
   ActionQueue.enqueue([

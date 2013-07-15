@@ -1,11 +1,10 @@
-var CUBRID = require('../'),
-		Helpers = CUBRID.Helpers,
-    ErrorMessages = require('../src' + (process.env.CODE_COV ? '-cov' : '') + '/constants/ErrorMessages');
-
-var client = new CUBRID.createCUBRIDConnection('www.google.com', 33000, 'public', '', 'demodb');
-
 exports['test_ConnectionTimeout'] = function (test) {
-  test.expect(1);
+	var CUBRID = require('../'),
+			Helpers = CUBRID.Helpers,
+			ErrorMessages = require('../src' + (process.env.CODE_COV ? '-cov' : '') + '/constants/ErrorMessages'),
+			client = new CUBRID.createCUBRIDConnection('www.google.com', 33000, 'public', '', 'demodb');
+
+	test.expect(1);
   Helpers.logInfo(module.filename.toString() + ' started...');
 
   client.setConnectionTimeout(2000);

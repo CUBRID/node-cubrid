@@ -1,17 +1,17 @@
-var CUBRID = require('../'),
-		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-		Helpers = CUBRID.Helpers,
-		Result2Array = CUBRID.Result2Array;
-
-var sql = 'select * from nation where continent = ?';
-var arrValues = ['Oceania'];
-
-function errorHandler(err) {
-  throw err.message;
-}
-
 exports['test_QueryWithParams'] = function (test) {
-  test.expect(2);
+	var CUBRID = require('../'),
+			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+			Helpers = CUBRID.Helpers,
+			Result2Array = CUBRID.Result2Array;
+
+	var sql = 'select * from nation where continent = ?';
+	var arrValues = ['Oceania'];
+
+	function errorHandler(err) {
+		throw err.message;
+	}
+
+	test.expect(2);
   Helpers.logInfo(module.filename.toString() + ' started...');
 
   client.connect(function (err) {

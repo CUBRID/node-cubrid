@@ -1,12 +1,12 @@
-var CUBRID = require('../'),
-		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-    async = require('async'),
-		Helpers = CUBRID.Helpers,
-		ActionQueue = CUBRID.ActionQueue,
-		Result2Array = CUBRID.Result2Array;
-
 exports['test_Transaction_Commit_Error'] = function (test) {
-  Helpers.logInfo(module.filename.toString() + ' started...');
+	var CUBRID = require('../'),
+			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+			async = require('async'),
+			Helpers = CUBRID.Helpers,
+			ActionQueue = CUBRID.ActionQueue,
+			Result2Array = CUBRID.Result2Array;
+
+	Helpers.logInfo(module.filename.toString() + ' started...');
   test.expect(2);
   var shards = [0, 1];
 

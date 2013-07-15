@@ -1,15 +1,19 @@
-var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
-		PacketReader = require('../src' + codeCoveragePath + '/packets/PacketReader'),
-		PacketWriter = require('../src' + codeCoveragePath + '/packets/PacketWriter'),
-		LOBNewPacket = require('../src' + codeCoveragePath + '/packets/LOBNewPacket'),
-		CAS = require('../src' + codeCoveragePath + '/constants/CASConstants');
-
 exports['test_LOBNewPacket'] = function (test) {
+	var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
+			PacketReader = require('../src' + codeCoveragePath + '/packets/PacketReader'),
+			PacketWriter = require('../src' + codeCoveragePath + '/packets/PacketWriter'),
+			LOBNewPacket = require('../src' + codeCoveragePath + '/packets/LOBNewPacket'),
+			CAS = require('../src' + codeCoveragePath + '/constants/CASConstants'),
+			packetReader = new PacketReader(),
+			packetWriter = new PacketWriter(),
+			options = {
+				casInfo: [0, 255, 255, 255],
+				lobType: CAS.CUBRIDDataType.CCI_U_TYPE_BLOB,
+				dbVersion: '8.4.1'
+			},
+			lobnewPacket = new LOBNewPacket(options);
+
 	test.expect(18);
-	var packetReader = new PacketReader();
-	var packetWriter = new PacketWriter();
-	var options = {casInfo : [0, 255, 255, 255], lobType : CAS.CUBRIDDataType.CCI_U_TYPE_BLOB, dbVersion : '8.4.1'};
-	var lobnewPacket = new LOBNewPacket(options);
 
 	lobnewPacket.write(packetWriter);
 	test.equal(packetWriter._toBuffer()[3], 9); // Total length

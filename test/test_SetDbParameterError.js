@@ -1,10 +1,10 @@
-var CUBRID = require('../'),
-		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-		Helpers = CUBRID.Helpers,
-		CAS = require('../src' + (process.env.CODE_COV ? '-cov' : '') + '/constants/CASConstants');
-
 exports['test_SetDbParameterError'] = function (test) {
-  test.expect(1);
+	var CUBRID = require('../'),
+			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+			Helpers = CUBRID.Helpers,
+			CAS = require('../src' + (process.env.CODE_COV ? '-cov' : '') + '/constants/CASConstants');
+
+	test.expect(1);
   function errorHandler(err) {
     Helpers.logInfo(err.message);
 

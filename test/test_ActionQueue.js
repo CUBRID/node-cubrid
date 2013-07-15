@@ -1,10 +1,9 @@
-var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
-		ActionQueue = require('../src' + codeCoveragePath + '/utils/ActionQueue');
-
-var count = 0;
-var startTime = (new Date()).getTime();
-
 exports['test_ActionQueue'] = function (test) {
+	var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
+			ActionQueue = require('../src' + codeCoveragePath + '/utils/ActionQueue'),
+			count = 0,
+			startTime = (new Date()).getTime();
+
 	test.expect(2);
 
 	ActionQueue.enqueue(

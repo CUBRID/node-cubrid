@@ -1,14 +1,14 @@
-var CUBRID = require('../'),
-		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-		Helpers = CUBRID.Helpers,
-		Result2Array = CUBRID.Result2Array;
-
-function errorHandler(err) {
-  throw err.message;
-}
-
 exports['test_IndexExports'] = function (test) {
-  test.expect(4);
+	var CUBRID = require('../'),
+			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+			Helpers = CUBRID.Helpers,
+			Result2Array = CUBRID.Result2Array;
+
+	function errorHandler(err) {
+		throw err.message;
+	}
+
+	test.expect(4);
   Helpers.logInfo(module.filename.toString() + ' started...');
 
   client.connect(function (err) {
@@ -17,7 +17,7 @@ exports['test_IndexExports'] = function (test) {
     } else {
       Helpers.logInfo('Connected.');
       Helpers.logInfo('Querying: select * from nation');
-	    
+
       client.query('select * from nation', function (err, result, queryHandle) {
         if (err) {
           errorHandler(err);

@@ -1,10 +1,10 @@
-var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
-		PacketReader = require('../src' + codeCoveragePath + '/packets/PacketReader'),
-		PacketWriter = require('../src' + codeCoveragePath + '/packets/PacketWriter'),
-		PrepareExecuteOldProtocolPacket = require('../src' + codeCoveragePath + '/packets/PrepareExecuteOldProtocolPacket'),
-		CAS = require('../src' + codeCoveragePath + '/constants/CASConstants');
-
 exports['test_PrepareExecuteOldProtocolPacket'] = function (test) {
+	var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
+			PacketReader = require('../src' + codeCoveragePath + '/packets/PacketReader'),
+			PacketWriter = require('../src' + codeCoveragePath + '/packets/PacketWriter'),
+			PrepareExecuteOldProtocolPacket = require('../src' + codeCoveragePath + '/packets/PrepareExecuteOldProtocolPacket'),
+			CAS = require('../src' + codeCoveragePath + '/constants/CASConstants');
+
 	test.expect(48);
 
 	var packetReader = new PacketReader();

@@ -1,8 +1,8 @@
-var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
-		Cache = require('../src' + codeCoveragePath + '/utils/Cache'),
-		Helpers = require('../src' + codeCoveragePath + '/utils/Helpers');
-
 exports['test_Cache'] = function (test) {
+	var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
+			Cache = require('../src' + codeCoveragePath + '/utils/Cache'),
+			Helpers = require('../src' + codeCoveragePath + '/utils/Helpers');
+
 	test.expect(9);
 
 	var cache = new Cache();

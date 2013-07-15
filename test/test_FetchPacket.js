@@ -1,24 +1,22 @@
-var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
-		PacketReader = require('../src' + codeCoveragePath + '/packets/PacketReader'),
-		PacketWriter = require('../src' + codeCoveragePath + '/packets/PacketWriter'),
-		ExecuteQueryPacket = require('../src' + codeCoveragePath + '/packets/ExecuteQueryPacket'),
-		FetchPacket = require('../src' + codeCoveragePath + '/packets/FetchPacket'),
-		CAS = require('../src' + codeCoveragePath + '/constants/CASConstants');
-
 exports['test_FetchPacket'] = function (test) {
-	test.expect(16);
-	var packetReader = new PacketReader();
-	var packetWriter = new PacketWriter();
-	var options =
-	{
-		casInfo   : [0, 255, 255, 255],
-		dbVersion : '8.4.1'
-	};
+	var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
+			PacketReader = require('../src' + codeCoveragePath + '/packets/PacketReader'),
+			PacketWriter = require('../src' + codeCoveragePath + '/packets/PacketWriter'),
+			ExecuteQueryPacket = require('../src' + codeCoveragePath + '/packets/ExecuteQueryPacket'),
+			FetchPacket = require('../src' + codeCoveragePath + '/packets/FetchPacket'),
+			CAS = require('../src' + codeCoveragePath + '/constants/CASConstants'),
+			packetReader = new PacketReader(),
+			packetWriter = new PacketWriter(),
+			options = {
+				sql: 'select * from code',
+				casInfo: [0, 255, 255, 255],
+				autoCommitMode: 1,
+				dbVersion : '8.4.1'
+			},
+			executeQueryPacket = new ExecuteQueryPacket(options);
 
-	packetReader = new PacketReader();
-	packetWriter = new PacketWriter();
-	options = {sql : 'select * from code', casInfo : [0, 255, 255, 255], autoCommitMode : 1, dbVersion : '8.4.1'};
-	var executeQueryPacket = new ExecuteQueryPacket(options);
+	test.expect(16);
+
 	executeQueryPacket.write(packetWriter);
 	packetReader.write(new Buffer([0, 0, 1, 57, 0, 255, 255, 255, 0, 0, 0, 4, 255, 255, 255, 255, 21, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 7, 115, 95, 110, 97, 109, 101, 0,
 		0, 0, 0, 1, 0, 0, 0, 0, 5, 99, 111, 100, 101, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 6, 0, 0, 0, 7, 102,

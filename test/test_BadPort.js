@@ -1,9 +1,9 @@
-var CUBRID = require('../'),
-		config = require('./testSetup/test_Setup').config,
-		client = CUBRID.createCUBRIDConnection(config.host, 80, config.user, config.password, config.database),
-		Helpers = CUBRID.Helpers;
-
 exports['test_BadPort'] = function (test) {
+	var CUBRID = require('../'),
+			config = require('./testSetup/test_Setup').config,
+			client = CUBRID.createCUBRIDConnection(config.host, 80, config.user, config.password, config.database),
+			Helpers = CUBRID.Helpers;
+
   test.expect(1);
 
   Helpers.logInfo(module.filename.toString() + ' started...');

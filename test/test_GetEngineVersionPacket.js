@@ -1,15 +1,15 @@
-var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
-		PacketReader = require('../src' + codeCoveragePath + '/packets/PacketReader'),
-		PacketWriter = require('../src' + codeCoveragePath + '/packets/PacketWriter'),
-		GetEngineVersionPacket = require('../src' + codeCoveragePath + '/packets/GetEngineVersionPacket'),
-		CAS = require('../src' + codeCoveragePath + '/constants/CASConstants');
-
 exports['test_GetEngineVersionPacket'] = function (test) {
+	var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
+			PacketReader = require('../src' + codeCoveragePath + '/packets/PacketReader'),
+			PacketWriter = require('../src' + codeCoveragePath + '/packets/PacketWriter'),
+			GetEngineVersionPacket = require('../src' + codeCoveragePath + '/packets/GetEngineVersionPacket'),
+			CAS = require('../src' + codeCoveragePath + '/constants/CASConstants'),
+			packetReader = new PacketReader(),
+			packetWriter = new PacketWriter(),
+			options = {casInfo : [0, 255, 255, 255]},
+			getEngineVersionPacket = new GetEngineVersionPacket(options);
+
 	test.expect(16);
-	var packetReader = new PacketReader();
-	var packetWriter = new PacketWriter();
-	var options = {casInfo : [0, 255, 255, 255]};
-	var getEngineVersionPacket = new GetEngineVersionPacket(options);
 
 	getEngineVersionPacket.write(packetWriter);
 	test.equal(packetWriter._toBuffer()[3], 6); // Total length

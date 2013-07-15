@@ -1,14 +1,14 @@
-var CUBRID = require('../'),
-		Helpers = CUBRID.Helpers,
-		Result2Array = CUBRID.Result2Array,
-		testSetup = require('./testSetup/test_Setup'),
-		// First connection
-		client = testSetup.createDefaultCUBRIDDemodbConnection(),
-		// Second connection
-		client2 = testSetup.createDefaultCUBRIDDemodbConnection();
-
 exports['test_ParallelQueries_2'] = function (test) {
-  test.expect(0);
+	var CUBRID = require('../'),
+			Helpers = CUBRID.Helpers,
+			Result2Array = CUBRID.Result2Array,
+			testSetup = require('./testSetup/test_Setup'),
+			// First connection
+			client = testSetup.createDefaultCUBRIDDemodbConnection(),
+			// Second connection
+			client2 = testSetup.createDefaultCUBRIDDemodbConnection();
+
+	test.expect(0);
   Helpers.logInfo(module.filename.toString() + ' started...');
 
   function errorHandler(err) {

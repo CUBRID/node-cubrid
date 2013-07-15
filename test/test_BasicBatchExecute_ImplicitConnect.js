@@ -1,13 +1,13 @@
-var CUBRID = require('../'),
-		Helpers = CUBRID.Helpers,
-		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection();
-
-function errorHandler(err) {
-  throw err.message;
-}
-
 exports['test_BasiBatchExecute_ImplicitConnect'] = function (test) {
-  Helpers.logInfo(module.filename.toString() + ' started...');
+	var CUBRID = require('../'),
+			Helpers = CUBRID.Helpers,
+			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection();
+
+	function errorHandler(err) {
+		throw err.message;
+	}
+
+	Helpers.logInfo(module.filename.toString() + ' started...');
   test.expect(0);
 
   Helpers.logInfo('Connected.');

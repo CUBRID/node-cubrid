@@ -1,15 +1,15 @@
-var CUBRID = require('../'),
-		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-		Helpers = CUBRID.Helpers,
-		Result2Array = CUBRID.Result2Array;
+exports['test_Transaction_Events'] = function (test) {
+	var CUBRID = require('../'),
+			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+			Helpers = CUBRID.Helpers,
+			Result2Array = CUBRID.Result2Array;
 
 // TODO: avoid global variables.
-global.savedQueryHandle = null;
-global.batchExecuteNo = 1;
-global.queryNo = 1;
+	global.savedQueryHandle = null;
+	global.batchExecuteNo = 1;
+	global.queryNo = 1;
 
-exports['test_Transaction_Events'] = function (test) {
-  test.expect(3);
+	test.expect(3);
   Helpers.logInfo(module.filename.toString() + ' started...');
 
   client.connect();

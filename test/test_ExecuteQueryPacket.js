@@ -1,17 +1,21 @@
-var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
-		PacketReader = require('../src' + codeCoveragePath + '/packets/PacketReader'),
-		PacketWriter = require('../src' + codeCoveragePath + '/packets/PacketWriter'),
-		ExecuteQueryPacket = require('../src' + codeCoveragePath + '/packets/ExecuteQueryPacket'),
-		CAS = require('../src' + codeCoveragePath + '/constants/CASConstants'),
-		assert = require('assert');
-
 exports['test_ExecuteQueryPacket'] = function (test) {
+	var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
+			PacketReader = require('../src' + codeCoveragePath + '/packets/PacketReader'),
+			PacketWriter = require('../src' + codeCoveragePath + '/packets/PacketWriter'),
+			ExecuteQueryPacket = require('../src' + codeCoveragePath + '/packets/ExecuteQueryPacket'),
+			CAS = require('../src' + codeCoveragePath + '/constants/CASConstants'),
+			assert = require('assert'),
+			packetReader = new PacketReader(),
+			packetWriter = new PacketWriter(),
+			options = {
+				sql: 'select * from code',
+				casInfo: [0, 255, 255, 255],
+				autoCommitMode: 1,
+				dbVersion : '8.4.1'
+			},
+			executeQueryPacket = new ExecuteQueryPacket(options);
+
 	test.expect(17);
-	var packetReader = new PacketReader();
-	var packetWriter = new PacketWriter();
-	var options = {sql : 'select * from code', casInfo : [0, 255, 255, 255],
-		autoCommitMode : 1, dbVersion : '8.4.1'};
-	var executeQueryPacket = new ExecuteQueryPacket(options);
 
 	executeQueryPacket.write(packetWriter);
 	test.equal(packetWriter._toBuffer()[3], 87); // Total length

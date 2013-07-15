@@ -1,11 +1,11 @@
-var CUBRID = require('../'),
-		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-		Helpers = CUBRID.Helpers,
-		Result2Array = CUBRID.Result2Array,
-		Async = require('async'),
-		returnedQueryHandle, fetchResult;
-
 exports['test_Async'] = function (test) {
+	var CUBRID = require('../'),
+			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+			Helpers = CUBRID.Helpers,
+			Result2Array = CUBRID.Result2Array,
+			Async = require('async'),
+			returnedQueryHandle, fetchResult;
+
 	test.expect(41);
 
 	Helpers.logInfo(module.filename.toString() + ' started...');

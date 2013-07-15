@@ -1,12 +1,12 @@
-var CUBRID = require('../'),
-		client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-		Helpers = CUBRID.Helpers,
-		ActionQueue = CUBRID.ActionQueue,
-		Result2Array = CUBRID.Result2Array,
-		testData = 'Я хотел бы отослать этот пакет.'; // Russian: 'I would like to send off this package.'
-
 exports['test_Encoding_Russian'] = function (test) {
-  test.expect(1);
+	var CUBRID = require('../'),
+			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+			Helpers = CUBRID.Helpers,
+			ActionQueue = CUBRID.ActionQueue,
+			Result2Array = CUBRID.Result2Array,
+			testData = 'Я хотел бы отослать этот пакет.'; // Russian: 'I would like to send off this package.'
+
+	test.expect(1);
   Helpers.logInfo(module.filename.toString() + ' started...');
 
   ActionQueue.enqueue([
