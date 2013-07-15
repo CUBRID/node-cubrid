@@ -11,7 +11,7 @@ exports['test_ConnectionTimeout'] = function (test) {
 
   client.connect(function (err) {
     if (err) {
-      test.ok(err.message === ErrorMessages.ERROR_CONNECTION_TIMEOUT);
+      test.equal(err.message, ErrorMessages.ERROR_CONNECTION_TIMEOUT);
       Helpers.logInfo('Test passed.');
       test.done();
     } else {
