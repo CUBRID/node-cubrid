@@ -10,6 +10,7 @@
 - Fix: host name for tests.
 - Fix: travis script.
 - Fix: broken test on CUBRID 9.1.
+- Fix: cannot set the same timeout value twice. Gets reset to 0.
 - Ref: cleanup package.json.
 - Ref: revert version to 2.0.2.
 - Ref: APIS-589, disable debugging mode by default.

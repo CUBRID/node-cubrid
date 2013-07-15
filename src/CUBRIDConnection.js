@@ -1736,15 +1736,14 @@ CUBRIDConnection.prototype.lobRead = function (lobObject, position, length, call
 };
 
 /**
- * Set connection timeout value. If set to 0, the timeout is reset to none.
- * @param timeout (.msec)
+ * Set connection timeout value in milliseconds.
+ * 1. If the value is <= 0, the timeout is reset to none. In this case,
+ * according to our observations, the underlying Node.js network socket
+ * times out in about 75 seconds (1 minute 15 seconds).
+ * @param timeout (msec)
  */
 CUBRIDConnection.prototype.setConnectionTimeout = function (timeout) {
-  if (timeout >= 0 && this._CONNECTION_TIMEOUT !== timeout) {
-    this._CONNECTION_TIMEOUT = timeout;
-  } else {
-    this._CONNECTION_TIMEOUT = 0;
-  }
+  this._CONNECTION_TIMEOUT = timeout >= 0 ? timeout : 0;
 };
 
 /**
