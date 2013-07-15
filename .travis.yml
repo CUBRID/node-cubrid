@@ -20,7 +20,7 @@ before_script:
   # Make sure the target directory for cookbooks exists.
   - mkdir -p /tmp/chef-solo
   # Prepare a file with runlist for Chef Solo.
-  - echo '{"cubrid": {"version": "$CUBRID_VERSION"},"run_list" :["cubrid","cubrid::demodb"]}' > cubrid_chef.json
+  - echo '{"cubrid":{"version":"$CUBRID_VERSION"},"run_list":["cubrid","cubrid::demodb"]}' > cubrid_chef.json
   # Install CUBRID via Chef Solo. Download all cookbooks from a remote URL.
   - sudo chef-solo -c test/testSetup/solo.rb -j cubrid_chef.json -r http://sourceforge.net/projects/cubrid/files/CUBRID-Demo-Virtual-Machines/Vagrant/chef-cookbooks.tar.gz/download
 

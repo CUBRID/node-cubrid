@@ -7,6 +7,7 @@
 - Enh: APIS-567, Release 3.0 - Fix and improve code comments.
 - Fix: test path for `node_modules`.
 - Fix: host name for tests.
+- Fix: travis script.
 - Ref: cleanup package.json.
 - Ref: revert version to 2.0.2.
 - Ref: APIS-589, disable debugging mode by default.
