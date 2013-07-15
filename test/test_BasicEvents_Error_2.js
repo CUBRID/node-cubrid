@@ -8,7 +8,7 @@ exports['test_BasicEvents_Error_2'] = function (test) {
 
   Helpers.logInfo(module.filename.toString() + ' started...');
 
-  client.connect(null);
+  client.connect();
 
   client.on(client.EVENT_ERROR, function (err) {
     Helpers.logInfo('Error: ' + err.message);

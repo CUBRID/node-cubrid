@@ -43,6 +43,7 @@ function _emitSafeEvent(obj, successEvent, arg1, arg2, arg3) {
  */
 exports._emitEvent = function (obj, err, errorEvent, successEvent, arg1, arg2, arg3) {
   if (typeof err !== 'undefined' && err !== null) {
+	  // Emit the event only if somebody is listening.
     if (obj.listeners(errorEvent).length > 0) {
       obj.emit(errorEvent, err);
     }
