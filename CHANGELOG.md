@@ -5,6 +5,7 @@
 - New: APIS-566, Release 3.0 - Add Travis support.
 - Enh: APIS-568, Release 3.0 - Fix inconsistent function return values.
 - Enh: APIS-567, Release 3.0 - Fix and improve code comments.
+- Enh: added tests for APIS-582.
 - Fix: test path for `node_modules`.
 - Fix: host name for tests.
 - Fix: travis script.

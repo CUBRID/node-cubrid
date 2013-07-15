@@ -3,7 +3,6 @@ exports['test_Transaction_Commit_Error'] = function (test) {
 			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
 			async = require('async'),
 			Helpers = CUBRID.Helpers,
-			ActionQueue = CUBRID.ActionQueue,
 			Result2Array = CUBRID.Result2Array;
 
 	Helpers.logInfo(module.filename.toString() + ' started...');
