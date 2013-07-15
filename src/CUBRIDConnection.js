@@ -179,8 +179,9 @@ function CUBRIDConnection(brokerServer, brokerPort, user, password, database, ca
  * @param callback
  * @private
  */
-CUBRIDConnection.prototype._doGetBrokerPort = function (self, callback) {
-  var err = self._NO_ERROR;
+CUBRIDConnection.prototype._doGetBrokerPort = function (callback) {
+  var self = this;
+
   self._socket = Net.createConnection(self.initialBrokerPort, self.brokerServer);
   self._socket.setNoDelay(true);
   self._socket.setTimeout(this._CONNECTION_TIMEOUT);
@@ -190,14 +191,28 @@ CUBRIDConnection.prototype._doGetBrokerPort = function (self, callback) {
   clientInfoExchangePacket.write(packetWriter);
   self._socket.write(packetWriter._buffer);
 
-  self._socket.on('timeout', function (err) {
+  self._socket.on('timeout', function () {
+	  // `timeout` is emitted (without an error message), if the socket
+	  // times out from inactivity. This is only to notify that the
+	  // socket has been idle. That's why we must manually close the
+	  // connection.
+	  // We need to force disconnection using `destroy()` function
+	  // which will ensure that no more I/O activity happens on this
+	  // socket. In contrast, `end()` function doesn't close the
+	  // connection immediately; the server may still send some data,
+	  // which we don't want.
+	  self._socket.destroy();
+
     this.connectionOpened = false;
-    callback.call(self, new Error(ErrorMessages.ERROR_CONNECTION_TIMEOUT));
+
+	  callback(new Error(ErrorMessages.ERROR_CONNECTION_TIMEOUT));
   });
 
   self._socket.on('error', function (err) {
+	  // When `error` event is emitted, the socket client gets automatically
+	  // closed. So, no need to close it manually.
     this.connectionOpened = false;
-    callback.call(self, err);
+	  callback(err);
   });
 
   self._socket.once('data', function (data) {
@@ -210,13 +225,10 @@ CUBRIDConnection.prototype._doGetBrokerPort = function (self, callback) {
     if (newPort > 0) {
       self._socket.end();
     }
-    if (callback && typeof(callback) === 'function') {
-      if (newPort >= 0) {
-        callback.call(null);
-      } else {
-        err = new Error(ErrorMessages.ERROR_NEW_BROKER_PORT);
-        callback.call(self, err);
-      }
+    if (newPort >= 0) {
+      callback();
+    } else {
+      callback(new Error(ErrorMessages.ERROR_NEW_BROKER_PORT));
     }
   });
 };
@@ -342,7 +354,7 @@ CUBRIDConnection.prototype.connect = function (callback) {
 
   if (self.connectionOpened === true) {
     err = new Error(ErrorMessages.ERROR_CONNECTION_ALREADY_OPENED);
-    Helpers._emitEvent(self, err, self.EVENT_ERROR, null);
+    Helpers._emitEvent(self, err, self.EVENT_ERROR);
     if (callback && typeof(callback) === 'function') {
       callback.call(self, err);
     }
@@ -363,7 +375,7 @@ CUBRIDConnection.prototype.connect = function (callback) {
   ActionQueue.enqueue(
     [
       function (cb) {
-        self._doGetBrokerPort(self, cb);
+        self._doGetBrokerPort(cb);
       },
 
       function (cb) {
@@ -380,8 +392,8 @@ CUBRIDConnection.prototype.connect = function (callback) {
       self.connectionPending = false;
       self.connectionOpened = !(typeof err !== 'undefined' && err !== null);
       Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_CONNECTED);
-      if (callback && typeof(callback) === 'function') {
-        callback.call(self, err);
+      if (typeof(callback) === 'function') {
+        callback(err);
       }
     }
   );
@@ -1736,15 +1748,14 @@ CUBRIDConnection.prototype.lobRead = function (lobObject, position, length, call
 };
 
 /**
- * Set connection timeout value. If set to 0, the timeout is reset to none.
- * @param timeout (.msec)
+ * Set connection timeout value in milliseconds.
+ * 1. If the value is <= 0, the timeout is reset to none. In this case,
+ * according to our observations, the underlying Node.js network socket
+ * times out in about 75 seconds (1 minute 15 seconds).
+ * @param timeout (msec)
  */
 CUBRIDConnection.prototype.setConnectionTimeout = function (timeout) {
-  if (timeout >= 0 && this._CONNECTION_TIMEOUT !== timeout) {
-    this._CONNECTION_TIMEOUT = timeout;
-  } else {
-    this._CONNECTION_TIMEOUT = 0;
-  }
+  this._CONNECTION_TIMEOUT = timeout >= 0 ? timeout : 0;
 };
 
 /**

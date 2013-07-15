@@ -16,7 +16,8 @@ exports.ERROR_INVALID_DATA_TYPE = 'Error:Invalid data type.';
 exports.ERROR_INVALID_SCHEMA_TYPE = 'Error:Invalid schema type.';
 exports.ERROR_INVALID_LOB_POSITION = 'Error: Invalid LOB position';
 exports.ERROR_INVALID_LOB_TYPE = 'Error: Invalid LOB type';
-exports.ERROR_CONNECTION_TIMEOUT = 'Connection timeout!';
+// Set the same timeout error message as emitted by Node.js socket client.
+exports.ERROR_CONNECTION_TIMEOUT = 'connect ETIMEDOUT';
 exports.ERROR_CONNECTION_CLOSED = 'Connection not opened!';
 exports.ERROR_QUERIES_IN_PROGRESS = 'Can\'t close the connection - there are queries in execution!';
 exports.ERROR_QUERY_NOT_FOUND = 'Query not found in queue!';
