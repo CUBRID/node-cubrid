@@ -1,41 +1,47 @@
-var CUBRIDClient = require('./test_Setup').createDefaultCUBRIDDemodbConnection,
-  Helpers = require('../src/utils/Helpers'),
-  assert = require('assert');
+exports['test_SetAutoCommit'] = function (test) {
+	var CUBRID = require('../'),
+			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+			Helpers = CUBRID.Helpers;
 
-function errorHandler(err) {
-  throw err.message;
-}
+	test.expect(2);
+  Helpers.logInfo(module.filename.toString() + ' started...');
 
-Helpers.logInfo(module.filename.toString() + ' started...');
-
-CUBRIDClient.connect(function (err) {
-  if (err) {
-    errorHandler(err);
-  } else {
-    Helpers.logInfo('Connected...');
-    CUBRIDClient.setAutoCommitMode(false, function (err) {
-      if (err) {
-        errorHandler(err);
-      } else {
-        assert(CUBRIDClient.autoCommitMode === false, 'AutoCommitMode not set correctly!');
-        CUBRIDClient.setAutoCommitMode(true, function (err) {
-          if (err) {
-            errorHandler(err);
-          } else {
-            assert(CUBRIDClient.autoCommitMode === true, 'AutoCommitMode not set correctly!');
-            CUBRIDClient.close(function (err) {
-              if (err) {
-                errorHandler(err);
-              } else {
-                Helpers.logInfo('Connection closed...');
-                Helpers.logInfo('Test passed.');
-              }
-            });
-          }
-        });
-      }
-    });
+  function errorHandler(err) {
+    throw err.message;
   }
-});
 
+  client.connect(function (err) {
+    if (err) {
+      errorHandler(err);
+    } else {
+      Helpers.logInfo('Connected...');
+
+      client.setAutoCommitMode(false, function (err) {
+        if (err) {
+          errorHandler(err);
+        } else {
+          test.ok(client.autoCommitMode === false, 'AutoCommitMode not set correctly!');
+
+	        client.setAutoCommitMode(true, function (err) {
+            if (err) {
+              errorHandler(err);
+            } else {
+              test.ok(client.autoCommitMode === true, 'AutoCommitMode not set correctly!');
+
+              client.close(function (err) {
+                if (err) {
+                  errorHandler(err);
+                } else {
+                  Helpers.logInfo('Connection closed...');
+                  Helpers.logInfo('Test passed.');
+                  test.done();
+                }
+              });
+            }
+          });
+        }
+      });
+    }
+  });
+};
 

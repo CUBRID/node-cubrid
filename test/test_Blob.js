@@ -1,60 +1,61 @@
-var CUBRIDClient = require('./test_Setup').createDefaultCUBRIDDemodbConnection,
-  ActionQueue = require('../src/utils/ActionQueue'),
-  Helpers = require('../src/utils/Helpers'),
-  Result2Array = require('../src/resultset/Result2Array'),
-  assert = require('assert');
+exports['test_Blob'] = function (test) {
+	var CUBRID = require('../'),
+			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+			Helpers = CUBRID.Helpers,
+			ActionQueue = CUBRID.ActionQueue,
+			Result2Array = CUBRID.Result2Array;
 
-Helpers.logInfo(module.filename.toString() + ' started...');
+	Helpers.logInfo(module.filename.toString() + ' started...');
 
-ActionQueue.enqueue(
-  [
+  ActionQueue.enqueue([
     function (cb) {
-      CUBRIDClient.connect(cb);
+      client.connect(cb);
     },
-
     function (cb) {
       var data = '';
-      for (var i = 0; i < 5120; i++) {
+
+	    for (var i = 0; i < 5120; i++) {
         data += '11111111';
       }
-      CUBRIDClient.batchExecuteNoQuery(['drop table if exists test_lob',
-                                        'create table test_lob(bl BLOB)',
-                                        'insert into test_lob values(BIT_TO_BLOB(B\'' + data + '\'))'], cb);
-    },
 
+      client.batchExecuteNoQuery(['drop table if exists test_lob',
+        'create table test_lob(bl BLOB)',
+        'insert into test_lob values(BIT_TO_BLOB(B\'' + data + '\'))'], cb);
+    },
     function (cb) {
       Helpers.logInfo('Create table and insert done.');
-      CUBRIDClient.query('select * from test_lob', cb);
+      client.query('select * from test_lob', cb);
     },
-
     function (result, queryHandle, cb) {
       Helpers.logInfo('Query executed.');
       var arr = Result2Array.RowsArray(result);
       var lobObject = arr[0][0];
-      CUBRIDClient.lobRead(lobObject, 1, lobObject.lobLength, cb);
+      client.lobRead(lobObject, 1, lobObject.lobLength, cb);
     },
-
     function (buff, read_length, cb) {
       Helpers.logInfo('LOB Read done.');
-      assert(read_length === 5120);
-      assert(buff.length === 5120);
+      Helpers.logInfo(read_length);
+      Helpers.logInfo(buff.length);
+      test.ok(read_length === 5120);
+      test.ok(buff.length === 5120);
       for (var i = 0; i < read_length; i++) {
-        assert(buff[i] === 255);
+        test.ok(buff[i] === 255);
       }
-      CUBRIDClient.batchExecuteNoQuery(['DROP TABLE test_lob'], cb);
+      client.batchExecuteNoQuery(['DROP TABLE test_lob'], cb);
     },
-
     function (cb) {
       Helpers.logInfo('Drop table done.');
-      CUBRIDClient.close(cb);
+      client.close(cb);
     }
-  ],
-
-  function (err) {
+  ], function (err) {
     if (err === null) {
       Helpers.logInfo('Test passed.');
+      test.done();
     } else {
-      throw err.message;
+      Helpers.logError(err);
+      client.close(function () {
+        test.done();
+      });
     }
-  }
-);
+  });
+};

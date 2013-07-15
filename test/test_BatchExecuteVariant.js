@@ -1,51 +1,54 @@
-var CUBRIDClient = require('./test_Setup').createDefaultCUBRIDDemodbConnection,
-  Helpers = require('../src/utils/Helpers'),
-  assert = require('assert');
+exports['test_BatchExecuteVariant'] = function (test) {
+	var CUBRID = require('../'),
+			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+			Helpers = CUBRID.Helpers;
 
-function errorHandler(err) {
-  throw err.message;
-}
+	test.expect(0);
+  Helpers.logInfo(module.filename.toString() + ' started...');
 
-Helpers.logInfo(module.filename.toString() + ' started...');
-
-CUBRIDClient.connect(function (err) {
-  if (err) {
-    errorHandler(err);
-  } else {
-    Helpers.logInfo('Connected.');
-    CUBRIDClient.batchExecuteNoQuery('drop table if exists node_test', function (err) {
-      if (err) {
-        errorHandler(err);
-      } else {
-        CUBRIDClient.batchExecuteNoQuery('create table node_test(id int)', function (err) {
-          if (err) {
-            errorHandler(err);
-          } else {
-            CUBRIDClient.batchExecuteNoQuery('insert into node_test values(1)', function (err) {
-              if (err) {
-                errorHandler(err);
-              } else {
-                CUBRIDClient.batchExecuteNoQuery('drop table node_test', function (err) {
-                  if (err) {
-                    errorHandler(err);
-                  } else {
-                    CUBRIDClient.close(function (err) {
-                      if (err) {
-                        errorHandler(err);
-                      } else {
-                        Helpers.logInfo('Connection closed.');
-                        Helpers.logInfo('Test passed.');
-                      }
-                    });
-                  }
-                });
-              }
-            });
-          }
-        });
-      }
-    });
+  function errorHandler(err) {
+    throw err.message;
   }
-});
 
+  client.connect(function (err) {
+    if (err) {
+      errorHandler(err);
+    } else {
+      Helpers.logInfo('Connected.');
+      client.batchExecuteNoQuery('drop table if exists node_test', function (err) {
+        if (err) {
+          errorHandler(err);
+        } else {
+          client.batchExecuteNoQuery('create table node_test(id int)', function (err) {
+            if (err) {
+              errorHandler(err);
+            } else {
+              client.batchExecuteNoQuery('insert into node_test values(1)', function (err) {
+                if (err) {
+                  errorHandler(err);
+                } else {
+                  client.batchExecuteNoQuery('drop table node_test', function (err) {
+                    if (err) {
+                      errorHandler(err);
+                    } else {
+                      client.close(function (err) {
+                        if (err) {
+                          errorHandler(err);
+                        } else {
+                          Helpers.logInfo('Connection closed.');
+                          Helpers.logInfo('Test passed.');
+                          test.done();
+                        }
+                      });
+                    }
+                  });
+                }
+              });
+            }
+          });
+        }
+      });
+    }
+  });
+};
 

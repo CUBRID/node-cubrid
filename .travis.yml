@@ -6,11 +6,33 @@ node_js:
   - "0.8"
   - "0.6"
 
+env:
+  - CUBRID_VERSION=9.1.0
+  - CUBRID_VERSION=8.4.3
+  - CUBRID_VERSION=8.4.1
+
 before_script:
-  - cat /etc/hosts
   - sudo hostname localhost
-  - echo 'yes' | sudo add-apt-repository ppa:cubrid/cubrid
+  # Update OS before installing prerequisites.
   - sudo apt-get update
-  - sudo apt-get install cubrid
-  - /etc/profile.d/cubrid.sh
-  - sudo apt-get install cubrid-demodb
+  # Install Chef Solo prerequisites.
+  - sudo apt-get install ruby ruby-dev libopenssl-ruby rdoc ri irb build-essential ssl-cert
+  # Install Chef Solo.
+  # Chef Solo 11.4.4 is broken, so install a previous version.
+  # The bug is planned to be fixed in 11.4.5 which haven't been released yet.
+  - sudo gem install --version '<11.4.4' chef --no-rdoc --no-ri
+  # Make sure the target directory for cookbooks exists.
+  - mkdir -p /tmp/chef-solo
+  # Prepare a file with runlist for Chef Solo.
+  - echo '{"cubrid":{"version":"'$CUBRID_VERSION'"},"run_list":["cubrid::demodb"]}' > cubrid_chef.json
+  # Install CUBRID via Chef Solo. Download all cookbooks from a remote URL.
+  - sudo chef-solo -c test/testSetup/solo.rb -j cubrid_chef.json -r http://sourceforge.net/projects/cubrid/files/CUBRID-Demo-Virtual-Machines/Vagrant/chef-cookbooks.tar.gz/download
+
+after_script:
+  # Install JSCoverage prerequisites.
+  - sudo apt-get install zip
+  # Install JSCoverage to instrument code covered version of the node-cubrid module.
+  - export JSCOVERAGE_VERSION=0.5.1
+  - wget http://siliconforks.com/jscoverage/download/jscoverage-$JSCOVERAGE_VERSION.tar.bz2
+  - tar jxf jscoverage-$JSCOVERAGE_VERSION.tar.bz2 && cd jscoverage-$JSCOVERAGE_VERSION && ./configure && make && sudo make install && cd ..
+  - npm run cover

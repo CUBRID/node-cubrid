@@ -1,58 +1,55 @@
-var CUBRIDClient = require('./test_Setup').createDefaultCUBRIDDemodbConnection,
-  ActionQueue = require('../src/utils/ActionQueue'),
-  Helpers = require('../src/utils/Helpers'),
-  Result2Array = require('../src/resultset/Result2Array'),
-  assert = require('assert');
+exports['test_SchemaAttribute'] = function (test) {
+	var CUBRID = require('../'),
+			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+			Helpers = CUBRID.Helpers,
+			ActionQueue = CUBRID.ActionQueue;
 
-Helpers.logInfo(module.filename.toString() + ' started...');
+	test.expect(9);
+  Helpers.logInfo(module.filename.toString() + ' started...');
 
-ActionQueue.enqueue(
-  [
+  ActionQueue.enqueue([
     function (callback) {
-      CUBRIDClient.connect(callback);
+      client.connect(callback);
     },
-
     function (callback) {
-      CUBRIDClient.getSchema(CUBRIDClient.SCHEMA_ATTRIBUTE, null, callback);
+      client.getSchema(client.SCHEMA_ATTRIBUTE, null, callback);
     },
-
     function (result, callback) {
-      for (var i = 0; i < result.length; i++) {
+      for (var i = 0; i < 1; i++) {
         Helpers.logInfo(result[i]);
       }
 
-      if (CUBRIDClient._DB_ENGINE_VER.startsWith('8.4')) {
-        assert(result.length === 191);
+      if (client._DB_ENGINE_VER.startsWith('8.4')) {
+        test.ok(result.length === 191);
       }
       else {
-        if (CUBRIDClient._DB_ENGINE_VER.startsWith('9.1')) {
-          assert(result.length === 212);
+        if (client._DB_ENGINE_VER.startsWith('9.1')) {
+          test.ok(result.length === 212);
         }
       }
-      assert(result[0].Name === 'code');
-      assert(result[0].Scale === 0);
-      if (CUBRIDClient._DB_ENGINE_VER.startsWith('8.4')) {
-        assert(result[0].Precision === 0);
+      test.ok(result[0].Name === 'code');
+      test.ok(result[0].Scale === 0);
+      if (client._DB_ENGINE_VER.startsWith('8.4')) {
+        test.ok(result[0].Precision === 0);
       }
       else {
-        if (CUBRIDClient._DB_ENGINE_VER.startsWith('9.1')) {
-          assert(result[0].Precision === 10);
+        if (client._DB_ENGINE_VER.startsWith('9.1')) {
+          test.ok(result[0].Precision === 10);
         }
       }
-      assert(result[0].NonNull === true);
-      assert(result[0].Unique === true);
-      assert(result[0].ClassName === 'athlete');
-      assert(result[0].SourceClass === 'athlete');
-      assert(result[0].IsKey === true);
-      CUBRIDClient.close(callback);
+      test.ok(result[0].NonNull === true);
+      test.ok(result[0].Unique === true);
+      test.ok(result[0].ClassName === 'athlete');
+      test.ok(result[0].SourceClass === 'athlete');
+      test.ok(result[0].IsKey === true);
+      client.close(callback);
     }
-  ],
-
-  function (err) {
+  ], function (err) {
     if (err) {
       throw err.message;
     } else {
       Helpers.logInfo('Test passed.');
+      test.done();
     }
-  }
-);
+  });
+};

@@ -1,34 +1,37 @@
-var CUBRIDClient = require('./test_Setup').createDefaultCUBRIDDemodbConnection,
-  Helpers = require('../src/utils/Helpers'),
-  assert = require('assert');
+exports['test_Connect'] = function (test) {
+	var CUBRID = require('../'),
+			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+			Helpers = CUBRID.Helpers;
 
-function errorHandler(err) {
-  throw err.message;
-}
+	test.expect(0);
+  Helpers.logInfo(module.filename.toString() + ' started...');
 
-Helpers.logInfo(module.filename.toString() + ' started...');
-
-CUBRIDClient.connect(function (err) {
-  if (err) {
-    errorHandler(err);
-  } else {
-    Helpers.logInfo('Connected OK.');
-    CUBRIDClient.getEngineVersion(function (err, result) {
-      if (err) {
-        errorHandler(err);
-      } else {
-        Helpers.logInfo('CUBRID engine version: ' + result);
-        CUBRIDClient.close(function (err) {
-          if (err) {
-            errorHandler(err);
-          } else {
-            Helpers.logInfo('Connection closed.');
-            Helpers.logInfo('Test passed.');
-          }
-        });
-      }
-    });
+  function errorHandler(err) {
+    throw err.message;
   }
-});
 
+  client.connect(function (err) {
+    if (err) {
+      errorHandler(err);
+    } else {
+      Helpers.logInfo('Connected OK.');
+      client.getEngineVersion(function (err, result) {
+        if (err) {
+          errorHandler(err);
+        } else {
+          Helpers.logInfo('CUBRID engine version: ' + result);
+          client.close(function (err) {
+            if (err) {
+              errorHandler(err);
+            } else {
+              Helpers.logInfo('Connection closed.');
+              Helpers.logInfo('Test passed.');
+              test.done();
+            }
+          });
+        }
+      });
+    }
+  });
+};
 

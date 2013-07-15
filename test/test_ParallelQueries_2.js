@@ -1,92 +1,93 @@
-var CUBRIDConnection = require('../src/CUBRIDConnection');
+exports['test_ParallelQueries_2'] = function (test) {
+	var CUBRID = require('../'),
+			Helpers = CUBRID.Helpers,
+			Result2Array = CUBRID.Result2Array,
+			testSetup = require('./testSetup/test_Setup'),
+			// First connection
+			client = testSetup.createDefaultCUBRIDDemodbConnection(),
+			// Second connection
+			client2 = testSetup.createDefaultCUBRIDDemodbConnection();
 
-// First connection
-var CUBRIDClient = new CUBRIDConnection('localhost', 33000, 'public', '', 'demodb');
-// Second connection
-var CUBRIDClient2 = new CUBRIDConnection('localhost', 33000, 'public', '', 'demodb');
+	test.expect(0);
+  Helpers.logInfo(module.filename.toString() + ' started...');
 
-var Helpers = require('../src/utils/Helpers'),
-  Result2Array = require('../src/resultset/Result2Array');
+  function errorHandler(err) {
+    throw err.message;
+  }
 
-Helpers.logInfo(module.filename.toString() + ' started...');
+  function A() {
+    Helpers.logInfo('Function A called.');
+    Helpers.logInfo('Connecting... [A].');
+    client.connect(function (err) {
+      if (err) {
+        errorHandler(err);
+      } else {
+        Helpers.logInfo('Connected [A], on port: ' + client.connectionBrokerPort);
+        setTimeout(client.query('select * from nation', function (err, result, queryHandle) {
+          Helpers.logInfo('Querying [A]: select * from nation');
+          if (err) {
+            errorHandler(err);
+          } else {
+            Helpers.logInfo('Query result rows count [A]: ' + Result2Array.TotalRowsCount(result));
+            client.closeQuery(queryHandle, function (err) {
+              if (err) {
+                errorHandler(err);
+              } else {
+                Helpers.logInfo('Query closed [A].');
+                client.close(function (err) {
+                  if (err) {
+                    errorHandler(err);
+                  } else {
+                    Helpers.logInfo('Connection closed [A].');
+                  }
+                });
+              }
+            });
+          }
+        }), 3000);
+      }
+    });
+  }
 
-function errorHandler(err) {
-  throw err.message;
-}
+  function B() {
+    Helpers.logInfo('Function B called.');
+    Helpers.logInfo('Connecting... [B].');
+    client2.connect(function (err) {
+      if (err) {
+        errorHandler(err);
+      } else {
+        Helpers.logInfo('Connected [B], on port: ' + client2.connectionBrokerPort);
+        client2.query('select * from game', function (err, result, queryHandle) {
+          Helpers.logInfo('Querying [B]: select * from game');
+          if (err) {
+            errorHandler(err);
+          } else {
+            Helpers.logInfo('Query result rows count [B]: ' + Result2Array.TotalRowsCount(result));
+            client2.closeQuery(queryHandle, function (err) {
+              if (err) {
+                errorHandler(err);
+              } else {
+                Helpers.logInfo('Query closed [B].');
+                client2.close(function (err) {
+                  if (err) {
+                    errorHandler(err);
+                  } else {
+                    Helpers.logInfo('Connection closed [B].');
+                  }
+                });
+              }
+            });
+          }
+        });
+      }
+    });
+  }
 
-function A() {
-  Helpers.logInfo('Function A called.');
-  Helpers.logInfo('Connecting... [A].');
-  CUBRIDClient.connect(function (err) {
-    if (err) {
-      errorHandler(err);
-    } else {
-      Helpers.logInfo('Connected [A], on port: ' + CUBRIDClient.connectionBrokerPort);
-      setTimeout(CUBRIDClient.query('select * from nation', function (err, result, queryHandle) {
-        Helpers.logInfo('Querying [A]: select * from nation');
-        if (err) {
-          errorHandler(err);
-        } else {
-          Helpers.logInfo('Query result rows count [A]: ' + Result2Array.TotalRowsCount(result));
-          CUBRIDClient.closeQuery(queryHandle, function (err) {
-            if (err) {
-              errorHandler(err);
-            } else {
-              Helpers.logInfo('Query closed [A].');
-              CUBRIDClient.close(function (err) {
-                if (err) {
-                  errorHandler(err);
-                } else {
-                  Helpers.logInfo('Connection closed [A].');
-                }
-              });
-            }
-          });
-        }
-      }), 3000);
-    }
-  });
-}
+  A();
+  B();
 
-function B() {
-  Helpers.logInfo('Function B called.');
-  Helpers.logInfo('Connecting... [B].');
-  CUBRIDClient2.connect(function (err) {
-    if (err) {
-      errorHandler(err);
-    } else {
-      Helpers.logInfo('Connected [B], on port: ' + CUBRIDClient2.connectionBrokerPort);
-      CUBRIDClient2.query('select * from game', function (err, result, queryHandle) {
-        Helpers.logInfo('Querying [B]: select * from game');
-        if (err) {
-          errorHandler(err);
-        } else {
-          Helpers.logInfo('Query result rows count [B]: ' + Result2Array.TotalRowsCount(result));
-          CUBRIDClient2.closeQuery(queryHandle, function (err) {
-            if (err) {
-              errorHandler(err);
-            } else {
-              Helpers.logInfo('Query closed [B].');
-              CUBRIDClient2.close(function (err) {
-                if (err) {
-                  errorHandler(err);
-                } else {
-                  Helpers.logInfo('Connection closed [B].');
-                }
-              });
-            }
-          });
-        }
-      });
-    }
-  });
-}
-
-A();
-B();
-
-setTimeout(function () {
-  Helpers.logInfo('Test passed.');
-}, 5000);
-
-
+  setTimeout(function () {
+    Helpers.logInfo('Test passed.');
+    test.done();
+  }, 5000);
+};

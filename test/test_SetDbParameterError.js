@@ -1,34 +1,40 @@
-var CUBRIDClient = require('./test_Setup').createDefaultCUBRIDDemodbConnection,
-  Helpers = require('../src/utils/Helpers'),
-  CAS = require('../src/constants/CASConstants'),
-  assert = require('assert');
+exports['test_SetDbParameterError'] = function (test) {
+	var CUBRID = require('../'),
+			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+			Helpers = CUBRID.Helpers,
+			CAS = require('../src' + (process.env.CODE_COV ? '-cov' : '') + '/constants/CASConstants');
 
-function errorHandler(err) {
-  Helpers.logInfo(err.message);
-  assert(err.message === '-1011:CAS_ER_PARAM_NAME');
-  CUBRIDClient.close(function (err) {
-    if (err) {
-      errorHandler(err);
-    } else {
-      Helpers.logInfo('Connection closed.');
-      Helpers.logInfo('Test passed.');
-    }
-  });
-}
+	test.expect(1);
+  function errorHandler(err) {
+    Helpers.logInfo(err.message);
 
-Helpers.logInfo(module.filename.toString() + ' started...');
+	  test.ok(err.message === '-1011:CAS_ER_PARAM_NAME');
 
-CUBRIDClient.connect(function (err) {
-  if (err) {
-    errorHandler(err);
-  } else {
-    Helpers.logInfo('Connected OK.');
-    CUBRIDClient.setDatabaseParameter(CAS.CCIDbParam.CCI_PARAM_MAX_STRING_LENGTH, 99, function (err) {
+    client.close(function (err) {
       if (err) {
         errorHandler(err);
       } else {
-        throw 'We should not get here';
+        Helpers.logInfo('Connection closed.');
+        Helpers.logInfo('Test passed.');
+        test.done();
       }
     });
   }
-});
+
+  Helpers.logInfo(module.filename.toString() + ' started...');
+
+  client.connect(function (err) {
+    if (err) {
+      errorHandler(err);
+    } else {
+      Helpers.logInfo('Connected OK.');
+      client.setDatabaseParameter(CAS.CCIDbParam.CCI_PARAM_MAX_STRING_LENGTH, 99, function (err) {
+        if (err) {
+          errorHandler(err);
+        } else {
+          throw 'We should not get here';
+        }
+      });
+    }
+  });
+};
