@@ -27,6 +27,7 @@
 - Ref: moved local variables in tests suite inside functions.
 - Ref: added coverage report to `package.json`.
 - Ref: added travis environment to test on different versions of CUBRID.
+- Ref: use CUBRID Chef Cookbook to install different versions of CUBRID to run tests against.
 - Doc: updated supported CUBRID version.
 - Doc: updated README documentation.
 
