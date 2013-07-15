@@ -23,10 +23,14 @@
     "node": "*"
   },
   "scripts": {
+    "clean": "rm -rf src-cov",
+    "instrument": "npm run clean && jscoverage src src-cov",
+    "cover": "npm run instrument && CODE_COV=1 NODE_ENV=test ./node_modules/.bin/nodeunit --reporter=lcov test | node test/testSetup/fix_lcov.js | ./node_modules/.bin/coveralls",
     "test": "./node_modules/.bin/nodeunit test"
   },
   "devDependencies": {
     "async": "~0.2.9",
+    "coveralls": "~2.0.16",
     "generic-pool": "~2.0.3",
     "nodeunit": "~0.8.1"
   }

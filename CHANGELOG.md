@@ -25,6 +25,7 @@
 - Ref: merged unit tests in `test/nodeunit` directory with the main `test` directory.
 - Ref: removed `console.log` output in test scripts.
 - Ref: moved local variables in tests suite inside functions.
+- Ref: added coverage report to `package.json`.
 - Doc: updated supported CUBRID version.
 
 ## Version 2.0.2 (Apr 12, 2013)
