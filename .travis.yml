@@ -11,6 +11,7 @@ env:
 
 before_script:
   - sudo hostname localhost
+  - sudo apt-get update
   # Install Chef Solo prerequisites.
   - sudo apt-get install ruby ruby-dev libopenssl-ruby rdoc ri irb build-essential ssl-cert
   # Install Chef Solo.
