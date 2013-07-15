@@ -263,7 +263,6 @@ function testObject() {
 exports['test_PacketWriter_PachetReader'] = function (testing) {
 	test = testing;
 	test.expect(42);
-	console.log('Unit test ' + module.filename.toString() + ' started...');
 
 	// Test integer-types
 	testByte(bValue);
@@ -302,6 +301,5 @@ exports['test_PacketWriter_PachetReader'] = function (testing) {
 	testNumeric(1.5);
 	testObject();
 
-	console.log('Unit test ended OK.');
 	test.done();
 };

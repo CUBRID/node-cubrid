@@ -6,7 +6,6 @@ var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
 
 exports['test_LOBNewPacket'] = function (test) {
 	test.expect(18);
-	console.log('Unit test ' + module.filename.toString() + ' started...');
 	var packetReader = new PacketReader();
 	var packetWriter = new PacketWriter();
 	var options = {casInfo : [0, 255, 255, 255], lobType : CAS.CUBRIDDataType.CCI_U_TYPE_BLOB, dbVersion : '8.4.1'};
@@ -45,6 +44,5 @@ exports['test_LOBNewPacket'] = function (test) {
 	test.equal(lobHandle.fileLocator, "file:C:\\CUBRID\\databases\\demodb/lob/ces_212/ces_temp.00001362136613546000_0041");
 	test.equal(lobHandle.lobLength, 0);
 
-	console.log('Unit test ended OK.');
 	test.done();
 };

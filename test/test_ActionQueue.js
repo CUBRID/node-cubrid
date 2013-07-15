@@ -6,7 +6,6 @@ var startTime = (new Date()).getTime();
 
 exports['test_ActionQueue'] = function (test) {
 	test.expect(2);
-	console.log('Unit test ' + module.filename.toString() + ' started...');
 
 	ActionQueue.enqueue(
 			[
@@ -25,7 +24,6 @@ exports['test_ActionQueue'] = function (test) {
 			],
 			function (err, results) {
 				test.equal(results, '1,2,3,4');
-				console.log('Unit test ended OK.');
 			}
 	);
 
@@ -44,7 +42,6 @@ exports['test_ActionQueue'] = function (test) {
 					var endTime = (new Date()).getTime();
 					// 5 seconds have passed?
 					test.ok(endTime - startTime > 5 * 1000);
-					console.log('Unit test ended OK.');
 					test.done();
 				}
 			}

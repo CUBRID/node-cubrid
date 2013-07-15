@@ -5,7 +5,6 @@ var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
 		CAS = require('../src' + codeCoveragePath + '/constants/CASConstants');
 
 exports['test_BatchExecuteNoQueryPacket'] = function (test) {
-	console.log('Unit test ' + module.filename.toString() + ' started...');
 	test.expect(16);
 	var packetReader = new PacketReader();
 	var packetWriter = new PacketWriter();
@@ -38,6 +37,5 @@ exports['test_BatchExecuteNoQueryPacket'] = function (test) {
 
 	test.equal(batchExecuteNoQueryPacket.errorCode, 0);
 	test.equal(batchExecuteNoQueryPacket.errorMsg, '');
-	console.log('Unit test ended OK.');
 	test.done();
 };

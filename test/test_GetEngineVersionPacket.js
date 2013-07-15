@@ -6,7 +6,6 @@ var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
 
 exports['test_GetEngineVersionPacket'] = function (test) {
 	test.expect(16);
-	console.log('Unit test ' + module.filename.toString() + ' started...');
 	var packetReader = new PacketReader();
 	var packetWriter = new PacketWriter();
 	var options = {casInfo : [0, 255, 255, 255]};
@@ -42,7 +41,6 @@ exports['test_GetEngineVersionPacket'] = function (test) {
 	test.equal(getEngineVersionPacket.errorMsg, '');
 
 	test.equal(getEngineVersionPacket.engineVersion, '8.4.1.0056');
-	console.log('Unit test ended OK.');
 	test.done();
 };
 

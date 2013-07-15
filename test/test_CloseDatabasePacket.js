@@ -6,7 +6,6 @@ var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
 
 exports['test_CloseConnectionPacket'] = function (test) {
 	test.expect(14);
-	console.log('Unit test ' + module.filename.toString() + ' started...');
 	var packetReader = new PacketReader();
 	var packetWriter = new PacketWriter();
 	var options = {casInfo : [0, 255, 255, 255]};
@@ -37,6 +36,5 @@ exports['test_CloseConnectionPacket'] = function (test) {
 
 	test.equal(closeDatabasePacket.errorCode, 0);
 	test.equal(closeDatabasePacket.errorMsg, '');
-	console.log('Unit test ended OK.');
 	test.done();
 };

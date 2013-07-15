@@ -23,6 +23,7 @@
 - Ref: moved `utils` unit tests outside of `src` to the main `test` directory.
 - Ref: moved all unit tests in `src` outside to the main `test` directory.
 - Ref: merged unit tests in `test/nodeunit` directory with the main `test` directory.
+- Ref: removed `console.log` output in test scripts.
 - Doc: updated supported CUBRID version.
 
 ## Version 2.0.2 (Apr 12, 2013)
@@ -77,7 +78,7 @@
 - Ref: code quality improvements (based on SHint/JSLint code analysis).
 - Doc: APIS-269, improve Node.js tutorial examples.
 - Doc: APIS-381, Updated Node.js driver tutorials written before beta release. Users complain that examples don't work.
-- Doc:APIS-377, Please document the purpose of arrDelimiters parameter in _sqlFormat.
+- Doc: APIS-377, Please document the purpose of arrDelimiters parameter in _sqlFormat.
 - Task: APIS-383, Please push the latest bug fixes to NPM.
 
 ## Version 1.0.0 (Oct 26, 2012)

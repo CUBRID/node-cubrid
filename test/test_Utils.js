@@ -12,8 +12,6 @@ exports['test_Utils'] = function (test) {
 			'"RowsCount":99,' +
 			'"ColumnValues":[["X","Mixed"],["W","Woman"],["M","Man"]]}';
 
-	console.log('Unit test ' + module.filename.toString() + ' started...');
-
 	test.equal(GetResultsArray(json_str).toString(), 'X,Mixed,W,Woman,M,Man');
 	test.equal(GetResultsColumnNamesArray(json_str).toString(), 's_name,f_name');
 	test.equal(GetResultsColumnTypesArray(json_str).toString(), 'char,string');
@@ -27,6 +25,5 @@ exports['test_Utils'] = function (test) {
 	test.equal(objectsArray[2].s_name, 'M');
 	test.equal(objectsArray[2].f_name, 'Man');
 
-	console.log('Unit test ended OK.');
 	test.done();
 };

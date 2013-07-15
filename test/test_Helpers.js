@@ -3,7 +3,6 @@ var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
 
 exports['test_Helpers'] = function (test) {
 	test.expect(32);
-	console.log('Unit test ' + module.filename.toString() + ' started...');
 
 	var buffer = new Buffer(5);
 	buffer.write('12345');
@@ -69,6 +68,5 @@ exports['test_Helpers'] = function (test) {
 	test.ok(Helpers._validateInputSQLString('a') === false);
 	test.ok(Helpers._validateInputSQLString('qwerty') === true);
 
-	console.log('Unit test ended OK.');
 	test.done();
 };

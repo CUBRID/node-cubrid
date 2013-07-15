@@ -7,7 +7,6 @@ var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
 
 exports['test_FetchPacket'] = function (test) {
 	test.expect(16);
-	console.log('Unit test ' + module.filename.toString() + ' started...');
 	var packetReader = new PacketReader();
 	var packetWriter = new PacketWriter();
 	var options =
@@ -61,6 +60,5 @@ exports['test_FetchPacket'] = function (test) {
 	test.equal(fetchPacket.errorMsg, '');
 
 	test.equal(fetchPacket.tupleCount, 0);
-	console.log('Unit test ended OK.');
 	test.done();
 };

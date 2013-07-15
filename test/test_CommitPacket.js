@@ -6,7 +6,6 @@ var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
 
 exports['test_CommitPacket'] = function (test) {
 	test.expect(16);
-	console.log('Unit test ' + module.filename.toString() + ' started...');
 	var packetReader = new PacketReader();
 	var packetWriter = new PacketWriter();
 	var options = {casInfo : [0, 255, 255, 255], dbVersion : '8.4.1'};
@@ -39,6 +38,5 @@ exports['test_CommitPacket'] = function (test) {
 	test.equal(commitPacket.errorCode, 0);
 	test.equal(commitPacket.errorMsg, '');
 
-	console.log('Unit test ended OK.');
 	test.done();
 };

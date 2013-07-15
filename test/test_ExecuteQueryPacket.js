@@ -7,7 +7,6 @@ var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
 
 exports['test_ExecuteQueryPacket'] = function (test) {
 	test.expect(17);
-	console.log('Unit test ' + module.filename.toString() + ' started...');
 	var packetReader = new PacketReader();
 	var packetWriter = new PacketWriter();
 	var options = {sql : 'select * from code', casInfo : [0, 255, 255, 255],
@@ -46,6 +45,5 @@ exports['test_ExecuteQueryPacket'] = function (test) {
 
 	var resultSet = executeQueryPacket.parse(packetReader).resultSet;
 	test.equal(resultSet, '{"ColumnNames":["s_name","f_name"],"ColumnDataTypes":["Char","String"],"RowsCount":6,"ColumnValues":[["X","Mixed"],["W","Woman"],["M","Man"],["B","Bronze"],["S","Silver"],["G","Gold"]]}');
-	console.log('Unit test ended OK.');
 	test.done();
 };

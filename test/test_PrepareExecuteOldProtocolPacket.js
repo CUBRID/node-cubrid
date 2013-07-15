@@ -6,7 +6,6 @@ var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
 
 exports['test_PrepareExecuteOldProtocolPacket'] = function (test) {
 	test.expect(48);
-	console.log('Unit test ' + module.filename.toString() + ' started...');
 
 	var packetReader = new PacketReader();
 	var packetWriter = new PacketWriter();
@@ -96,7 +95,6 @@ exports['test_PrepareExecuteOldProtocolPacket'] = function (test) {
 	var resultSet = prepareExecuteOldProtocolPacket.parseExecute(packetReader).resultSet;
 
 	test.equal(resultSet, '{"ColumnNames":["s_name","f_name"],"ColumnDataTypes":["Char","String"],"RowsCount":6,"ColumnValues":[["X","Mixed"],["W","Woman"],["M","Man"],["B","Bronze"],["S","Silver"],["G","Gold"]]}');
-	console.log('Unit test ended OK.');
 	test.done();
 };
 

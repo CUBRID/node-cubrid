@@ -6,7 +6,6 @@ var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
 
 exports['test_SetDbParameterPacket'] = function (test) {
 	test.expect(13);
-	console.log('Unit test ' + module.filename.toString() + ' started...');
 	var packetReader = new PacketReader();
 	var packetWriter = new PacketWriter();
 	var options =
@@ -38,6 +37,5 @@ exports['test_SetDbParameterPacket'] = function (test) {
 	test.equal(setDbParameterPacket.responseCode, 0);
 	test.equal(setDbParameterPacket.errorCode, 0);
 	test.equal(setDbParameterPacket.errorMsg, '');
-	console.log('Unit test ended OK.');
 	test.done();
 };

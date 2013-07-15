@@ -7,7 +7,6 @@ var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
 
 exports['test_OpenDatabasePacket'] = function (test) {
 	test.expect(12);
-	console.log('Unit test ' + module.filename.toString() + ' started...');
 	var packetReader = new PacketReader();
 	var packetWriter = new PacketWriter();
 	var options = {database : 'demodb', user : 'public', password : ''};
@@ -37,6 +36,5 @@ exports['test_OpenDatabasePacket'] = function (test) {
 
 	test.equal(openDatabasePacket.brokerInfo[0], 5);
 	test.equal(openDatabasePacket.sessionId, 3);
-	console.log('Unit test ended OK.');
 	test.done();
 };

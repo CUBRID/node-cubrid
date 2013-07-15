@@ -6,7 +6,6 @@ var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
 
 exports['test_LOBWritePacket'] = function (test) {
 	test.expect(116);
-	console.log('Unit test ' + module.filename.toString() + ' started...');
 	var packetReader = new PacketReader();
 	var packetWriter = new PacketWriter();
 	var packedLobHandle = new Buffer([0, 0, 0, 33, 0, 0, 0, 0, 0, 0, 20, 0, 0, 0, 0, 79, 102, 105, 108, 101, 58,
@@ -69,6 +68,5 @@ exports['test_LOBWritePacket'] = function (test) {
 
 	test.equal(lobWritePacket.errorCode, 0);
 	test.equal(lobWritePacket.errorMsg, '');
-	console.log('Unit test ended OK.');
 	test.done();
 };
