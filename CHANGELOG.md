@@ -8,6 +8,7 @@
 - Fix: test path for `node_modules`.
 - Fix: host name for tests.
 - Fix: travis script.
+- Fix: broken test on CUBRID 9.1.
 - Ref: cleanup package.json.
 - Ref: revert version to 2.0.2.
 - Ref: APIS-589, disable debugging mode by default.
