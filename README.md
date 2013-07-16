@@ -35,7 +35,7 @@ The node-cubrid module exports the following properties and functions:
 * `ActionQueue`: an object which provides the [`waterfall()`](https://github.com/caolan/async#waterfall) functionality of [async](https://github.com/caolan/async) module. 
 * `Helpers`: an object which provides a set of helper functions.
 * `Result2Array`: an object which provides functions to convert DB result sets into JS arrays.
-* `createCUBRIDConnection()`: a function which returns a connection object to work with a user defined CUBRID host and database.
+* `createCUBRIDConnection()` or `createConnection()`: a function which returns a connection object to work with a user defined CUBRID host and database.
 * `createDefaultCUBRIDDemodbConnection()`: a function which returns a connection object to work with a local [demodb](http://blog.cubrid.org/wiki_tutorials/entry/getting-started-with-demodb-cubrid-demo-database) database.
 
 ## Request flow in node-cubrid
@@ -56,7 +56,12 @@ If there is a vital need to run queries in parallel, developers can use connecti
 
 ### Establishing a connection
 
-First, user establishes a connection with a CUBRID server by providing a host name (default: `localhost`), the broker port (default: `33000`), database username (default: `public`), password (default: empty string), and finally the database name (default: `demodb`).
+	// All arguments are required.
+	var client = CUBRID.createCUBRIDConnection(host, port, user, password, database);
+	// Alias function.
+	var client = CUBRID.createConnection(host, port, user, password, database);
+
+First, user establishes a connection with a CUBRID server by providing a host name (default: `localhost`), the broker port (default: `33000`), database username (default: `public`), password (default: empty string), and finally the database name (default: `demodb`). All arguments are required.
 
 #### Callback style
 
@@ -94,17 +99,17 @@ Alternatively, developers can write applications based on an event-based coding 
 
 	client.connect();
 	
-	client.on(conn.EVENT_ERROR, function (err) {
+	client.on(client.EVENT_ERROR, function (err) {
 		throw err;
 	});
 
-	client.on(conn.EVENT_CONNECTED, function () {
+	client.on(client.EVENT_CONNECTED, function () {
 			console.log('connection is established');
 			
 			client.close();
 	});
 
-	client.on(conn.EVENT_CONNECTION_CLOSED, function () {
+	client.on(client.EVENT_CONNECTION_CLOSED, function () {
 			console.log('connection is closed');
 	});
 
@@ -114,9 +119,14 @@ If you prefer the event-based coding style, refer to the [Driver Event model](ht
 
 There can be several reasons for a connection to fail:
 
-1. **Connection timeout** when the host does not respond within the specified time. In this case, you will receive the following error message:  
+1. **Connection timeout**:
+	1. when the host does not respond within the specified time larger than `0`, you will receive the following error message emitted by **node-cubrid**:
 
-		{ [Error: connect ETIMEDOUT] code: 'ETIMEDOUT', errno: 'ETIMEDOUT', syscall: 'connect' }
+			{ [Error: connect ETIMEDOUT] }
+
+	2. when no timeout value is set or its value is `0`, the following timeout error is emitted by the underlying network socket.
+
+			{ [Error: connect ETIMEDOUT] code: 'ETIMEDOUT', errno: 'ETIMEDOUT', syscall: 'connect' }
 
 2. **Incorrect hostname**:
 
@@ -130,14 +140,15 @@ There can be several reasons for a connection to fail:
 	* If the port is not listened by any service, then you will see the **Connection timeout** error as in the first case.
 	* The last type of error message you woud receive if an incorrect port is provided is:
 
-			
-
-
-These error messages are thrown directly by the underlying network socket of Node.js.
+			{ [Error: read ECONNRESET] code: 'ECONNRESET', errno: 'ECONNRESET', syscall: 'read' }
 
 ### Connection configuration
 
-#### Connection timeout
+#### Setting connection timeout
+
+	var timeoutInMsec = client.getConnectionTimeout();
+	// Set connection timeout in milliseconds.
+	client.setConnectionTimeout(2000);
 
 One of the requests we got for the 2.0 driver release was to implement a connection timeout feature. Simply said - wait for the connection to the database to complete within the specified number of seconds and eventually throw an error if the timeout occurs.
 
@@ -147,12 +158,9 @@ Obviously, the key thing here was to set the connection timeout at the Node.js s
 	self._socket.setNoDelay(true);
 	self._socket.setTimeout(this._CONNECTION_TIMEOUT);
 
-In **node-cubrid** you can get and set the connection timeout value in milliseconds:
+In **node-cubrid** by default the connection timeout value is set to `0`, i.e. **node-cubrid** will wait long enough until the underlying network socket times out itself. In this case, according to our observations, the `timeout` event is emitted in about 75 seconds (**purely observational point**).
 
-* `client.getConnectionTimeout()`
-* `client.setConnectionTimeout(2000)`
-
-In **node-cubrid** by default the connection timeout value is set to `0`, i.e. **node-cubrid** will wait long enough until the underlying network socket times out itself. So, if you want or expect the connection to timeout within the specified time, then manually set the timeout value as shown below.
+So, if you want or expect the connection to timeout within the specified time, then manually set the timeout value as shown below.
 
 	var client = new CUBRIDConnection(dbConf.host, dbConf.port, dbConf.user, dbConf.password, dbConf.database);
  
@@ -169,9 +177,12 @@ In **node-cubrid** by default the connection timeout value is set to `0`, i.e. *
 
 As you see, the timeout is specified in milliseconds `2,000`, which is 2 seconds. After the 2 seconds, the script will timeout:
 
-	{ [Error: connect ETIMEDOUT] code: 'ETIMEDOUT', errno: 'ETIMEDOUT', syscall: 'connect' }
+	{ [Error: connect ETIMEDOUT] }
 
-#### CUBRID Server Parameters
+#### Setting CUBRID Server Parameters
+
+	client.getDatabaseParameter(paramType);
+	client.setDatabaseParameter(paramType, paramValue);
 
 After connecting to a database, a user can specify some *global* session parameters that will control the behavior of SQL statements transactions’ isolation level execution, the auto-commit behavior and others.
 
@@ -190,11 +201,6 @@ The complete list of these CUBRID database parameters is defined in the [`Consta
 For each parameter, the CUBRID communication protocol implements a dedicated support for GET and SET operations. Therefore, in order to manipulate them, also a dedicate functionality was needed in the Node.js driver and this is what we did in the 2.0 release.
 
 Please note one exception - the `CCI_PARAM_MAX_STRING_LENGTH` parameter **cannot** be set programmatically from code as it is a CUBRID Broker parameter and the client can only query its current value.
-
-To get and set database parameter the following two APIs are available:
-
-* `getDatabaseParameter()` to get a parameter value.
-* `setDatabaseParameter()` to set a parameter value.
 
 Let’s see some examples. First, let set the value of the `ISOLATION_LEVEL` parameter:
 
@@ -231,6 +237,46 @@ The output result is:
 ![Figure 2: CUBRID Manager](http://blog.cubrid.org:8080/files/attach/images/194379/729/617/manager.png)
 
 If you need to change the default values for these parameters, it is highly recommended to do it immediately after `connect ()`. One consequence is that you must use an explicit `connect ()` statement in your application, and not the **implicit connect** driver feature (the **implicit connect** feature means that the driver can auto-connect when a query is first executed without the need to issues an explicit `connect()` command).
+
+### Closing a connection
+
+	client.close(callback);
+	// Alias function.
+	client.end(callback);
+
+#### Callback style
+
+	client.close(function (err) {
+		if (err) {
+			throw err;
+		} else {			
+			console.log('connection is closed');
+		}
+	});
+
+#### Event style
+
+	client.connect();
+	
+	client.on(client.EVENT_CONNECTED, function () {
+			console.log('connection is established');
+			
+			client.close();
+	});
+
+	client.on(client.EVENT_CONNECTION_CLOSED, function () {
+			console.log('connection is closed');
+	});
+
+#### Errors on `close()`
+
+The following errors may be emitted when the application tries to close the connection:
+
+1. If a connection is already closed, the following error is emitted by **node-cubrid**.
+	
+		{ [Error: The connection is already closed!] }
+
+2. If closing a connection was unsuccessful, an error message returned by a database is emitted.
 
 ## Usage
 
