@@ -6,7 +6,8 @@
 - Enh: APIS-568, Release 3.0 - Fix inconsistent function return values.
 - Enh: APIS-567, Release 3.0 - Fix and improve code comments.
 - Enh: added tests for APIS-582.
-- Enh: APIS-594, Add end() alias for close().
+- Enh: APIS-594, Add `end()` alias for `close()`.
+- Enh: APIS-593, Add `createConnection()` alias for `createCUBRIDConnection()`.
 - Fix: test path for `node_modules`.
 - Fix: host name for tests.
 - Fix: travis script.
