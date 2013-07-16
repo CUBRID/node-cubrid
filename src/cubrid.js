@@ -39,6 +39,6 @@ exports.createDefaultCUBRIDDemodbConnection = function () {
  * @param database
  * @return {CUBRIDConnection}
  */
-exports.createCUBRIDConnection = function (brokerServer, brokerPort, user, password, database) {
+exports.createConnection = exports.createCUBRIDConnection = function (brokerServer, brokerPort, user, password, database) {
   return new _CUBRIDConnection(brokerServer, brokerPort, user, password, database);
 };
