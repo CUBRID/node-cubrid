@@ -1124,97 +1124,104 @@ CUBRIDConnection.prototype.closeQuery = function (queryHandle, callback) {
 };
 
 /**
- * Close connection
+ * Closes the active connection.
+ * @alias end()
  * @param callback
  */
-CUBRIDConnection.prototype.close = function (callback) {
-  var self = this;
-  var err = self._NO_ERROR;
-  var responseData = new Buffer(0);
-  var expectedResponseLength = self._INVALID_RESPONSE_LENGTH;
+CUBRIDConnection.prototype.close = close;
+CUBRIDConnection.prototype.end = close;
 
-  if (self.connectionOpened === false) {
-    err = new Error(ErrorMessages.ERROR_CONNECTION_ALREADY_CLOSED);
-    Helpers._emitEvent(self, err, self.EVENT_ERROR, null);
-    if (callback && typeof(callback) === 'function') {
-      callback.call(self, err);
-    }
-    return;
-  }
+function close(callback) {
+	var self = this,
+			err = self._NO_ERROR,
+			responseData = new Buffer(0),
+			expectedResponseLength = self._INVALID_RESPONSE_LENGTH;
 
-  // Reset connection status
-  self.queryPending = false;
-  self.connectionPending = false;
-  self.connectionOpened = false;
+	if (self.connectionOpened === false) {
+		err = new Error(ErrorMessages.ERROR_CONNECTION_ALREADY_CLOSED);
 
-  ActionQueue.enqueue(
-    [
-      function (cb) {
-        ActionQueue.while(
-          function () {
-            return (self._queriesPacketList[0] !== null && self._queriesPacketList[0] !== undefined);
-          },
+		Helpers._emitEvent(self, err, self.EVENT_ERROR, null);
 
-          function (callb) {
-            self.closeQuery(self._queriesPacketList[0].queryHandle, callb);
-          },
+		if (typeof(callback) === 'function') {
+			callback(err);
+		}
 
-          function (err) {
-            // Log non-blocking error
-            if (typeof err !== 'undefined' && err !== null) {
-              Helpers.logError(ErrorMessages.ERROR_ON_CLOSE_QUERY_HANDLE + err);
-            }
-            cb.call(null);
-          }
-        );
-      },
+		return;
+	}
 
-      function (cb) {
-        var packetWriter = new PacketWriter();
-        var closeDatabasePacket = new CloseDatabasePacket(
-          {
-            casInfo    : self._CASInfo,
-            db_version : self._DB_ENGINE_VER
-          }
-        );
-        closeDatabasePacket.write(packetWriter);
-        self._socket.write(packetWriter._buffer);
+	// Reset connection status
+	self.queryPending = false;
+	self.connectionPending = false;
+	self.connectionOpened = false;
 
-        self._socket.on('data', function (data) {
-          responseData = Helpers._combineData(responseData, data);
-          if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH &&
-            responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
-            expectedResponseLength = Helpers._getExpectedResponseLength(responseData);
-          }
-          if (responseData.length === expectedResponseLength) {
-            self._socket.removeAllListeners('data');
-            var packetReader = new PacketReader();
-            packetReader.write(responseData);
-            closeDatabasePacket.parse(packetReader);
-            // Close internal socket connection
-            self._socket.destroy();
-            var errorCode = closeDatabasePacket.errorCode;
-            var errorMsg = closeDatabasePacket.errorMsg;
-            if (errorCode !== 0) {
-              err = new Error(errorCode + ':' + errorMsg);
-            }
-            if (cb && typeof(cb) === 'function') {
-              cb.call(self, err);
-            }
-          }
-        });
-      }
-    ],
+	ActionQueue.enqueue([
+		function (cb) {
+			ActionQueue.while(
+				function () {
+					return (self._queriesPacketList[0] !== null && self._queriesPacketList[0] !== undefined);
+				},
+				function (cb) {
+					self.closeQuery(self._queriesPacketList[0].queryHandle, cb);
+				},
+				function (err) {
+					// Log non-blocking error
+					if (typeof err !== 'undefined' && err !== null) {
+						Helpers.logError(ErrorMessages.ERROR_ON_CLOSE_QUERY_HANDLE + err);
+					}
 
-    function (err) {
-      Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_CONNECTION_CLOSED);
-      if (callback && typeof(callback) === 'function') {
-        callback.call(self, err);
-      }
-    }
-  );
-};
+					cb();
+				}
+			);
+		},
+		function (cb) {
+			var packetWriter = new PacketWriter(),
+					closeDatabasePacket = new CloseDatabasePacket({
+						casInfo    : self._CASInfo,
+						db_version : self._DB_ENGINE_VER
+					});
 
+			closeDatabasePacket.write(packetWriter);
+			self._socket.write(packetWriter._buffer);
+
+			self._socket.on('data', function (data) {
+				responseData = Helpers._combineData(responseData, data);
+
+				if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH &&
+						responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
+					expectedResponseLength = Helpers._getExpectedResponseLength(responseData);
+				}
+
+				if (responseData.length === expectedResponseLength) {
+					self._socket.removeAllListeners('data');
+
+					var packetReader = new PacketReader();
+
+					packetReader.write(responseData);
+					closeDatabasePacket.parse(packetReader);
+					// Close internal socket connection
+					self._socket.destroy();
+
+					if (typeof(cb) === 'function') {
+						var errorCode = closeDatabasePacket.errorCode,
+								errorMsg = closeDatabasePacket.errorMsg;
+
+						if (errorCode !== 0) {
+							err = new Error(errorCode + ':' + errorMsg);
+						}
+
+						cb(err);
+					}
+				}
+			});
+		}
+	], function (err) {
+		Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_CONNECTION_CLOSED);
+
+		if (typeof(callback) === 'function') {
+			callback(err);
+		}
+	});
+}
 /**
  * Start transaction
  * @param callback

@@ -1,29 +1,21 @@
 var path = require('path');
 
 exports[path.basename(__dirname)] = function (test) {
-	var CUBRID = require('../'),
-			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-			Helpers = CUBRID.Helpers;
+	var client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection();
 
 	test.expect(2);
-  Helpers.logInfo(module.filename.toString() + ' started...');
-
-  function errorHandler(err) {
-    throw err.message;
-  }
 
   client.connect(function (err) {
     if (err) {
-      errorHandler(err);
+      throw err;
     } else {
-      Helpers.logInfo('Connected.');
-      Helpers.logInfo('Executing query...');
-      client.query('select * from nation', function (err, result, queryHandle) {
+      client.query('SELECT * FROM nation', function (err, result, queryHandle) {
         if (err) {
-          errorHandler(err);
+	        throw err;
         } else {
           var foundQueryHandle = false;
-          for (var i = 0; i < client._queriesPacketList.length; i++) {
+
+          for (var i = client._queriesPacketList.length - 1; i > -1; --i) {
             if (client._queriesPacketList[i].queryHandle === queryHandle) {
               foundQueryHandle = true;
               break;
@@ -32,13 +24,13 @@ exports[path.basename(__dirname)] = function (test) {
 
           test.ok(foundQueryHandle === true);
 
-          client.close(function (err) {
+          client.end(function (err) {
             if (err) {
-              errorHandler(err);
+	            throw err;
             } else {
-              Helpers.logInfo('Connection closed.');
               foundQueryHandle = false;
-              for (var i = 0; i < client._queriesPacketList.length; i++) {
+
+              for (var i = client._queriesPacketList.length - 1; i > -1; --i) {
                 if (client._queriesPacketList[i].handle === queryHandle) {
                   foundQueryHandle = true;
                   break;
@@ -47,7 +39,6 @@ exports[path.basename(__dirname)] = function (test) {
 
               test.ok(foundQueryHandle === false);
 
-              Helpers.logInfo('Test passed.');
               test.done();
             }
           });
