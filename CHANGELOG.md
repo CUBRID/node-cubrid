@@ -14,6 +14,7 @@
 - Fix: broken test on CUBRID 9.1.
 - Fix: cannot set the same timeout value twice. Gets reset to 0.
 - Fix: APIS-603, Even if timeout occurs, the socket doesn't seem to get closed.
+- Fix: a broken test.
 - Ref: cleanup package.json.
 - Ref: revert version to 2.0.2.
 - Ref: APIS-589, disable debugging mode by default.

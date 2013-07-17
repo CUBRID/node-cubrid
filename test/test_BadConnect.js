@@ -18,7 +18,7 @@ exports['test_BadConnect'] = function (test) {
 		    // whether this is a bug or not.
 	      '-985:The hostname on the database connection string should be specified when multihost is set in "databases.txt".',
 		    // On CUBRID 9.1 and 8.4.1 the following error is returned.
-	      "-985:No error message available."].indexOf(err.message));
+	      "-985:No error message available."].indexOf(err.message) > -1);
       Helpers.logInfo('Test passed.');
       test.done();
     } else {
