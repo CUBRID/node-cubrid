@@ -1,6 +1,6 @@
 var path = require('path');
 
-exports[path.basename(__dirname)] = function (test) {
+exports[path.basename(__filename)] = function (test) {
 	var client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection();
 
 	test.expect(2);
