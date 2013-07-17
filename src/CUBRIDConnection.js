@@ -56,8 +56,6 @@ function CUBRIDConnection(brokerServer, brokerPort, user, password, database, ca
     this._queryCache = new Cache();
   }
 
-  this._socket = new Net.Socket();
-
   // Connection parameters
   this.brokerServer = brokerServer || 'localhost';
   this.initialBrokerPort = brokerPort || 33000;
