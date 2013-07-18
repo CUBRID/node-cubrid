@@ -56,12 +56,43 @@ If there is a vital need to run queries in parallel, developers can use connecti
 
 ### Creating a CUBRID client
 
-	// All arguments are optional in which case default values will be set.
-	var client = CUBRID.createCUBRIDConnection(host, port, user, password, database);
-	// Alias function since version 2.1.0.
-	var client = CUBRID.createConnection(host, port, user, password, database);
+	// `createCUBRIDConnection()` function accepts either an object or a list of
+	// connection parameters. The following list of parameters are supported at
+	// this moment:
+	// 1. `host`: an IP or a domain name of the CUBRID host (without http:// part).
+	// 	   Defaults to `localhost`.
+	// 2. `port`: a port CUBRID is listening at. Defaults to `33000`.
+	// 3. `user`: the database username. Defaults to `public`.
+	// 4. `password`: the database user password. Defaults to an empty string.
+	// 5. `database`: the name of a database to connect to. Default to `demodb`.
+	// 6. `cacheTimeout`: the timeout value in milliseconds for the query results
+	//	  cache. All query results will be cached if `cacheTimeout > 0`. The
+	//	  cached results will be returned if the same SQL query is executed within
+	// 	  the timeout period. Defaults to `0`.
+	// 7. `connectionTimeout`: the timeout value in milliseconds for the connection.
+	//	  If `connectionTimeout = 0`, it will wait until the network socket times out
+	//	  itself. Defaults to `0`.
 
-To establish a connection, first you must instantiate a CUBRID database client by providing a host name (default: `localhost`), the broker port (default: `33000`), database username (default: `public`), password (default: empty string), and finally the database name (default: `demodb`). All arguments are optional.
+	// All arguments are optional in which case default values will be set.
+	var client = CUBRID.createCUBRIDConnection(host, port, user, password, database, cacheTimeout, connectionTimeout);
+
+	// Alias function since version 2.1.0.
+	var client = CUBRID.createConnection(host, port, user, password, database, cacheTimeout, connectionTimeout);
+	
+	// Alternatively, an object of parameters can be passed.
+	var client = CUBRID.createConnection(paramsObject);
+
+The following example shows how to create a client by providing an object of connection parameters.
+
+	var client = CUBRID.createConnection({
+		host: host,
+		port: port,
+		user: user,
+		password: password:
+		database: database,
+		cacheTimeout: cacheTimeout,
+		connectionTimeout: connectionTimeout
+	});
 
 ### Establishing a connection
 

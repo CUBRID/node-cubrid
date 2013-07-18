@@ -44,23 +44,26 @@ Util.inherits(CUBRIDConnection, EventEmitter);
  * @param cacheTimeout
  * @constructor
  */
-function CUBRIDConnection(brokerServer, brokerPort, user, password, database, cacheTimeout) {
+function CUBRIDConnection(brokerServer, brokerPort, user, password, database, cacheTimeout, connectionTimeout) {
   // Using EventEmitter.call on an object will do the setup of instance methods / properties
   // (not inherited) of an EventEmitter.
   // It is similar in purpose to super(...) in Java or base(...) in C#, but it is not implicit in Javascript.
   // Because of this, we must manually call it ourselves:
   EventEmitter.call(this);
 
+	// Allow to pass connection parameters as an object.
 	if (typeof brokerServer === 'object') {
 		brokerPort = brokerServer.port;
 		user = brokerServer.user;
 		password = brokerServer.password;
 		database = brokerServer.database;
 		cacheTimeout = brokerServer.cacheTimeout;
+		connectionTimeout = brokerServer.connectionTimeout;
 		brokerServer = brokerServer.host;
 	}
 
-  this._queryCache = (typeof cacheTimeout !== 'undefined' && cacheTimeout > 0) ? new Cache() : null;
+	// `cacheTimeout` is provided in milliseconds, but the `Cache` class requires seconds.
+  this._queryCache = cacheTimeout && cacheTimeout > 0 ? new Cache(cacheTimeout / 1000) : null;
 
   // Connection parameters
   this.brokerServer = brokerServer || 'localhost';
@@ -69,6 +72,8 @@ function CUBRIDConnection(brokerServer, brokerPort, user, password, database, ca
   this.user = user || 'public';
   this.password = password || '';
   this.database = database || 'demodb';
+	// Connection timeout in milliseconds.
+	this._CONNECTION_TIMEOUT = connectionTimeout || 0;
 
   // Session public variables
   this.autoCommitMode = null; // Will be initialized on connect
@@ -126,9 +131,6 @@ function CUBRIDConnection(brokerServer, brokerPort, user, password, database, ca
 
   // Database engine version
   this._DB_ENGINE_VER = '';
-
-  // Timeout values (msec.)
-  this._CONNECTION_TIMEOUT = 0;
 
   // Enforce execute query using the old protocol
   this._ENFORCE_OLD_QUERY_PROTOCOL = false;

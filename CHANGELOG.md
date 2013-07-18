@@ -10,6 +10,7 @@
 - Enh: APIS-593, Add `createConnection()` alias for `createCUBRIDConnection()`.
 - Enh: allow to get engine version synchronously.
 - Enh: APIS-592, Allow to pass an object to createCUBRIDConnection().
+- Enh: allow to pass a connection timeout value as part of connection parameters.
 - Fix: test path for `node_modules`.
 - Fix: host name for tests.
 - Fix: travis script.
