@@ -9,6 +9,7 @@
 - Enh: APIS-594, Add `end()` alias for `close()`.
 - Enh: APIS-593, Add `createConnection()` alias for `createCUBRIDConnection()`.
 - Enh: allow to get engine version synchronously.
+- Enh: APIS-592, Allow to pass an object to createCUBRIDConnection().
 - Fix: test path for `node_modules`.
 - Fix: host name for tests.
 - Fix: travis script.

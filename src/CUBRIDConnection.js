@@ -51,10 +51,16 @@ function CUBRIDConnection(brokerServer, brokerPort, user, password, database, ca
   // Because of this, we must manually call it ourselves:
   EventEmitter.call(this);
 
-  this._queryCache = null;
-  if (typeof cacheTimeout !== 'undefined' && cacheTimeout > 0) {
-    this._queryCache = new Cache();
-  }
+	if (typeof brokerServer === 'object') {
+		brokerPort = brokerServer.port;
+		user = brokerServer.user;
+		password = brokerServer.password;
+		database = brokerServer.database;
+		cacheTimeout = brokerServer.cacheTimeout;
+		brokerServer = brokerServer.host;
+	}
+
+  this._queryCache = (typeof cacheTimeout !== 'undefined' && cacheTimeout > 0) ? new Cache() : null;
 
   // Connection parameters
   this.brokerServer = brokerServer || 'localhost';
