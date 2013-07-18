@@ -19,24 +19,25 @@ exports['test_SchemaAttribute'] = function (test) {
         Helpers.logInfo(result[i]);
       }
 
+	    // CUBRID 8.4.x
       if (client._DB_ENGINE_VER.startsWith('8.4')) {
         test.ok(result.length === 191);
+      } else {
+	      // CUBRID 9.0+
+        test.ok(result.length === 212);
       }
-      else {
-        if (client._DB_ENGINE_VER.startsWith('9.1')) {
-          test.ok(result.length === 212);
-        }
-      }
+
       test.ok(result[0].Name === 'code');
       test.ok(result[0].Scale === 0);
+
+	    // CUBRID 8.4.x
       if (client._DB_ENGINE_VER.startsWith('8.4')) {
         test.ok(result[0].Precision === 0);
+      } else {
+	      // CUBRID 9.0+
+        test.ok(result[0].Precision === 10);
       }
-      else {
-        if (client._DB_ENGINE_VER.startsWith('9.1')) {
-          test.ok(result[0].Precision === 10);
-        }
-      }
+
       test.ok(result[0].NonNull === true);
       test.ok(result[0].Unique === true);
       test.ok(result[0].ClassName === 'athlete');

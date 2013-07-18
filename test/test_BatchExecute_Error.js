@@ -13,11 +13,10 @@ exports['test_BatchExecute_Error'] = function (test) {
 		if (err) {
 			errorHandler(err);
 		} else {
-			if (client._DB_ENGINE_VER.startsWith('8.4.3') ||
-					client._DB_ENGINE_VER.startsWith('9.1')) {
-				test.expect(3);
-			} else {
+			if (client._DB_ENGINE_VER === '8.4.1') {
 				test.expect(1);
+			} else {
+				test.expect(3);
 			}
 
 			Helpers.logInfo('Connected.');
@@ -29,18 +28,21 @@ exports['test_BatchExecute_Error'] = function (test) {
 			sqlsArr.push('create table node_test(id abc)');
 
 			client.batchExecuteNoQuery(sqlsArr, function (err) {
-				// Driver version in 8.4.3 and 9.1.0 return an array of errors.
+				// Driver version >= 8.4.3 return an array of errors.
 				if (err instanceof Array) {
 					test.ok(err.length == 2);
-					
-					if (client._DB_ENGINE_VER.startsWith('9.1')) {
-						test.ok(err[0].message === "-494:Semantic: before '  xyz)'\nxyz is not defined. create class node_test ( id xyz ) ");
-						test.ok(err[1].message === "-494:Semantic: before '  abc)'\nabc is not defined. create class node_test ( id abc ) ");
-					} else {
+
+					// CUBRID 8.4.x
+					if (client._DB_ENGINE_VER.startsWith('8.4')) {
 						test.ok(err[0].message === '-494:Semantic: xyz is not defined. create class node_test ( id xyz ) ');
 						test.ok(err[1].message === '-494:Semantic: abc is not defined. create class node_test ( id abc ) ');
+					} else {
+						// CUBRID 9.0+
+						test.ok(err[0].message === "-494:Semantic: before '  xyz)'\nxyz is not defined. create class node_test ( id xyz ) ");
+						test.ok(err[1].message === "-494:Semantic: before '  abc)'\nabc is not defined. create class node_test ( id abc ) ");
 					}
 				} else {
+					// Driver version in 8.4.1 returns a single error.
 					test.ok(err.message === '-494:Semantic: xyz is not defined. create class node_test ( id xyz ) ');
 				}
 
