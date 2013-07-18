@@ -1,6 +1,6 @@
 var path = require('path');
 
-exports[path.basename(__dirname, '.js')] = function (test) {
+exports[path.basename(__filename)] = function (test) {
 	var CUBRID = require('../'),
 			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
 			Helpers = CUBRID.Helpers,

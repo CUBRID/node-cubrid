@@ -19,14 +19,14 @@ exports['test_SchemaClassPrivilege'] = function (test) {
         Helpers.logInfo(result[i]);
       }
 
-      if (client._DB_ENGINE_VER.startsWith('8.4')) {
+	    // CUBRID 8.4.x
+      if (client.getEngineVersion().startsWith('8.4')) {
         test.ok(result.length === 96);
+      } else {
+	      // CUBRID 9.0+
+        test.ok(result.length === 97);
       }
-      else {
-        if (client._DB_ENGINE_VER.startsWith('9.1')) {
-          test.ok(result.length === 97);
-        }
-      }
+
       test.ok(result[0].TableName === 'db_root');
       test.ok(result[0].Privilege === 'SELECT');
       test.ok(result[0].Grantable === false);

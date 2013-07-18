@@ -21,10 +21,10 @@ exports['test_Schema'] = function (test) {
         Helpers.logInfo(result[i]);
       }
 
-	    if (client._DB_ENGINE_VER.startsWith('8.4')) {
+	    if (client.getEngineVersion().startsWith('8.4')) {
         test.ok(result.length === 32);
       } else {
-        if (client._DB_ENGINE_VER.startsWith('9')) {
+        if (client.getEngineVersion().startsWith('9')) {
           test.ok(result.length === 33);
         }
       }
@@ -35,25 +35,23 @@ exports['test_Schema'] = function (test) {
     },
     function (result, callback) {
       Helpers.logInfo('Schema views results:');
-      for (var i = 0; i < result.length; i++) {
+
+      for (var i = 0; i < result.length; ++i) {
         Helpers.logInfo(result[i]);
       }
-      if (client._DB_ENGINE_VER.startsWith('8.4')) {
+
+      if (client.getEngineVersion().startsWith('8.4')) {
         test.ok(result.length === 16);
+      } else {
+        test.ok(result.length === 17);
       }
-      else {
-        if (client._DB_ENGINE_VER.startsWith('9')) {
-          test.ok(result.length === 17);
-        }
-      }
+
       callback();
     },
-
     function (callback) {
       client.close(callback);
     }
-  ],
-  function (err) {
+  ], function (err) {
     if (err) {
       throw err.message;
     } else {

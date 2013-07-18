@@ -22,10 +22,12 @@ exports['test_Schema_Events'] = function (test) {
 
   client.on(client.EVENT_SCHEMA_DATA_AVAILABLE, function (result) {
     Helpers.logInfo('Schema data received.');
-    for (var i = 0; i < result.length; i++) {
+
+	  for (var i = 0; i < result.length; ++i) {
       Helpers.logInfo(result[i]);
     }
-    if (client._DB_ENGINE_VER.startsWith('8.4')) {
+
+	  if (client.getEngineVersion().startsWith('8.4')) {
       if (currentSchemaToReceive === client.SCHEMA_TABLE) {
         test.ok(result.length === 32);
       } else {
@@ -34,16 +36,15 @@ exports['test_Schema_Events'] = function (test) {
         }
       }
     } else {
-      if (client._DB_ENGINE_VER.startsWith('9')) {
-        if (currentSchemaToReceive === client.SCHEMA_TABLE) {
-          test.ok(result.length === 33);
-        } else {
-          if (currentSchemaToReceive === client.SCHEMA_VIEW) {
-            test.ok(result.length === 17);
-          }
+      if (currentSchemaToReceive === client.SCHEMA_TABLE) {
+        test.ok(result.length === 33);
+      } else {
+        if (currentSchemaToReceive === client.SCHEMA_VIEW) {
+          test.ok(result.length === 17);
         }
       }
     }
+
     if (currentSchemaToReceive === client.SCHEMA_TABLE) {
       client.getSchema(client.SCHEMA_VIEW, null);
       currentSchemaToReceive = client.SCHEMA_VIEW;
