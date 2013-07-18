@@ -402,11 +402,19 @@ CUBRIDConnection.prototype.connect = function (callback) {
  * @param callback
  */
 CUBRIDConnection.prototype.getEngineVersion = function (callback) {
-  var self = this;
-  Helpers._emitEvent(self, self._NO_ERROR, self.EVENT_ERROR, self.EVENT_ENGINE_VERSION_AVAILABLE, self._DB_ENGINE_VER);
-  if (callback && typeof(callback) === 'function') {
-    callback.call(self, self._NO_ERROR, self._DB_ENGINE_VER);
-  }
+	Helpers._emitEvent(this, this._NO_ERROR, this.EVENT_ERROR, this.EVENT_ENGINE_VERSION_AVAILABLE, this._DB_ENGINE_VER);
+
+	// Support asynchronous call for backward compatibility.
+	if (typeof(callback) === 'function') {
+		var self = this;
+
+		process.nextTick(function () {
+			callback(self._NO_ERROR, self._DB_ENGINE_VER);
+		});
+	}
+
+	// Support synchronous call.
+	return this._DB_ENGINE_VER;
 };
 
 /**
