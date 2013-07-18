@@ -423,129 +423,135 @@ CUBRIDConnection.prototype.getEngineVersion = function (callback) {
  * @param callback
  */
 CUBRIDConnection.prototype.batchExecuteNoQuery = function (sqls, callback) {
-  var self = this;
-  var sqlsArr = null;
-  var err = self._NO_ERROR;
+  var self = this,
+		  sqlsArr,
+		  err = self._NO_ERROR;
 
   if (Array.isArray(sqls)) {
     if (sqls.length === 0) {
       // No commands to execute
       Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_BATCH_COMMANDS_COMPLETED);
-      if (callback && typeof(callback) === 'function') {
-        callback.call(self, err);
+
+      if (typeof(callback) === 'function') {
+        callback(err);
       }
+
       return;
     }
+
     sqlsArr = sqls;
   } else {
     sqlsArr = new Array(sqls);
   }
 
-  for (var i = 0; i < sqlsArr.length; i++) {
+  for (var i = 0; i < sqlsArr.length; ++i) {
     if (!Helpers._validateInputSQLString(sqlsArr[i])) {
       err = new Error(ErrorMessages.ERROR_INPUT_VALIDATION);
       Helpers._emitEvent(self, err, self.EVENT_ERROR, null);
-      if (callback && typeof(callback) === 'function') {
-        callback.call(self, err);
+
+      if (typeof(callback) === 'function') {
+        callback(err);
       }
+
       return;
     }
   }
 
-  var responseData = new Buffer(0);
-  var expectedResponseLength = self._INVALID_RESPONSE_LENGTH;
+  var responseData = new Buffer(0),
+		  expectedResponseLength = self._INVALID_RESPONSE_LENGTH;
 
-  ActionQueue.enqueue(
-    [
-      function (cb) {
-        if (self.connectionOpened === false) {
-          self.connect(cb);
-        } else {
-          cb();
+  ActionQueue.enqueue([
+    function (cb) {
+      if (self.connectionOpened === false) {
+        self.connect(cb);
+      } else {
+        cb();
+      }
+    },
+    function (cb) {
+      var packetWriter = new PacketWriter(),
+		      batchExecuteNoQueryPacket = new BatchExecuteNoQueryPacket({
+	          SQLs           : sqlsArr,
+	          casInfo        : self._CASInfo,
+	          autoCommitMode : self.autoCommitMode,
+	          dbVersion      : self._DB_ENGINE_VER
+	        });
+
+      batchExecuteNoQueryPacket.write(packetWriter);
+      self._socket.write(packetWriter._buffer);
+
+      self._socket.on('data', function (data) {
+        responseData = Helpers._combineData(responseData, data);
+
+        if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH &&
+          responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
+          expectedResponseLength = Helpers._getExpectedResponseLength(responseData);
         }
-      },
 
-      function (cb) {
-        var packetWriter = new PacketWriter();
-        var batchExecuteNoQueryPacket = new BatchExecuteNoQueryPacket(
-          {
-            SQLs           : sqlsArr,
-            casInfo        : self._CASInfo,
-            autoCommitMode : self.autoCommitMode,
-            dbVersion      : self._DB_ENGINE_VER
-          }
-        );
-        batchExecuteNoQueryPacket.write(packetWriter);
-        self._socket.write(packetWriter._buffer);
+        if (responseData.length === expectedResponseLength) {
+          self._socket.removeAllListeners('data');
 
-        self._socket.on('data', function (data) {
-          responseData = Helpers._combineData(responseData, data);
-          if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH &&
-            responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
-            expectedResponseLength = Helpers._getExpectedResponseLength(responseData);
-          }
-          if (responseData.length === expectedResponseLength) {
-            self._socket.removeAllListeners('data');
-            var packetReader = new PacketReader();
-            packetReader.write(responseData);
-            batchExecuteNoQueryPacket.parse(packetReader);
-            var errorCode = batchExecuteNoQueryPacket.errorCode;
-            var errorMsg = batchExecuteNoQueryPacket.errorMsg;
-            if (!self._DB_ENGINE_VER.startsWith('8.4.1')) {
-              for (var i = 0; i < batchExecuteNoQueryPacket.arrResultsCode.length; i++) {
-                if (batchExecuteNoQueryPacket.arrResultsCode[i] < 0) {
-                  if (err === null) {
-                    err = [];
-                  }
-                  err.push(new Error(batchExecuteNoQueryPacket.arrResultsCode[i] +
-                    ':' + batchExecuteNoQueryPacket.arrResultsMsg[i]));
+          var packetReader = new PacketReader();
+
+          packetReader.write(responseData);
+          batchExecuteNoQueryPacket.parse(packetReader);
+
+          var errorCode = batchExecuteNoQueryPacket.errorCode,
+		          errorMsg = batchExecuteNoQueryPacket.errorMsg;
+
+          if (!self._DB_ENGINE_VER.startsWith('8.4.1')) {
+            for (var i = 0; i < batchExecuteNoQueryPacket.arrResultsCode.length; i++) {
+              if (batchExecuteNoQueryPacket.arrResultsCode[i] < 0) {
+                if (err === null) {
+                  err = [];
                 }
-              }
-            } else {
-              if (errorCode !== 0) {
-                err = new Error(errorCode + ':' + errorMsg);
+
+                err.push(new Error(batchExecuteNoQueryPacket.arrResultsCode[i] +
+                  ':' + batchExecuteNoQueryPacket.arrResultsMsg[i]));
               }
             }
-            if (cb && typeof(cb) === 'function') {
-              cb.call(self, err);
+          } else {
+            if (errorCode !== 0) {
+              err = new Error(errorCode + ':' + errorMsg);
             }
           }
-        });
-      }
-    ],
 
-    function (err) {
-      Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_BATCH_COMMANDS_COMPLETED);
-      if (callback && typeof(callback) === 'function') {
-        callback.call(self, err);
-      }
+          cb(err);
+        }
+      });
     }
-  );
+  ], function (err) {
+    Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_BATCH_COMMANDS_COMPLETED);
+
+    if (typeof(callback) === 'function') {
+      callback(err);
+    }
+  });
 };
 
-/**
- * Execute a SQL statement which does not return records
- * @param sql
- * @param callback
- */
+// ## client.execute(sql, callback);
+// `sql` is a string which represents a WRITE query or an array of strings
+// for batch processing.
+// `callback(err)` function accepts one argument: an error object if any.
 CUBRIDConnection.prototype.execute = function (sql, callback) {
-  var self = this;
-  var err = self._NO_ERROR;
+  var self = this,
+		  err = self._NO_ERROR;
 
   if (!Helpers._validateInputSQLString(sql)) {
     err = new Error(ErrorMessages.ERROR_INPUT_VALIDATION);
     Helpers._emitEvent(self, err, self.EVENT_ERROR, null);
-    if (callback && typeof(callback) === 'function') {
-      callback.call(self, err);
+
+    if (typeof(callback) === 'function') {
+      callback(err);
     }
+
     return null;
   }
 
   var arrSQL = [];
   arrSQL.push(sql);
 
-  if(this._ENFORCE_OLD_QUERY_PROTOCOL === true)
-  {
+  if(this._ENFORCE_OLD_QUERY_PROTOCOL === true){
     return self.executeWithTypedParams(sql, null, null, callback);
   } else {
     return self.batchExecuteNoQuery(arrSQL, callback);
