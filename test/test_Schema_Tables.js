@@ -19,13 +19,10 @@ exports['test_Schema_Tables'] = function (test) {
         Helpers.logInfo(result[i]);
       }
 
-      if (client._DB_ENGINE_VER.startsWith('8.4')) {
+      if (client.getEngineVersion().startsWith('8.4')) {
         test.ok(result.length === 32);
-      }
-      else {
-        if (client._DB_ENGINE_VER.startsWith('9')) {
-          test.ok(result.length === 33);
-        }
+      } else {
+        test.ok(result.length === 33);
       }
 
       callback();
@@ -33,8 +30,7 @@ exports['test_Schema_Tables'] = function (test) {
     function (callback) {
       client.close(callback);
     }
-  ],
-  function (err) {
+  ], function (err) {
     if (err) {
       throw err.message;
     } else {

@@ -13,7 +13,7 @@ exports['test_BatchExecute_Error'] = function (test) {
 		if (err) {
 			errorHandler(err);
 		} else {
-			if (client._DB_ENGINE_VER === '8.4.1') {
+			if (client.getEngineVersion().startsWith('8.4.1')) {
 				test.expect(1);
 			} else {
 				test.expect(3);
@@ -33,7 +33,7 @@ exports['test_BatchExecute_Error'] = function (test) {
 					test.ok(err.length == 2);
 
 					// CUBRID 8.4.x
-					if (client._DB_ENGINE_VER.startsWith('8.4')) {
+					if (client.getEngineVersion().startsWith('8.4')) {
 						test.ok(err[0].message === '-494:Semantic: xyz is not defined. create class node_test ( id xyz ) ');
 						test.ok(err[1].message === '-494:Semantic: abc is not defined. create class node_test ( id abc ) ');
 					} else {

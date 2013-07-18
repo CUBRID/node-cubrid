@@ -20,7 +20,7 @@ exports['test_SchemaClassPrivilege'] = function (test) {
       }
 
 	    // CUBRID 8.4.x
-      if (client._DB_ENGINE_VER.startsWith('8.4')) {
+      if (client.getEngineVersion().startsWith('8.4')) {
         test.ok(result.length === 96);
       } else {
 	      // CUBRID 9.0+

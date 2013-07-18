@@ -22,7 +22,7 @@ exports['test_SchemaImportedKeys'] = function (test) {
 	    test.ok(result.length === 2);
 
 	    // CUBRID 8.4.x
-      if (client._DB_ENGINE_VER.startsWith('8.4')) {
+      if (client.getEngineVersion().startsWith('8.4')) {
         test.ok(result[0].FkName === 'fk_game_athlete_code');
         test.ok(result[0].PkName === 'pk_athlete_code');
         test.ok(result[0].FkTableName === 'game');
