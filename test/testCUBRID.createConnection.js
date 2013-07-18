@@ -1,6 +1,6 @@
 var path = require('path');
 
-exports[path.basename(__dirname)] = function (test) {
+exports[path.basename(__filename)] = function (test) {
 	var CUBRID = require('../'),
 			config = require('./testSetup/test_Setup').config,
 			client = new CUBRID.createConnection(config.host, config.port, config.user, config.password, config.database);

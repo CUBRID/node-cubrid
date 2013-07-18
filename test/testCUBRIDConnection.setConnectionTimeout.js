@@ -1,6 +1,6 @@
 var path = require('path');
 
-exports[path.basename(__dirname)] = function (test) {
+exports[path.basename(__filename)] = function (test) {
 	var CUBRID = require('../'),
 			ErrorMessages = require('../src' + (process.env.CODE_COV ? '-cov' : '') + '/constants/ErrorMessages'),
 			client = new CUBRID.createCUBRIDConnection('www.google.com', 33000, 'public', '', 'demodb');

@@ -8,12 +8,15 @@
 - Enh: added tests for APIS-582.
 - Enh: APIS-594, Add `end()` alias for `close()`.
 - Enh: APIS-593, Add `createConnection()` alias for `createCUBRIDConnection()`.
+- Enh: allow to get engine version synchronously.
 - Fix: test path for `node_modules`.
 - Fix: host name for tests.
 - Fix: travis script.
 - Fix: broken test on CUBRID 9.1.
 - Fix: cannot set the same timeout value twice. Gets reset to 0.
 - Fix: APIS-603, Even if timeout occurs, the socket doesn't seem to get closed.
+- Fix: a broken test.
+- Fix: APIS-606, adjusted test cases to run on CUBRID 8.4.4 and 9.2.0.
 - Ref: cleanup package.json.
 - Ref: revert version to 2.0.2.
 - Ref: APIS-589, disable debugging mode by default.
@@ -38,6 +41,8 @@
 - Ref: `demodb` recipe will install CUBRID as a prerequisite, so no need to specify explicitly.
 - Ref: modified the test to handle incorrect error message when CUBRID is installed/started as root.
 - Ref: install JSCoverage to instrument code covered version of the node-cubrid module.
+- Ref: fix the tests name.
+- Ref: no need to create a socket when creating a connection client. It should be created upon connection.
 - Doc: updated supported CUBRID version.
 - Doc: updated README documentation.
 

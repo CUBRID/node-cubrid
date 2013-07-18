@@ -19,13 +19,11 @@ exports['test_Schema_Views'] = function (test) {
         Helpers.logInfo(result[i]);
       }
 
-      if (client._DB_ENGINE_VER.startsWith('8.4')) {
+      if (client.getEngineVersion().startsWith('8.4')) {
         test.ok(result.length === 16);
       }
       else {
-        if (client._DB_ENGINE_VER.startsWith('9')) {
-          test.ok(result.length === 17);
-        }
+        test.ok(result.length === 17);
       }
 
       callback();
