@@ -5,19 +5,19 @@
 
 ## Introduction
 
-This is a Node.js driver for [CUBRID](http://www.cubrid.org) open-source relational database. **node-cubrid** is implemented in 100% JavaScript with no external dependency. Besides the database specific APIs, the module also supplies several *helper* APIs which are useful to sanitize and validate user input values, format and parameterize SQL statements.
+This is a Node.js driver for [CUBRID](http://www.cubrid.org) open-source relational database. **node-cubrid** is implemented in 100% JavaScript with no external dependency. Besides the database specific APIs, the module supplies several *helper* APIs which are useful to sanitize and validate user input values, format and parameterize SQL statements, etc.
 
 ## Key features
 
-- Full (backward) compatibility with CUBRID 8.4.1, 8.4.3, 9.0 and 9.1 releases.
+- Full compatibility with CUBRID 8.4.1+ releases.
 - Rich database support: Connect, Query, Fetch, Execute, Commit etc.
-- Support or queries queueing
-- Support for database schema
-- Support for database parameters and transactions
-- Support for LOB objects
-- Out of the box driver events model
-- Extensive tests suite
-- User demos: E2E scenarios, web sites
+- Support for queries queueing.
+- Support for database schema.
+- Support for database parameters and transactions.
+- Support for LOB objects.
+- Out of the box driver events model.
+- Extensive tests suite (260K+ assertions).
+- User demos: E2E scenarios, web sites.
 - ...and many more!
 
 ## Installation
@@ -54,16 +54,54 @@ If there is a vital need to run queries in parallel, developers can use connecti
 
 ## API Documentation
 
+### Creating a CUBRID client
+
+	// `createCUBRIDConnection()` function accepts either an object or a list of
+	// connection parameters. The following list of parameters are supported at
+	// this moment:
+	// 1. `host`: an IP or a domain name of the CUBRID host (without http:// part).
+	// 	   Defaults to `localhost`.
+	// 2. `port`: a port CUBRID is listening at. Defaults to `33000`.
+	// 3. `user`: the database username. Defaults to `public`.
+	// 4. `password`: the database user password. Defaults to an empty string.
+	// 5. `database`: the name of a database to connect to. Default to `demodb`.
+	// 6. `cacheTimeout`: the timeout value in milliseconds for the query results
+	//	  cache. All query results will be cached if `cacheTimeout > 0`. The
+	//	  cached results will be returned if the same SQL query is executed within
+	// 	  the timeout period. Defaults to `0`.
+	// 7. `connectionTimeout`: the timeout value in milliseconds for the connection.
+	//	  If `connectionTimeout = 0`, it will wait until the network socket times out
+	//	  itself. Defaults to `0`.
+
+	// All arguments are optional in which case default values will be set.
+	var client = CUBRID.createCUBRIDConnection(host, port, user, password, database, cacheTimeout, connectionTimeout);
+
+	// Alias function since version 2.1.0.
+	var client = CUBRID.createConnection(host, port, user, password, database, cacheTimeout, connectionTimeout);
+	
+	// Alternatively, an object of parameters can be passed.
+	var client = CUBRID.createConnection(paramsObject);
+
+The following example shows how to create a client by providing an object of connection parameters.
+
+	var client = CUBRID.createConnection({
+		host: host,
+		port: port,
+		user: user,
+		password: password:
+		database: database,
+		cacheTimeout: cacheTimeout,
+		connectionTimeout: connectionTimeout
+	});
+
 ### Establishing a connection
 
-	// All arguments are required.
-	var client = CUBRID.createCUBRIDConnection(host, port, user, password, database);
-	// Alias function.
-	var client = CUBRID.createConnection(host, port, user, password, database);
-
-First, user establishes a connection with a CUBRID server by providing a host name (default: `localhost`), the broker port (default: `33000`), database username (default: `public`), password (default: empty string), and finally the database name (default: `demodb`). All arguments are required.
+	// callback(err) function receives one arguments: the error message if any.
+	client.connect(callback);
 
 #### Callback style
+
+The code below illustrates a *callback* style when a function is passed as an argument to a `connect()` API which is called after the module receives a response from CUBRID.
 
 	var CUBRID = require('node-cubrid'),
 			dbConf = {
@@ -91,8 +129,6 @@ First, user establishes a connection with a CUBRID server by providing a host na
 		}
 	});
 
-The above code illustrates a *callback* style when a function is passed as an argument to a `connect()` API which is called after the module receives a response from CUBRID.
-
 #### Event-based style
 
 Alternatively, developers can write applications based on an event-based coding style. For example, the above code can be rewritten as:
@@ -114,6 +150,10 @@ Alternatively, developers can write applications based on an event-based coding 
 	});
 
 If you prefer the event-based coding style, refer to the [Driver Event model](http://blog.cubrid.org/wiki_apis/entry/cubrid-node-js-api-overview) wiki page to learn more about other events **node-cubrid** emits for certain API calls.
+
+#### Implicit connection
+
+**node-cubrid** also provides implicit connection feature. When you execute a query on a client without explicitly establishing a connection with `client.connect()`, the driver will automatically establish a connection, then execute your query.
 
 #### Connection errors
 
@@ -146,6 +186,7 @@ There can be several reasons for a connection to fail:
 
 #### Setting connection timeout
 
+	// Both functions are available since version 2.0.0.
 	var timeoutInMsec = client.getConnectionTimeout();
 	// Set connection timeout in milliseconds.
 	client.setConnectionTimeout(2000);
@@ -181,10 +222,11 @@ As you see, the timeout is specified in milliseconds `2,000`, which is 2 seconds
 
 #### Setting CUBRID Server Parameters
 
+	// Both functions are available since version 2.0.0.
 	client.getDatabaseParameter(paramType);
 	client.setDatabaseParameter(paramType, paramValue);
 
-After connecting to a database, a user can specify some *global* session parameters that will control the behavior of SQL statements transactions’ isolation level execution, the auto-commit behavior and others.
+After connecting to a database, a user can override some *global* session parameters that will control the behavior queries being executed. For example, isolation level of transactions, the auto-commit behavior, etc.
 
 The complete list of these CUBRID database parameters is defined in the [`Constants.js` ](https://github.com/CUBRID/node-cubrid/blob/master/src/constants/CASConstants.js#L367) file:
 
@@ -236,12 +278,192 @@ The output result is:
 
 ![Figure 2: CUBRID Manager](http://blog.cubrid.org:8080/files/attach/images/194379/729/617/manager.png)
 
-If you need to change the default values for these parameters, it is highly recommended to do it immediately after `connect ()`. One consequence is that you must use an explicit `connect ()` statement in your application, and not the **implicit connect** driver feature (the **implicit connect** feature means that the driver can auto-connect when a query is first executed without the need to issues an explicit `connect()` command).
+If you need to change the default values for these parameters, it is highly recommended to do it immediately after `connect ()`. One consequence is that you **must** use an explicit `connect ()` statement in your application, and not the **implicit connect** driver feature (the **implicit connect** feature means that the driver can auto-connect when a query is first executed without the need to issues an explicit `connect()` command).
+
+### Executing SQL queries
+
+#### READ queries
+
+	// Callback style.
+	// `sql` is a string representation of a READ query.
+	// `callback(err, result, queryHandle)` function accepts three arguments.
+	// 1. `err`: an error object if any.
+	// 2. `result`: a string value of the query result. No type casting as of version 2.1.0.
+	// 3. `queryHandle`: an integer ID for the query handle. Used to fetch more data.
+	client.query(sql, callback);
+	
+	// Event style.
+	client.query(sql);
+	// `callback(result, queryHandle)` function accepts two arguments.
+	client.on(client.EVENT_QUERY_DATA_AVAILABLE, callback);
+
+##### Callback example
+
+	var CUBRID = require('node-cubrid'),
+		// `Result2Array` is a sub-module which provides a set of helper
+		// functions to convert the query result to array, object, etc.
+		Result2Array = CUBRID.Result2Array;
+	
+	// Connection is established implicitly.
+	client.query('SELECT * FROM nation', function (err, result, queryHandle) {
+      if (err) {
+        throw err;
+      } else {
+        var arr = Result2Array.RowsArray(result);
+        
+        for (var j = 0, len = arr.length; j < len; ++j) {
+          console.log(arr[j]);
+        }
+        
+        // Fetch more data using queryHandle if necessary.
+      }
+    });
+
+##### Event style example
+
+	client.query('SELECT * FROM nation');
+
+	client.on(client.EVENT_QUERY_DATA_AVAILABLE, function (result, queryHandle) {
+      var arr = Result2Array.RowsArray(result);
+        
+      for (var j = 0, len = arr.length; j < len; ++j) {
+        console.log(arr[j]);
+      }
+        
+      // Fetch more data using queryHandle if necessary.
+    }
+
+#### Fetch more data
+
+	// Callback style.
+	// `queryHandle`: an integer ID for the query handle obtained from query() function.
+	// `callback(err, result, queryHandle)` function accepts three arguments.
+	// 1. `err`: an error object if any.
+	// 2. `result`: a string value of the query result. No type casting as of version 2.1.0.
+	// 3. `queryHandle`: an integer ID for the query handle. Used to fetch more data.
+	client.fetch(queryHandle, callback);
+	
+	// Event style.
+	client.fetch(sql);
+	// `callback(result, queryHandle)` function accepts two arguments.
+	client.on(client.EVENT_FETCH_DATA_AVAILABLE, callback);
+	// `callback(queryHandle)` function accepts one argument.
+	client.on(client.EVENT_FETCH_NO_MORE_DATA_AVAILABLE, callback);
+
+##### Callback example
+
+	client.query('SELECT * FROM nation', function (err, result, queryHandle) {
+      if (err) {
+        throw err;
+      } else {
+        var arr = Result2Array.RowsArray(result);
+        
+        for (var j = 0, len = arr.length; j < len; ++j) {
+          console.log(arr[j]);
+        }
+        
+        // Fetch more data using queryHandle if necessary.
+        client.fetch(queryHandle, function (err, result, queryHandle) {
+        	// Do the above logic here again.
+        });
+      }
+    });
+
+##### Event style example
+
+	client.query('SELECT * FROM nation');
+
+	client.on(client.EVENT_QUERY_DATA_AVAILABLE, function (result, queryHandle) {
+      var arr = Result2Array.RowsArray(result);
+        
+      for (var j = 0, len = arr.length; j < len; ++j) {
+        console.log(arr[j]);
+      }
+        
+      // Fetch more data using queryHandle if necessary.
+      client.fetch(queryHandle);
+    }
+
+	client.on(client.EVENT_FETCH_DATA_AVAILABLE, function (result, queryHandle) {
+      var arr = Result2Array.RowsArray(result);
+        
+      for (var j = 0, len = arr.length; j < len; ++j) {
+        console.log(arr[j]);
+      }
+        
+      // Continue fetching.
+      client.fetch(queryHandle);
+    }
+
+	client.on(client.EVENT_FETCH_NO_MORE_DATA_AVAILABLE, function (queryHandle) {
+      // Close query;
+    }
+
+#### Close Query
+
+	// `queryHandle`: an integer ID for the query handle obtained from `query()`
+	// or the last `fetch()` function.
+	// `callback(err, queryHandle)` function accepts two arguments:
+	// 1. `err`: an error object if any.
+	// 2. `queryHandle`: the query handle which has been closed.
+	client.closeQuery(queryHandle, callback);
+	
+	// Event style.
+	client.closeQuery(queryHandle);
+	// `callback(queryHandle)` function accepts one argument:
+	// `queryHandle`: the query handle ID which was just closed.
+	client.on(client.EVENT_QUERY_CLOSED, callback);
+
+All READ queries must be closed explicitly.
+
+##### Callback example
+
+	client.query(sql, function (err, result, queryHandle) {
+		var arr = Result2Array.RowsArray(result);
+		
+		if (arr.length) {
+			// Try to fetch more.
+		} else {
+			client.closeQuery(queryHandle, function (err, queryHandle) {
+				// Do something else.
+			});
+		}
+	});
+
+##### Event style example
+
+	client.on(client.EVENT_FETCH_NO_MORE_DATA_AVAILABLE, function (queryHandle) {
+		client.closeQuery(queryHandle);
+    }
+    
+    client.on(client.EVENT_QUERY_CLOSED, function (queryHandle) {
+		// Do something here.
+    }
+
+#### WRITE queries
+
+	// `sql` is a string which represents a WRITE query or an array of strings
+	// for batch processing.
+	// `callback(err)` function accepts one argument: an error object if any.
+	client.execute(sql, callback);
+
+##### Example
+
+	client.execute('CREATE TABLE tbl_test(id INT)', function (err) {
+      if (err) {
+        throw err;
+      } else {
+        // Do something else.
+      }
+    });
+
+After executing WRITE queries there is no need to close the query.
 
 ### Closing a connection
 
+	// callback(err) function accepts one arguments: the error message if any.
 	client.close(callback);
-	// Alias function.
+	// Alias function since version 2.1.0.
 	client.end(callback);
 
 #### Callback style
@@ -268,7 +490,7 @@ If you need to change the default values for these parameters, it is highly reco
 			console.log('connection is closed');
 	});
 
-#### Errors on `close()`
+#### Errors on closing the connection
 
 The following errors may be emitted when the application tries to close the connection:
 
@@ -278,69 +500,12 @@ The following errors may be emitted when the application tries to close the conn
 
 2. If closing a connection was unsuccessful, an error message returned by a database is emitted.
 
-## Usage
+## More examples
 
-The driver code release contains many test cases and demos which will show you how to use the driver.
-The examples are located in the following project folders:
-- <b><i>\demo</i></b>
-- <b><i>\src\test</i></b>
+The driver code release contains many demo examples and test cases which you can find in the following directories:
 
-Here is a stadard coding example, using the driver events model:
-
-    CUBRIDClient.connect();
-
-    CUBRIDClient.on(CUBRIDClient.EVENT_ERROR, function (err) {
-      Helpers.logError('Error!: ' + err.message);
-    });
-
-    CUBRIDClient.on(CUBRIDClient.EVENT_CONNECTED, function () {
-      Helpers.logInfo('Connected.');
-      Helpers.logInfo('Querying: select * from game');
-      CUBRIDClient.query('select * from game', function () {
-      });
-    });
-
-    CUBRIDClient.on(CUBRIDClient.EVENT_QUERY_DATA_AVAILABLE, function (result, queryHandle) {
-      Helpers.logInfo('Data received.');
-      Helpers.logInfo('Returned active query handle: ' + queryHandle);
-      Helpers.logInfo('Total query result rows count: ' + Result2Array.TotalRowsCount(result));
-      Helpers.logInfo('First "batch" of data returned rows count: ' + Result2Array.RowsArray(result).length);
-      Helpers.logInfo('Fetching more rows...');
-      CUBRIDClient.fetch(queryHandle, function () {
-      });
-    });
-
-    CUBRIDClient.on(CUBRIDClient.EVENT_FETCH_DATA_AVAILABLE, function (result, queryHandle) {
-      Helpers.logInfo('*** Fetch data received for query: ' + queryHandle);
-      Helpers.logInfo('*** Current fetch of data returned rows count: ' + Result2Array.RowsArray(result).length);
-      Helpers.logInfo('*** First row: ' + Result2Array.RowsArray(result)[0].toString());
-      // continue to fetch...
-      Helpers.logInfo('...');
-      Helpers.logInfo('...fetching more rows...');
-      Helpers.logInfo('...');
-      CUBRIDClient.fetch(queryHandle, function () {
-      });
-    });
-
-    CUBRIDClient.on(CUBRIDClient.EVENT_FETCH_NO_MORE_DATA_AVAILABLE, function (queryHandle) {
-      Helpers.logInfo('No more data to fetch.');
-      Helpers.logInfo('Closing query: ' + queryHandle);
-      CUBRIDClient.closeQuery(queryHandle, function () {
-      });
-    });
-
-    CUBRIDClient.on(CUBRIDClient.EVENT_QUERY_CLOSED, function (queryHandle) {
-      Helpers.logInfo('Query closed: ' + queryHandle);
-      Helpers.logInfo('Closing connection...');
-
-      CUBRIDClient.close(function () {
-      });
-    });
-
-    CUBRIDClient.on(CUBRIDClient.EVENT_CONNECTION_CLOSED, function () {
-      Helpers.logInfo('Connection closed.');
-    });
-
+- [/demo](https://github.com/CUBRID/node-cubrid/tree/master/demo)
+- [/test](https://github.com/CUBRID/node-cubrid/tree/master/test)
 
 Here is another driver usage example, using the well-known <b>async</b> library (https://github.com/caolan/async):
 
@@ -385,45 +550,6 @@ Here is another driver usage example, using the well-known <b>async</b> library 
       }
     );
 	
-
-Or, if you prefer the standard callbacks "style":
-
-    CUBRIDClient.connect(function (err) {
-      if (err) {
-        errorHandler(err);
-      } else {
-        Helpers.logInfo('Connected.');
-        Helpers.logInfo('Querying: select * from nation');
-        CUBRIDClient.query('select * from nation', function (err, result, queryHandle) {
-          if (err) {
-            errorHandler(err);
-          } else {
-            assert(Result2Array.TotalRowsCount(result) === 215);
-            Helpers.logInfo('Query result rows count: ' + Result2Array.TotalRowsCount(result));
-            var arr = Result2Array.RowsArray(result);
-            for (var j = 0; j < 1; j++) {
-              Helpers.logInfo(arr[j].toString());
-            }
-            CUBRIDClient.closeQuery(queryHandle, function (err) {
-              if (err) {
-                errorHandler(err);
-              } else {
-                Helpers.logInfo('Query closed.');
-                CUBRIDClient.close(function (err) {
-                  if (err) {
-                    errorHandler(err);
-                  } else {
-                    Helpers.logInfo('Connection closed.');
-                    Helpers.logInfo('Test passed.');
-                  }
-                })
-              }
-            })
-          }
-        })
-      }
-    });
-
 This is an example of the 2.0 release newly introduced queries queue processor usage:
 
     var SQL_1 = 'SELECT COUNT(*) FROM [code]';
@@ -446,9 +572,7 @@ This is an example of the 2.0 release newly introduced queries queue processor u
       CUBRIDClient.close();
     });
 
-<b>Once again, remember that there are dozens of ready-to-use coding examples featured in the project, that can give you a very fast startup.</b>
-
-For how-to examples and tutorials, the plae to visit is: [http://www.cubrid.org/wiki_apis/entry/cubrid-node-js-tutorials](http://www.cubrid.org/wiki_apis/entry/cubrid-node-js-tutorials).
+You can also find more tutorials at [http://www.cubrid.org/wiki_apis/entry/cubrid-node-js-tutorials](http://www.cubrid.org/wiki_apis/entry/cubrid-node-js-tutorials).
 
 ## Running tests
 
@@ -456,13 +580,13 @@ To run tests on **node-cubrid** module:
 
 1. `npm install` all testing framework development dependencies.
 2. Make sure:
-	1. CUBRID Server is installed on `localhost`.
+	1. CUBRID Server 8.4.1+ is installed on `localhost`.
 	2. CUBRID Broker is listening on port `33000`.
 	3. `demodb` database is running.
-3. Alternatively, edit test suite connection configurations at `test/nodeunit/testSetup/test_Setup.js` and change the connection information.
+3. Alternatively, edit test suite connection configurations at `test/testSetup/test_Setup.js` and change the connection information.
 4. `npm test` to start testing.
 
-There are over 268K assertion tests which should all pass.
+There are over 268K assertion tests which should all pass on CUBRID 8.4.1+.
 
 ## What's next
 
@@ -473,7 +597,7 @@ And you are more than welcomed to suggest what we should improve or add - please
 
 ## Authors and Contributors
 
-The authors of this driver are members of the CUBRID API team - [http://www.cubrid.org/wiki_apis](http://www.cubrid.org/wiki_apis).
+The authors of this driver are the members of the CUBRID API team - [http://www.cubrid.org/wiki_apis](http://www.cubrid.org/wiki_apis).
 
 We welcome any new contributors and we hope you will enjoy using and coding with CUBRID! :)
 
