@@ -79,7 +79,7 @@ If there is a vital need to run queries in parallel, developers can use connecti
 	// Alias function since version 2.1.0.
 	var client = CUBRID.createConnection(host, port, user, password, database, cacheTimeout, connectionTimeout);
 	
-	// Alternatively, an object of parameters can be passed.
+	// Alternatively, an object of parameters can be passed. Since version 2.1.0.
 	var client = CUBRID.createConnection(paramsObject);
 
 The following example shows how to create a client by providing an object of connection parameters.
@@ -190,8 +190,12 @@ There can be several reasons for a connection to fail:
 	var timeoutInMsec = client.getConnectionTimeout();
 	// Set connection timeout in milliseconds.
 	client.setConnectionTimeout(2000);
+	
+	// Alternatively, set the connection timeout value at client creation time.
+	// Available since version 2.1.0.
+	var client = CUBRID.createConnection(host, port, user, password, database, cacheTimeout, connectionTimeout);
 
-One of the requests we got for the 2.0 driver release was to implement a connection timeout feature. Simply said - wait for the connection to the database to complete within the specified number of seconds and eventually throw an error if the timeout occurs.
+One of the requests we have got for the 2.0 driver release was to implement a connection timeout feature. Simply said - wait for the connection to the database to complete within the specified number of seconds and eventually throw an error if the timeout occurs.
 
 Obviously, the key thing here was to set the connection timeout at the Node.js socket connection layer level (and not on the consumer level):
 
@@ -294,7 +298,11 @@ If you need to change the default values for these parameters, it is highly reco
 	
 	// Event style.
 	client.query(sql);
-	// `callback(result, queryHandle)` function accepts two arguments.
+	// `callback(result, queryHandle, sql)` function accepts three arguments:
+	// 1. `result`: a string value of the query result. No type casting as of version 2.1.0.
+	// 2. `queryHandle`: an integer ID for the query handle. Used to fetch more data.
+	// 3. `sql`: the SQL query which was executed that matches the `result`.
+	// 	  `sql` argument is available since version 2.0.0.
 	client.on(client.EVENT_QUERY_DATA_AVAILABLE, callback);
 
 ##### Callback example
@@ -323,12 +331,21 @@ If you need to change the default values for these parameters, it is highly reco
 
 	client.query('SELECT * FROM nation');
 
-	client.on(client.EVENT_QUERY_DATA_AVAILABLE, function (result, queryHandle) {
+	client.on(client.EVENT_QUERY_DATA_AVAILABLE, function (result, queryHandle, sql) {
       var arr = Result2Array.RowsArray(result);
         
       for (var j = 0, len = arr.length; j < len; ++j) {
         console.log(arr[j]);
       }
+      
+	  // Do something with `sql` like:
+	  switch (sql) {
+	    case SQL_A: 
+	      break;
+	    case SQL_B:
+	      break;
+	    default:
+	  }
         
       // Fetch more data using queryHandle if necessary.
     }
