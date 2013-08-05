@@ -45,6 +45,7 @@
 - Ref: install JSCoverage to instrument code covered version of the node-cubrid module.
 - Ref: fix the tests name.
 - Ref: no need to create a socket when creating a connection client. It should be created upon connection.
+- Ref: remove browser related code.
 - Doc: updated supported CUBRID version.
 - Doc: updated README documentation.
 

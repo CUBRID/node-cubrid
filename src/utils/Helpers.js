@@ -277,17 +277,6 @@ exports._combineData = function (buffer, value) {
  */
 exports.logInfo = function logInfo(data) {
   if (DEBUG_ENABLED) {
-    if (typeof window !== 'undefined') {
-      if (!("console" in window) || !("firebug" in console)) {
-        var names = ["log", "debug", "info", "warn", "error", "assert", "dir", "dirxml", "group", "groupEnd", "time", "timeEnd", "count", "trace", "profile", "profileEnd"];
-        window.console = {};
-        for (var i = 0, len = names.length; i < len; ++i) {
-          window.console[names[i]] = function () {
-          };
-        }
-      }
-    }
-
     console.warn(data);
   }
 };
@@ -299,17 +288,6 @@ exports.logInfo = function logInfo(data) {
  */
 exports.logError = function logError(data) {
   if (DEBUG_ENABLED) {
-    if (typeof window != 'undefined') {
-      if (!("console" in window) || !("firebug" in console)) {
-        var names = ["log", "debug", "info", "warn", "error", "assert", "dir", "dirxml", "group", "groupEnd", "time", "timeEnd", "count", "trace", "profile", "profileEnd"];
-        window.console = {};
-        for (var i = 0, len = names.length; i < len; ++i) {
-          window.console[names[i]] = function () {
-          };
-        }
-      }
-    }
-
     console.error(data);
   }
 };
