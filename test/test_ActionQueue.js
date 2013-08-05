@@ -12,10 +12,14 @@ exports['test_ActionQueue'] = function (test) {
 					callback(null, '1');
 				},
 				function (data, callback) {
-					setTimeout(callback(null, data + ',2'), 5000);
+					setTimeout(function () {
+						callback(null, data + ',2');
+					}, 3000);
 				},
 				function (data, callback) {
-					setTimeout(callback(null, data + ',3'), 1000);
+					setTimeout(function () {
+						callback(null, data + ',3');
+					}, 1000);
 				},
 				function (data, callback) {
 					callback(null, data + ',4');
