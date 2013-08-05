@@ -46,6 +46,7 @@
 - Ref: fix the tests name.
 - Ref: no need to create a socket when creating a connection client. It should be created upon connection.
 - Ref: remove browser related code.
+- Ref: no need to run `call()` on callback functions. No need to verify the callback function inside async flow.
 - Doc: updated supported CUBRID version.
 - Doc: updated README documentation.
 
