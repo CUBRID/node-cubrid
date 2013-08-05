@@ -47,6 +47,7 @@
 - Ref: no need to create a socket when creating a connection client. It should be created upon connection.
 - Ref: remove browser related code.
 - Ref: no need to run `call()` on callback functions. No need to verify the callback function inside async flow.
+- Ref: no need to verify the SQL string. It's user's job.
 - Doc: updated supported CUBRID version.
 - Doc: updated README documentation.
 

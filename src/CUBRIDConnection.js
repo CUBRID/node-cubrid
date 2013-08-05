@@ -416,6 +416,14 @@ CUBRIDConnection.prototype.connect = function (callback) {
   );
 };
 
+CUBRIDConnection.prototype._implyConnect = function(cb) {
+	if (this.connectionOpened) {
+		process.nextTick(cb);
+	} else {
+		this.connect(cb);
+	}
+};
+
 /**
  * Get the server database engine version
  * @param callback
@@ -444,7 +452,9 @@ CUBRIDConnection.prototype.getEngineVersion = function (callback) {
 CUBRIDConnection.prototype.batchExecuteNoQuery = function (sqls, callback) {
   var self = this,
 		  sqlsArr,
-		  err = self._NO_ERROR;
+		  err = self._NO_ERROR,
+		  responseData = new Buffer(0),
+			expectedResponseLength = self._INVALID_RESPONSE_LENGTH;
 
   if (Array.isArray(sqls)) {
     if (sqls.length === 0) {
@@ -462,22 +472,6 @@ CUBRIDConnection.prototype.batchExecuteNoQuery = function (sqls, callback) {
   } else {
     sqlsArr = new Array(sqls);
   }
-
-  for (var i = 0; i < sqlsArr.length; ++i) {
-    if (!Helpers._validateInputSQLString(sqlsArr[i])) {
-      err = new Error(ErrorMessages.ERROR_INPUT_VALIDATION);
-      Helpers._emitEvent(self, err, self.EVENT_ERROR, null);
-
-      if (typeof(callback) === 'function') {
-        callback(err);
-      }
-
-      return;
-    }
-  }
-
-  var responseData = new Buffer(0),
-		  expectedResponseLength = self._INVALID_RESPONSE_LENGTH;
 
   ActionQueue.enqueue([
     function (cb) {
@@ -554,20 +548,9 @@ CUBRIDConnection.prototype.batchExecuteNoQuery = function (sqls, callback) {
 // `callback(err)` function accepts one argument: an error object if any.
 CUBRIDConnection.prototype.execute = function (sql, callback) {
   var self = this,
-		  err = self._NO_ERROR;
+		  err = self._NO_ERROR,
+		  arrSQL = [];
 
-  if (!Helpers._validateInputSQLString(sql)) {
-    err = new Error(ErrorMessages.ERROR_INPUT_VALIDATION);
-    Helpers._emitEvent(self, err, self.EVENT_ERROR, null);
-
-    if (typeof(callback) === 'function') {
-      callback(err);
-    }
-
-    return null;
-  }
-
-  var arrSQL = [];
   arrSQL.push(sql);
 
   if(this._ENFORCE_OLD_QUERY_PROTOCOL === true){
@@ -602,104 +585,84 @@ CUBRIDConnection.prototype.executeWithParams = function (sql, arrParamsValues, a
  * @return {*}
  */
 CUBRIDConnection.prototype.executeWithTypedParams = function (sql, arrParamsValues, arrParamsDataTypes, callback) {
-  var self = this;
-  var err = self._NO_ERROR;
+  var self = this,
+		  err = self._NO_ERROR,
+		  responseData = new Buffer(0),
+		  expectedResponseLength = self._INVALID_RESPONSE_LENGTH;
 
-  if (!Helpers._validateInputSQLString(sql)) {
-    Helpers._emitEvent(self, new Error(ErrorMessages.ERROR_INPUT_VALIDATION), self.EVENT_ERROR, null);
+  ActionQueue.enqueue([
+    function (cb) {
+      self._implyConnect(cb);
+    },
+    function (cb) {
+      var packetWriter = new PacketWriter(),
+		      prepareExecuteOldProtocolPacket = new PrepareExecuteOldProtocolPacket({
+	          sql            : sql,
+	          casInfo        : self._CASInfo,
+	          autoCommitMode : self.autoCommitMode,
+	          dbVersion      : self._DB_ENGINE_VER,
+	          paramValues    : arrParamsValues,
+	          paramTypes     : arrParamsDataTypes
+	        });
+	    
+      prepareExecuteOldProtocolPacket.writePrepare(packetWriter);
+      self._socket.write(packetWriter._buffer);
+
+      self._socket.on('data', function (data) {
+        responseData = Helpers._combineData(responseData, data);
+        if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH &&
+          responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
+          expectedResponseLength = Helpers._getExpectedResponseLength(responseData);
+        }
+        if (responseData.length === expectedResponseLength) {
+          self._socket.removeAllListeners('data');
+          var packetReader = new PacketReader();
+          packetReader.write(responseData);
+          prepareExecuteOldProtocolPacket.parsePrepare(packetReader);
+          var errorCode = prepareExecuteOldProtocolPacket.errorCode;
+          var errorMsg = prepareExecuteOldProtocolPacket.errorMsg;
+          if (errorCode !== 0) {
+            err = new Error(errorCode + ':' + errorMsg);
+          }
+
+          cb(err, prepareExecuteOldProtocolPacket);
+        }
+      });
+    },
+    function (prepareExecuteOldProtocolPacket, cb) {
+      expectedResponseLength = self._INVALID_RESPONSE_LENGTH;
+      responseData = new Buffer(0);
+      var packetWriter = new PacketWriter();
+      prepareExecuteOldProtocolPacket.writeExecute(packetWriter);
+      self._socket.write(packetWriter._buffer);
+
+      self._socket.on('data', function (data) {
+        responseData = Helpers._combineData(responseData, data);
+        if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH &&
+          responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
+          expectedResponseLength = Helpers._getExpectedResponseLength(responseData);
+        }
+        if (responseData.length === expectedResponseLength) {
+          self._socket.removeAllListeners('data');
+          var packetReader = new PacketReader();
+          packetReader.write(responseData);
+          prepareExecuteOldProtocolPacket.parseExecute(packetReader);
+          var errorCode = prepareExecuteOldProtocolPacket.errorCode;
+          var errorMsg = prepareExecuteOldProtocolPacket.errorMsg;
+          if (errorCode !== 0) {
+            err = new Error(errorCode + ':' + errorMsg);
+          }
+
+          cb(err);
+        }
+      });
+    }
+  ], function (err) {
+    Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_BATCH_COMMANDS_COMPLETED);
     if (typeof(callback) === 'function') {
       callback(err);
     }
-    return;
-  }
-
-  var responseData = new Buffer(0);
-  var expectedResponseLength = self._INVALID_RESPONSE_LENGTH;
-
-  ActionQueue.enqueue(
-    [
-      function (cb) {
-        if (self.connectionOpened === false) {
-          self.connect(cb);
-        } else {
-          cb();
-        }
-      },
-
-      function (cb) {
-        var packetWriter = new PacketWriter();
-        var prepareExecuteOldProtocolPacket = new PrepareExecuteOldProtocolPacket(
-          {
-            sql            : sql,
-            casInfo        : self._CASInfo,
-            autoCommitMode : self.autoCommitMode,
-            dbVersion      : self._DB_ENGINE_VER,
-            paramValues    : arrParamsValues,
-            paramTypes     : arrParamsDataTypes
-          }
-        );
-        prepareExecuteOldProtocolPacket.writePrepare(packetWriter);
-        self._socket.write(packetWriter._buffer);
-
-        self._socket.on('data', function (data) {
-          responseData = Helpers._combineData(responseData, data);
-          if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH &&
-            responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
-            expectedResponseLength = Helpers._getExpectedResponseLength(responseData);
-          }
-          if (responseData.length === expectedResponseLength) {
-            self._socket.removeAllListeners('data');
-            var packetReader = new PacketReader();
-            packetReader.write(responseData);
-            prepareExecuteOldProtocolPacket.parsePrepare(packetReader);
-            var errorCode = prepareExecuteOldProtocolPacket.errorCode;
-            var errorMsg = prepareExecuteOldProtocolPacket.errorMsg;
-            if (errorCode !== 0) {
-              err = new Error(errorCode + ':' + errorMsg);
-            }
-
-	          cb(err, prepareExecuteOldProtocolPacket);
-          }
-        });
-      },
-
-      function (prepareExecuteOldProtocolPacket, cb) {
-        expectedResponseLength = self._INVALID_RESPONSE_LENGTH;
-        responseData = new Buffer(0);
-        var packetWriter = new PacketWriter();
-        prepareExecuteOldProtocolPacket.writeExecute(packetWriter);
-        self._socket.write(packetWriter._buffer);
-
-        self._socket.on('data', function (data) {
-          responseData = Helpers._combineData(responseData, data);
-          if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH &&
-            responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
-            expectedResponseLength = Helpers._getExpectedResponseLength(responseData);
-          }
-          if (responseData.length === expectedResponseLength) {
-            self._socket.removeAllListeners('data');
-            var packetReader = new PacketReader();
-            packetReader.write(responseData);
-            prepareExecuteOldProtocolPacket.parseExecute(packetReader);
-            var errorCode = prepareExecuteOldProtocolPacket.errorCode;
-            var errorMsg = prepareExecuteOldProtocolPacket.errorMsg;
-            if (errorCode !== 0) {
-              err = new Error(errorCode + ':' + errorMsg);
-            }
-
-	          cb(err);
-          }
-        });
-      }
-    ],
-
-    function (err) {
-      Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_BATCH_COMMANDS_COMPLETED);
-      if (typeof(callback) === 'function') {
-        callback(err);
-      }
-    }
-  );
+  });
 };
 
 /**
@@ -721,8 +684,10 @@ CUBRIDConnection.prototype.query = function (sql, callback) {
  * @param callback
  */
 CUBRIDConnection.prototype._queryNewProtocol = function (sql, callback) {
-  var self = this;
-  var err = self._NO_ERROR;
+  var self = this,
+		  err = self._NO_ERROR,
+		  responseData = new Buffer(0),
+			expectedResponseLength = self._INVALID_RESPONSE_LENGTH;
 
   if (self.queryPending === true && self._PREVENT_CONCURRENT_REQUESTS) {
     err = new Error(ErrorMessages.ERROR_QUERY_ALREADY_PENDING);
@@ -733,96 +698,76 @@ CUBRIDConnection.prototype._queryNewProtocol = function (sql, callback) {
     return;
   }
 
-  if (!Helpers._validateInputSQLString(sql)) {
-    Helpers._emitEvent(self, new Error(ErrorMessages.ERROR_INPUT_VALIDATION), self.EVENT_ERROR, null);
-    if (typeof(callback) === 'function') {
-      callback(err);
-    }
-    return;
-  }
-
-  var responseData = new Buffer(0);
-  var expectedResponseLength = self._INVALID_RESPONSE_LENGTH;
-
   self.queryPending = true;
 
-  ActionQueue.enqueue(
-    [
-      function (cb) {
-        if (self.connectionOpened === false) {
-          self.connect(cb);
-        } else {
-          cb();
+  ActionQueue.enqueue([
+    function (cb) {
+	    self._implyConnect(cb);
+    },
+    function (cb) {
+      // Check if data is already in cache
+      if (self._queryCache !== null) {
+        if (self._queryCache.contains(sql)) {
+          self.queryPending = false;
+          // Query handle set to null, to prevent further fetch (cache is intended only for small data)
+          Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_QUERY_DATA_AVAILABLE, self._queryCache.get(sql), null);
+          if (typeof(callback) === 'function') {
+            callback(err, self._queryCache.get(sql), null);
+          }
+          return;
         }
-      },
+      }
 
-      function (cb) {
-        // Check if data is already in cache
-        if (self._queryCache !== null) {
-          if (self._queryCache.contains(sql)) {
-            self.queryPending = false;
-            // Query handle set to null, to prevent further fetch (cache is intended only for small data)
-            Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_QUERY_DATA_AVAILABLE, self._queryCache.get(sql), null);
-            if (typeof(callback) === 'function') {
-              callback(err, self._queryCache.get(sql), null);
-            }
-            return;
-          }
+      var packetWriter = new PacketWriter();
+      var executeQueryPacket = new ExecuteQueryPacket(
+        {
+          sql            : sql,
+          casInfo        : self._CASInfo,
+          autoCommitMode : self.autoCommitMode,
+          dbVersion      : self._DB_ENGINE_VER
         }
+      );
+      executeQueryPacket.write(packetWriter);
+      self._socket.write(packetWriter._buffer);
 
-        var packetWriter = new PacketWriter();
-        var executeQueryPacket = new ExecuteQueryPacket(
-          {
-            sql            : sql,
-            casInfo        : self._CASInfo,
-            autoCommitMode : self.autoCommitMode,
-            dbVersion      : self._DB_ENGINE_VER
+      self._socket.on('data', function (data) {
+        responseData = Helpers._combineData(responseData, data);
+        if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH &&
+          responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
+          expectedResponseLength = Helpers._getExpectedResponseLength(responseData);
+        }
+        if (responseData.length === expectedResponseLength) {
+          self._socket.removeAllListeners('data');
+          var packetReader = new PacketReader();
+          packetReader.write(responseData);
+          var result = executeQueryPacket.parse(packetReader).resultSet;
+          var errorCode = executeQueryPacket.errorCode;
+          var errorMsg = executeQueryPacket.errorMsg;
+          if (errorCode !== 0) {
+            err = new Error(errorCode + ':' + errorMsg);
+          } else {
+            self._queriesPacketList.push(executeQueryPacket);
           }
-        );
-        executeQueryPacket.write(packetWriter);
-        self._socket.write(packetWriter._buffer);
 
-        self._socket.on('data', function (data) {
-          responseData = Helpers._combineData(responseData, data);
-          if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH &&
-            responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
-            expectedResponseLength = Helpers._getExpectedResponseLength(responseData);
-          }
-          if (responseData.length === expectedResponseLength) {
-            self._socket.removeAllListeners('data');
-            var packetReader = new PacketReader();
-            packetReader.write(responseData);
-            var result = executeQueryPacket.parse(packetReader).resultSet;
-            var errorCode = executeQueryPacket.errorCode;
-            var errorMsg = executeQueryPacket.errorMsg;
-            if (errorCode !== 0) {
-              err = new Error(errorCode + ':' + errorMsg);
-            } else {
-              self._queriesPacketList.push(executeQueryPacket);
+          if (typeof err !== 'undefined' && err !== null) {
+            //self.queryPending = false;
+          } else {
+            if (self._queryCache !== null) {
+              self._queryCache.getSet(sql, result);
             }
-
-            if (typeof err !== 'undefined' && err !== null) {
-              //self.queryPending = false;
-            } else {
-              if (self._queryCache !== null) {
-                self._queryCache.getSet(sql, result);
-              }
-            }
-
-            cb(err, result, executeQueryPacket.queryHandle);
           }
-        });
-      }
-    ],
 
-    function (err, result, handle) {
-      self.queryPending = false;
-      Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_QUERY_DATA_AVAILABLE, result, handle, sql);
-      if (typeof(callback) === 'function') {
-        callback(err, result, handle);
-      }
+          cb(err, result, executeQueryPacket.queryHandle);
+        }
+      });
     }
-  );
+  ], function (err, result, handle) {
+    self.queryPending = false;
+    Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_QUERY_DATA_AVAILABLE, result, handle, sql);
+    if (typeof(callback) === 'function') {
+      callback(err, result, handle);
+    }
+  });
 };
 
 /**
@@ -834,7 +779,9 @@ CUBRIDConnection.prototype._queryNewProtocol = function (sql, callback) {
  */
 CUBRIDConnection.prototype._queryOldProtocol = function (sql, arrParamsValues, arrParamsDataTypes, callback) {
   var self = this,
-		  err = self._NO_ERROR;
+		  err = self._NO_ERROR,
+		  responseData = new Buffer(0),
+		  expectedResponseLength = self._INVALID_RESPONSE_LENGTH;
 
   if (self.queryPending === true && self._PREVENT_CONCURRENT_REQUESTS) {
     err = new Error(ErrorMessages.ERROR_QUERY_ALREADY_PENDING);
@@ -845,101 +792,85 @@ CUBRIDConnection.prototype._queryOldProtocol = function (sql, arrParamsValues, a
     return;
   }
 
-  if (!Helpers._validateInputSQLString(sql)) {
-    Helpers._emitEvent(self, new Error(ErrorMessages.ERROR_INPUT_VALIDATION), self.EVENT_ERROR, null);
-    if (typeof(callback) === 'function') {
-      callback(err);
-    }
-    return;
-  }
-
-  var responseData = new Buffer(0);
-  var expectedResponseLength = self._INVALID_RESPONSE_LENGTH;
-
   self.queryPending = true;
 
   ActionQueue.enqueue([
-      function (cb) {
-        if (self.connectionOpened === false) {
-          self.connect(cb);
-        } else {
-          cb();
+    function (cb) {
+      self._implyConnect(cb);
+    },
+    function (cb) {
+      var packetWriter = new PacketWriter(),
+	        prepareExecuteOldProtocolPacket = new PrepareExecuteOldProtocolPacket({
+            sql            : sql,
+            casInfo        : self._CASInfo,
+            autoCommitMode : self.autoCommitMode,
+            dbVersion      : self._DB_ENGINE_VER,
+            paramValues    : arrParamsValues,
+            paramTypes     : arrParamsDataTypes
+          });
+
+      prepareExecuteOldProtocolPacket.writePrepare(packetWriter);
+      self._socket.write(packetWriter._buffer);
+
+      self._socket.on('data', function (data) {
+        responseData = Helpers._combineData(responseData, data);
+        if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH &&
+          responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
+          expectedResponseLength = Helpers._getExpectedResponseLength(responseData);
         }
-      },
-      function (cb) {
-        var packetWriter = new PacketWriter(),
-		        prepareExecuteOldProtocolPacket = new PrepareExecuteOldProtocolPacket({
-	            sql            : sql,
-	            casInfo        : self._CASInfo,
-	            autoCommitMode : self.autoCommitMode,
-	            dbVersion      : self._DB_ENGINE_VER,
-	            paramValues    : arrParamsValues,
-	            paramTypes     : arrParamsDataTypes
-	          });
-
-        prepareExecuteOldProtocolPacket.writePrepare(packetWriter);
-        self._socket.write(packetWriter._buffer);
-
-        self._socket.on('data', function (data) {
-          responseData = Helpers._combineData(responseData, data);
-          if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH &&
-            responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
-            expectedResponseLength = Helpers._getExpectedResponseLength(responseData);
+        if (responseData.length === expectedResponseLength) {
+          self._socket.removeAllListeners('data');
+          var packetReader = new PacketReader();
+          packetReader.write(responseData);
+          prepareExecuteOldProtocolPacket.parsePrepare(packetReader);
+          var errorCode = prepareExecuteOldProtocolPacket.errorCode;
+          var errorMsg = prepareExecuteOldProtocolPacket.errorMsg;
+          if (errorCode !== 0) {
+            err = new Error(errorCode + ':' + errorMsg);
           }
-          if (responseData.length === expectedResponseLength) {
-            self._socket.removeAllListeners('data');
-            var packetReader = new PacketReader();
-            packetReader.write(responseData);
-            prepareExecuteOldProtocolPacket.parsePrepare(packetReader);
-            var errorCode = prepareExecuteOldProtocolPacket.errorCode;
-            var errorMsg = prepareExecuteOldProtocolPacket.errorMsg;
-            if (errorCode !== 0) {
-              err = new Error(errorCode + ':' + errorMsg);
-            }
 
-	          cb(err, prepareExecuteOldProtocolPacket);
+          cb(err, prepareExecuteOldProtocolPacket);
+        }
+      });
+    },
+    function (prepareExecuteOldProtocolPacket, cb) {
+      expectedResponseLength = self._INVALID_RESPONSE_LENGTH;
+      responseData = new Buffer(0);
+      var packetWriter = new PacketWriter();
+      prepareExecuteOldProtocolPacket.writeExecute(packetWriter);
+      self._socket.write(packetWriter._buffer);
+
+      self._socket.on('data', function (data) {
+        responseData = Helpers._combineData(responseData, data);
+        if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH &&
+          responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
+          expectedResponseLength = Helpers._getExpectedResponseLength(responseData);
+        }
+        if (responseData.length === expectedResponseLength) {
+          self._socket.removeAllListeners('data');
+          var packetReader = new PacketReader();
+          packetReader.write(responseData);
+          var result = prepareExecuteOldProtocolPacket.parseExecute(packetReader).resultSet,
+	            errorCode = prepareExecuteOldProtocolPacket.errorCode,
+	            errorMsg = prepareExecuteOldProtocolPacket.errorMsg;
+
+          if (errorCode !== 0) {
+            err = new Error(errorCode + ':' + errorMsg);
+          } else {
+            self._queriesPacketList.push(prepareExecuteOldProtocolPacket);
           }
-        });
-      },
-      function (prepareExecuteOldProtocolPacket, cb) {
-        expectedResponseLength = self._INVALID_RESPONSE_LENGTH;
-        responseData = new Buffer(0);
-        var packetWriter = new PacketWriter();
-        prepareExecuteOldProtocolPacket.writeExecute(packetWriter);
-        self._socket.write(packetWriter._buffer);
 
-        self._socket.on('data', function (data) {
-          responseData = Helpers._combineData(responseData, data);
-          if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH &&
-            responseData.length >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
-            expectedResponseLength = Helpers._getExpectedResponseLength(responseData);
-          }
-          if (responseData.length === expectedResponseLength) {
-            self._socket.removeAllListeners('data');
-            var packetReader = new PacketReader();
-            packetReader.write(responseData);
-            var result = prepareExecuteOldProtocolPacket.parseExecute(packetReader).resultSet,
-		            errorCode = prepareExecuteOldProtocolPacket.errorCode,
-		            errorMsg = prepareExecuteOldProtocolPacket.errorMsg;
-
-            if (errorCode !== 0) {
-              err = new Error(errorCode + ':' + errorMsg);
-            } else {
-              self._queriesPacketList.push(prepareExecuteOldProtocolPacket);
-            }
-
-	          cb(err, result, prepareExecuteOldProtocolPacket.queryHandle);
-          }
-        });
-      }
-    ], function (err, result, handle) {
-      self.queryPending = false;
-      Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_QUERY_DATA_AVAILABLE, result, handle, sql);
-      if (typeof(callback) === 'function') {
-        callback(err, result, handle);
-      }
+          cb(err, result, prepareExecuteOldProtocolPacket.queryHandle);
+        }
+      });
     }
-  );
+  ], function (err, result, handle) {
+    self.queryPending = false;
+    Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_QUERY_DATA_AVAILABLE, result, handle, sql);
+    if (typeof(callback) === 'function') {
+      callback(err, result, handle);
+    }
+  });
 };
 
 /**
