@@ -48,14 +48,14 @@ exports['test_Blob'] = function (test) {
       client.close(cb);
     }
   ], function (err) {
-    if (err === null) {
-      Helpers.logInfo('Test passed.');
-      test.done();
-    } else {
+    if (err) {
       Helpers.logError(err);
       client.close(function () {
         test.done();
       });
+    } else {
+      Helpers.logInfo('Test passed.');
+      test.done();
     }
   });
 };

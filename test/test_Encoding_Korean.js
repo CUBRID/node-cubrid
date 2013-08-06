@@ -36,12 +36,12 @@ exports['test_Encoding_Korean'] = function (test) {
     }
   ],
   function (err) {
-    if (err === null) {
+    if (err) {
+      throw err;
+    } else {
       Helpers.logInfo('Connection closed.');
       Helpers.logInfo('Test passed.');
       test.done();
-    } else {
-      throw err.message;
     }
   });
 };

@@ -15,7 +15,7 @@ exports['test_NodePool'] = function (test) {
 	    var client = testSetup.createDefaultCUBRIDDemodbConnection();
 
       client.connect(function (err) {
-        if (err == null) {
+        if (!err) {
           Helpers.logInfo('Connection opened.');
         }
         callback(err, client);
