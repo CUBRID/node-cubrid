@@ -201,11 +201,15 @@ exports._escapeString = _escapeString;
  */
 exports._sqlFormat = function (sql, arrValues, arrDelimiters) {
   arrValues = [].concat(arrValues);
-  if (arrDelimiters.length !== 0) {
+
+	arrDelimiters = arrDelimiters || [];
+
+  if (arrDelimiters.length) {
     arrDelimiters = [].concat(arrDelimiters);
   } else {
-    arrDelimiters = [];
-
+	  // By default wrap all values with a single quote.
+	  // CUBRID Server will automatically cast values depending
+	  // on the column data type.
     for (var i = arrValues.length; i > 0; --i) {
       arrDelimiters.push("'");
     }
@@ -223,8 +227,8 @@ exports._sqlFormat = function (sql, arrValues, arrDelimiters) {
       return 'NULL';
     }
 
-    if (!isNaN(parseFloat(val)) && isFinite(val) && delimiter !== "'" && delimiter !== '"') {
-      return val + '';
+    if (!isNaN(parseFloat(val)) && isFinite(val) && typeof val !== 'string') {
+      return val;
     }
 
     return delimiter + _escapeString(val) + delimiter;
