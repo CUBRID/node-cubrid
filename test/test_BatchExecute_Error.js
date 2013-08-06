@@ -3,20 +3,16 @@ exports['test_BatchExecute_Error'] = function (test) {
 			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
 			Helpers = CUBRID.Helpers;
 
-	function errorHandler(err) {
-		throw err.message;
-	}
-
 	Helpers.logInfo(module.filename.toString() + ' started...');
 
 	client.connect(function (err) {
 		if (err) {
-			errorHandler(err);
+			throw err;
 		} else {
 			if (client.getEngineVersion().startsWith('8.4.1')) {
-				test.expect(1);
+				test.expect(2);
 			} else {
-				test.expect(3);
+				test.expect(4);
 			}
 
 			Helpers.logInfo('Connected.');
@@ -28,6 +24,9 @@ exports['test_BatchExecute_Error'] = function (test) {
 			sqlsArr.push('create table node_test(id abc)');
 
 			client.batchExecuteNoQuery(sqlsArr, function (err) {
+				// There should be an error message.
+				test.ok(err);
+
 				// Driver version >= 8.4.3 return an array of errors.
 				if (err instanceof Array) {
 					test.ok(err.length == 2);
@@ -48,7 +47,7 @@ exports['test_BatchExecute_Error'] = function (test) {
 
 				client.close(function (err) {
 					if (err) {
-						errorHandler(err);
+						throw err;
 					} else {
 						Helpers.logInfo('Connection closed.');
 						Helpers.logInfo('Test passed.');
