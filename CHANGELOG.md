@@ -51,6 +51,7 @@
 - Ref: no need to verify the SQL string. It's user's job.
 - Ref: minor tweaks to tests.
 - Ref: major refactoring of buffer parsers to handle server responses.
+- Ref: major refactoring of protocol packets to optimize the work with `Buffer`. Updated tests.
 - Doc: updated supported CUBRID version.
 - Doc: updated README documentation.
 

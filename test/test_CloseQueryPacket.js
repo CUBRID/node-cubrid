@@ -5,12 +5,11 @@ exports['test_CloseQueryPacket'] = function (test) {
 			CloseQueryPacket = require('../src' + codeCoveragePath + '/packets/CloseQueryPacket'),
 			CAS = require('../src' + codeCoveragePath + '/constants/CASConstants'),
 			packetReader = new PacketReader(),
-			packetWriter = new PacketWriter(),
-			options = {
+			closeQueryPacket = new CloseQueryPacket({
 				casInfo: [0, 255, 255, 255],
 				dbVersion : '8.4.1'
-			},
-			closeQueryPacket = new CloseQueryPacket(options);
+			}),
+			packetWriter = new PacketWriter(closeQueryPacket.getBufferLength());
 
 	test.expect(18);
 

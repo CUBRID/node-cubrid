@@ -51,12 +51,8 @@ function PrepareAndExecutePacket(options) {
  * @param writer
  */
 PrepareAndExecutePacket.prototype.writePrepare = function (writer) {
-  var bufferLength = DATA_TYPES.DATA_LENGTH_SIZEOF + DATA_TYPES.CAS_INFO_SIZE +
-    DATA_TYPES.BYTE_SIZEOF + DATA_TYPES.INT_SIZEOF + Buffer.byteLength(this.sql) + 1 +
-    DATA_TYPES.INT_SIZEOF + DATA_TYPES.BYTE_SIZEOF + DATA_TYPES.INT_SIZEOF + DATA_TYPES.BYTE_SIZEOF;
-
   // Prepare info
-  writer._writeInt(bufferLength - DATA_TYPES.DATA_LENGTH_SIZEOF - DATA_TYPES.CAS_INFO_SIZE);
+  writer._writeInt(this.getPrepareBufferLength() - DATA_TYPES.DATA_LENGTH_SIZEOF - DATA_TYPES.CAS_INFO_SIZE);
   writer._writeBytes(DATA_TYPES.CAS_INFO_SIZE, this.casInfo);
 
   writer._writeByte(CAS.CASFunctionCode.CAS_FC_PREPARE);
@@ -74,22 +70,7 @@ PrepareAndExecutePacket.prototype.writePrepare = function (writer) {
  * @param writer
  */
 PrepareAndExecutePacket.prototype.writeExecute = function (writer) {
-  var bufferLength = DATA_TYPES.DATA_LENGTH_SIZEOF + DATA_TYPES.CAS_INFO_SIZE +
-    DATA_TYPES.BYTE_SIZEOF + DATA_TYPES.INT_SIZEOF + DATA_TYPES.INT_SIZEOF +
-    DATA_TYPES.INT_SIZEOF + DATA_TYPES.BYTE_SIZEOF + DATA_TYPES.INT_SIZEOF +
-    DATA_TYPES.INT_SIZEOF + DATA_TYPES.INT_SIZEOF + DATA_TYPES.INT_SIZEOF +
-    DATA_TYPES.INT_SIZEOF + DATA_TYPES.INT_SIZEOF + DATA_TYPES.INT_SIZEOF +
-    DATA_TYPES.BYTE_SIZEOF + DATA_TYPES.INT_SIZEOF + DATA_TYPES.INT_SIZEOF +
-    DATA_TYPES.BYTE_SIZEOF + DATA_TYPES.INT_SIZEOF + DATA_TYPES.INT_SIZEOF +
-    DATA_TYPES.INT_SIZEOF + DATA_TYPES.INT_SIZEOF + DATA_TYPES.BYTE_SIZEOF;
-
-  var paramsWriter = new PacketWriter();
-  if (this.paramValues !== null) {
-    for (var i = 0; i < this.paramValues.length; i++) {
-      this._writeParamValue(this.paramValues[i], this.paramTypes[i], paramsWriter);
-    }
-    bufferLength = bufferLength + paramsWriter._buffer.length;
-  }
+  var bufferLength = this.getExecuteBufferLength();
 
   writer._writeInt(bufferLength - DATA_TYPES.DATA_LENGTH_SIZEOF - DATA_TYPES.CAS_INFO_SIZE);
   writer._writeBytes(DATA_TYPES.CAS_INFO_SIZE, this.casInfo);
@@ -105,12 +86,14 @@ PrepareAndExecutePacket.prototype.writeExecute = function (writer) {
   writer._writeInt(0); // Max row size;
   writer._writeInt(0); // NULL
   writer._writeInt(DATA_TYPES.BYTE_SIZEOF);
-  if (this.statementType !== CAS.CUBRIDStatementType.CUBRID_STMT_SELECT) {
+
+	if (this.statementType !== CAS.CUBRIDStatementType.CUBRID_STMT_SELECT) {
     writer._writeByte(0); // FetchFlag;
   } else {
     writer._writeByte(1); // FetchFlag;
   }
-  writer._writeInt(DATA_TYPES.BYTE_SIZEOF);
+
+	writer._writeInt(DATA_TYPES.BYTE_SIZEOF);
   writer._writeByte(this.autoCommit ? 1 : 0); // Autocommit mode
   writer._writeInt(DATA_TYPES.BYTE_SIZEOF);
   writer._writeByte(1); // Forrward only cursor
@@ -119,7 +102,10 @@ PrepareAndExecutePacket.prototype.writeExecute = function (writer) {
   writer._writeInt(0); // Useconds
   writer._writeInt(DATA_TYPES.INT_SIZEOF);
   writer._writeInt(0); // Query timeout
-  writer._writeBuffer(paramsWriter._buffer);
+
+	if (this.paramValues !== null) {
+		this._writeParamValue(writer);
+	}
 
   return writer;
 };
@@ -348,102 +334,291 @@ PrepareAndExecutePacket.prototype._readValue = function (index, type, size, pars
  * @param type
  * @param writer
  */
-PrepareAndExecutePacket.prototype._writeParamValue = function (value, type, writer) {
-  var paramType = CAS.getCUBRIDDataTypeNumber(type);
-  writer._writeInt(DATA_TYPES.BYTE_SIZEOF);
-  writer._writeByte(paramType);
-  switch (paramType) {
-    case CAS.CUBRIDDataType.CCI_U_TYPE_CHAR:
-    case CAS.CUBRIDDataType.CCI_U_TYPE_NCHAR:
-    case CAS.CUBRIDDataType.CCI_U_TYPE_STRING:
-    case CAS.CUBRIDDataType.CCI_U_TYPE_VARNCHAR:
-      writer._writeNullTerminatedString(value);
-      break;
+PrepareAndExecutePacket.prototype._writeParamValue = function (writer) {
+	for (var i = 0, l = this.paramValues.length; i < l; ++i) {
+		var value = this.paramValues[i],
+				paramType = CAS.getCUBRIDDataTypeNumber(this.paramTypes[i]);
 
-    case CAS.CUBRIDDataType.CCI_U_TYPE_SHORT:
-      writer._writeInt(DATA_TYPES.SHORT_SIZEOF);
-      writer._writeShort(value);
-      break;
+		writer._writeInt(DATA_TYPES.BYTE_SIZEOF);
+		writer._writeByte(paramType);
 
-    case CAS.CUBRIDDataType.CCI_U_TYPE_INT:
-      writer._writeInt(DATA_TYPES.INT_SIZEOF);
-      writer._writeInt(value);
-      break;
+		switch (paramType) {
+			case CAS.CUBRIDDataType.CCI_U_TYPE_CHAR:
+			case CAS.CUBRIDDataType.CCI_U_TYPE_NCHAR:
+			case CAS.CUBRIDDataType.CCI_U_TYPE_STRING:
+			case CAS.CUBRIDDataType.CCI_U_TYPE_VARNCHAR:
+				writer._writeNullTerminatedString(value);
+				break;
 
-    case CAS.CUBRIDDataType.CCI_U_TYPE_BIGINT:
-      writer._writeInt(DATA_TYPES.LONG_SIZEOF);
-      writer._writeLong(value);
-      break;
+			case CAS.CUBRIDDataType.CCI_U_TYPE_SHORT:
+				writer._writeInt(DATA_TYPES.SHORT_SIZEOF);
+				writer._writeShort(value);
+				break;
 
-    case CAS.CUBRIDDataType.CCI_U_TYPE_FLOAT:
-      writer._writeInt(DATA_TYPES.FLOAT_SIZEOF);
-      writer._writeFloat(value);
-      break;
+			case CAS.CUBRIDDataType.CCI_U_TYPE_INT:
+				writer._writeInt(DATA_TYPES.INT_SIZEOF);
+				writer._writeInt(value);
+				break;
 
-    case CAS.CUBRIDDataType.CCI_U_TYPE_DOUBLE:
-    case CAS.CUBRIDDataType.CCI_U_TYPE_MONETARY:
-      writer._writeInt(DATA_TYPES.DOUBLE_SIZEOF);
-      writer._writeDouble(value);
-      break;
+			case CAS.CUBRIDDataType.CCI_U_TYPE_BIGINT:
+				writer._writeInt(DATA_TYPES.LONG_SIZEOF);
+				writer._writeLong(value);
+				break;
 
-    case CAS.CUBRIDDataType.CCI_U_TYPE_NUMERIC:
-      writer._writeNumeric(value);
-      break;
+			case CAS.CUBRIDDataType.CCI_U_TYPE_FLOAT:
+				writer._writeInt(DATA_TYPES.FLOAT_SIZEOF);
+				writer._writeFloat(value);
+				break;
 
-    case CAS.CUBRIDDataType.CCI_U_TYPE_DATE:
-      writer._writeInt(DATA_TYPES.DATE_SIZEOF);
-      writer._writeDate(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate());
-      break;
+			case CAS.CUBRIDDataType.CCI_U_TYPE_DOUBLE:
+			case CAS.CUBRIDDataType.CCI_U_TYPE_MONETARY:
+				writer._writeInt(DATA_TYPES.DOUBLE_SIZEOF);
+				writer._writeDouble(value);
+				break;
 
-    case CAS.CUBRIDDataType.CCI_U_TYPE_TIME:
-      writer._writeInt(DATA_TYPES.TIME_SIZEOF);
-      writer._writeTime(value.getUTCHours(), value.getUTCMinutes(), value.getUTCSeconds());
-      break;
+			case CAS.CUBRIDDataType.CCI_U_TYPE_NUMERIC:
+				writer._writeNumeric(value);
+				break;
 
-    case CAS.CUBRIDDataType.CCI_U_TYPE_DATETIME:
-      writer._writeInt(DATA_TYPES.DATETIME_SIZEOF);
-      writer._writeDateTime(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate(),
-        value.getUTCHours(), value.getUTCMinutes(), value.getUTCSeconds(), value.getUTCMilliseconds());
-      break;
+			case CAS.CUBRIDDataType.CCI_U_TYPE_DATE:
+				writer._writeInt(DATA_TYPES.DATE_SIZEOF);
+				writer._writeDate(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate());
+				break;
 
-    case CAS.CUBRIDDataType.CCI_U_TYPE_TIMESTAMP:
-      writer._writeInt(DATA_TYPES.TIMESTAMP_SIZEOF);
-      writer._writeTimestamp(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate(),
-        value.getUTCHours(), value.getUTCMinutes(), value.getUTCSeconds());
-      break;
+			case CAS.CUBRIDDataType.CCI_U_TYPE_TIME:
+				writer._writeInt(DATA_TYPES.TIME_SIZEOF);
+				writer._writeTime(value.getUTCHours(), value.getUTCMinutes(), value.getUTCSeconds());
+				break;
 
-    case CAS.CUBRIDDataType.CCI_U_TYPE_OBJECT:
-      writer._writeInt(0);
-      writer._writeObject(value);
-      break;
+			case CAS.CUBRIDDataType.CCI_U_TYPE_DATETIME:
+				writer._writeInt(DATA_TYPES.DATETIME_SIZEOF);
+				writer._writeDateTime(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate(),
+						value.getUTCHours(), value.getUTCMinutes(), value.getUTCSeconds(), value.getUTCMilliseconds());
+				break;
 
-    case CAS.CUBRIDDataType.CCI_U_TYPE_BIT:
-    case CAS.CUBRIDDataType.CCI_U_TYPE_VARBIT:
-      writer._writeInt(value.length);
-      writer._writeBytes(value.length, value);
-      break;
+			case CAS.CUBRIDDataType.CCI_U_TYPE_TIMESTAMP:
+				writer._writeInt(DATA_TYPES.TIMESTAMP_SIZEOF);
+				writer._writeTimestamp(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate(),
+						value.getUTCHours(), value.getUTCMinutes(), value.getUTCSeconds());
+				break;
 
-    case CAS.CUBRIDDataType.CCI_U_TYPE_SET:
-    case CAS.CUBRIDDataType.CCI_U_TYPE_MULTISET:
-    case CAS.CUBRIDDataType.CCI_U_TYPE_SEQUENCE:
-      writer._writeInt(0);
-      writer._writeSequence(value);
-      break;
+			case CAS.CUBRIDDataType.CCI_U_TYPE_OBJECT:
+				writer._writeInt(0);
+				writer._writeObject(value);
+				break;
 
-    case CAS.CUBRIDDataType.CCI_U_TYPE_BLOB:
-      writer._writeBlob(value);
-      break;
+			case CAS.CUBRIDDataType.CCI_U_TYPE_BIT:
+			case CAS.CUBRIDDataType.CCI_U_TYPE_VARBIT:
+				writer._writeInt(value.length);
+				writer._writeBytes(value.length, value);
+				break;
 
-    case CAS.CUBRIDDataType.CCI_U_TYPE_CLOB:
-      writer._writeClob(value);
-      break;
+			case CAS.CUBRIDDataType.CCI_U_TYPE_SET:
+			case CAS.CUBRIDDataType.CCI_U_TYPE_MULTISET:
+			case CAS.CUBRIDDataType.CCI_U_TYPE_SEQUENCE:
+				writer._writeInt(0);
+				writer._writeSequence(value);
+				break;
 
-    case CAS.CUBRIDDataType.CCI_U_TYPE_RESULTSET:
-      writer._writeInt(DATA_TYPES.RESULTSET_SIZEOF);
-      writer._writeResultSet(value);
-      break;
+			case CAS.CUBRIDDataType.CCI_U_TYPE_BLOB:
+				writer._writeBlob(value);
+				break;
 
-    default:
-      return new Error(ErrorMessages.ERROR_INVALID_DATA_TYPE);
-  }
+			case CAS.CUBRIDDataType.CCI_U_TYPE_CLOB:
+				writer._writeClob(value);
+				break;
+
+			case CAS.CUBRIDDataType.CCI_U_TYPE_RESULTSET:
+				writer._writeInt(DATA_TYPES.RESULTSET_SIZEOF);
+				writer._writeResultSet(value);
+				break;
+
+			default:
+				return new Error(ErrorMessages.ERROR_INVALID_DATA_TYPE);
+		}
+	}
+};
+
+PrepareAndExecutePacket.prototype.getPrepareBufferLength = function () {
+	var bufferLength = DATA_TYPES.DATA_LENGTH_SIZEOF + DATA_TYPES.CAS_INFO_SIZE +
+			DATA_TYPES.BYTE_SIZEOF + DATA_TYPES.INT_SIZEOF + Buffer.byteLength(this.sql) + 1 +
+			DATA_TYPES.INT_SIZEOF + DATA_TYPES.BYTE_SIZEOF + DATA_TYPES.INT_SIZEOF + DATA_TYPES.BYTE_SIZEOF;
+
+	return bufferLength;
+};
+
+PrepareAndExecutePacket.prototype.getExecuteBufferLength = function () {
+	var bufferLength = DATA_TYPES.DATA_LENGTH_SIZEOF + DATA_TYPES.CAS_INFO_SIZE +
+			DATA_TYPES.BYTE_SIZEOF + DATA_TYPES.INT_SIZEOF + DATA_TYPES.INT_SIZEOF +
+			DATA_TYPES.INT_SIZEOF + DATA_TYPES.BYTE_SIZEOF + DATA_TYPES.INT_SIZEOF +
+			DATA_TYPES.INT_SIZEOF + DATA_TYPES.INT_SIZEOF + DATA_TYPES.INT_SIZEOF +
+			DATA_TYPES.INT_SIZEOF + DATA_TYPES.INT_SIZEOF + DATA_TYPES.INT_SIZEOF +
+			DATA_TYPES.BYTE_SIZEOF + DATA_TYPES.INT_SIZEOF + DATA_TYPES.INT_SIZEOF +
+			DATA_TYPES.BYTE_SIZEOF + DATA_TYPES.INT_SIZEOF + DATA_TYPES.INT_SIZEOF +
+			DATA_TYPES.INT_SIZEOF + DATA_TYPES.INT_SIZEOF + DATA_TYPES.BYTE_SIZEOF +
+			this._getParamValuesBufferLength();
+
+	return bufferLength;
+};
+
+PrepareAndExecutePacket.prototype._getParamValuesBufferLength = function () {
+	var paramValuesBufferLength = 0;
+
+	if (this.paramValues) {
+		for (var i = this.paramValues.length - 1; i > -1; --i) {
+			var value = this.paramValues[i],
+					paramType = CAS.getCUBRIDDataTypeNumber(this.paramTypes[i]);
+
+			// First, determine the size of the param type.
+			paramValuesBufferLength +=
+					// The length of the data type.
+					DATA_TYPES.INT_SIZEOF +
+					// The size of the value.
+					DATA_TYPES.BYTE_SIZEOF;
+
+			switch (paramType) {
+				case CAS.CUBRIDDataType.CCI_U_TYPE_CHAR:
+				case CAS.CUBRIDDataType.CCI_U_TYPE_NCHAR:
+				case CAS.CUBRIDDataType.CCI_U_TYPE_STRING:
+				case CAS.CUBRIDDataType.CCI_U_TYPE_VARNCHAR:
+					paramValuesBufferLength +=
+							// The length of this part.
+							DATA_TYPES.INT_SIZEOF +
+							// The bytes length of the value.
+							Buffer.byteLength(value) +
+							// null character size.
+							DATA_TYPES.BYTE_SIZEOF;
+					break;
+
+				case CAS.CUBRIDDataType.CCI_U_TYPE_SHORT:
+					paramValuesBufferLength +=
+							// The length of this part.
+							DATA_TYPES.INT_SIZEOF +
+							// The size of the value.
+							DATA_TYPES.SHORT_SIZEOF;
+					break;
+
+				case CAS.CUBRIDDataType.CCI_U_TYPE_INT:
+					paramValuesBufferLength +=
+							// The length of this part +
+							// the size of the value.
+							DATA_TYPES.INT_SIZEOF * 2;
+					break;
+
+				case CAS.CUBRIDDataType.CCI_U_TYPE_BIGINT:
+					paramValuesBufferLength +=
+							// The length of this part.
+							DATA_TYPES.INT_SIZEOF +
+							// The size of the value.
+							DATA_TYPES.LONG_SIZEOF;
+					break;
+
+				case CAS.CUBRIDDataType.CCI_U_TYPE_FLOAT:
+					paramValuesBufferLength +=
+							// The length of this part.
+							DATA_TYPES.INT_SIZEOF +
+							// The size of the value.
+							DATA_TYPES.FLOAT_SIZEOF;
+					break;
+
+				case CAS.CUBRIDDataType.CCI_U_TYPE_DOUBLE:
+				case CAS.CUBRIDDataType.CCI_U_TYPE_MONETARY:
+					paramValuesBufferLength +=
+							// The length of this part.
+							DATA_TYPES.INT_SIZEOF +
+							// The size of the value.
+							DATA_TYPES.DOUBLE_SIZEOF;
+					break;
+
+				case CAS.CUBRIDDataType.CCI_U_TYPE_NUMERIC:
+					paramValuesBufferLength +=
+							// The length of this part.
+							DATA_TYPES.INT_SIZEOF +
+							// The bytes length of the numeric value.
+							// See `_writeNumeric`.
+							Buffer.byteLength(value.toString(10)) +
+							// null character size.
+							DATA_TYPES.BYTE_SIZEOF;
+					break;
+
+				case CAS.CUBRIDDataType.CCI_U_TYPE_DATE:
+					paramValuesBufferLength +=
+							// The length of this part.
+							DATA_TYPES.INT_SIZEOF +
+							// The size of the data type value.
+							DATA_TYPES.DATE_SIZEOF;
+					break;
+
+				case CAS.CUBRIDDataType.CCI_U_TYPE_TIME:
+					paramValuesBufferLength +=
+							// The length of this part.
+							DATA_TYPES.INT_SIZEOF +
+							// The size of the value.
+							DATA_TYPES.TIME_SIZEOF;
+					break;
+
+				case CAS.CUBRIDDataType.CCI_U_TYPE_DATETIME:
+					paramValuesBufferLength +=
+							// The length of this part.
+							DATA_TYPES.INT_SIZEOF +
+							// The size of the value.
+							DATA_TYPES.DATETIME_SIZEOF;
+					break;
+
+				case CAS.CUBRIDDataType.CCI_U_TYPE_TIMESTAMP:
+					paramValuesBufferLength +=
+							// The length of this part.
+							DATA_TYPES.INT_SIZEOF +
+							// The size of the value.
+							DATA_TYPES.TIMESTAMP_SIZEOF;
+					break;
+
+				case CAS.CUBRIDDataType.CCI_U_TYPE_OBJECT:
+				case CAS.CUBRIDDataType.CCI_U_TYPE_SET:
+				case CAS.CUBRIDDataType.CCI_U_TYPE_MULTISET:
+				case CAS.CUBRIDDataType.CCI_U_TYPE_SEQUENCE:
+				case CAS.CUBRIDDataType.CCI_U_TYPE_RESULTSET:
+					paramValuesBufferLength +=
+							// The length of this part.
+							DATA_TYPES.INT_SIZEOF +
+							// The size of the value.
+							// `_writeObject`, `_writeSequence`, `_writeResultSet`
+							// are not supported yet but still we send the
+							// `0` byte.
+							DATA_TYPES.BYTE_SIZEOF;
+					break;
+
+				case CAS.CUBRIDDataType.CCI_U_TYPE_BIT:
+				case CAS.CUBRIDDataType.CCI_U_TYPE_VARBIT:
+					paramValuesBufferLength +=
+							// The length of this part.
+							DATA_TYPES.INT_SIZEOF +
+							// The size of the value.
+							value.length;
+					break;
+
+				case CAS.CUBRIDDataType.CCI_U_TYPE_BLOB:
+				case CAS.CUBRIDDataType.CCI_U_TYPE_CLOB:
+					paramValuesBufferLength +=
+							// The length of this part +
+							// the type of the value.
+							DATA_TYPES.INT_SIZEOF * 2 +
+							// The length of the type of this CLOB.
+							DATA_TYPES.LONG_SIZEOF +
+							// The actual length.
+							DATA_TYPES.INT_SIZEOF +
+							// The length of the value in bytes.
+							Buffer.byteLength(value.fileLocator) +
+							// The null character size.
+							DATA_TYPES.BYTE_SIZEOF;
+					break;
+
+				default:
+					return new Error(ErrorMessages.ERROR_INVALID_DATA_TYPE);
+			}
+
+		}
+	}
+
+	return paramValuesBufferLength;
 };

@@ -7,16 +7,16 @@ exports['test_PrepareExecuteOldProtocolPacket'] = function (test) {
 
 	test.expect(48);
 
-	var packetReader = new PacketReader();
-	var packetWriter = new PacketWriter();
 	var options = {sql : 'select * from code',
 		casInfo          : [0, 255, 255, 255],
 		autoCommitMode   : 1,
 		dbVersion        : '8.4.1',
 		paramValues      : {},
 		paramTypes       : {}
-	};
-	var prepareExecuteOldProtocolPacket = new PrepareExecuteOldProtocolPacket(options);
+	},
+			prepareExecuteOldProtocolPacket = new PrepareExecuteOldProtocolPacket(options),
+			packetReader = new PacketReader(),
+			packetWriter = new PacketWriter(prepareExecuteOldProtocolPacket.getPrepareBufferLength());
 
 	prepareExecuteOldProtocolPacket.writePrepare(packetWriter);
 	test.equal(packetWriter._toBuffer()[3], 34); // Total length
@@ -62,7 +62,7 @@ exports['test_PrepareExecuteOldProtocolPacket'] = function (test) {
 	test.equal(prepareExecuteOldProtocolPacket.infoArray[0].IsShared, false);
 
 	packetReader = new PacketReader();
-	packetWriter = new PacketWriter();
+	packetWriter = new PacketWriter(prepareExecuteOldProtocolPacket.getExecuteBufferLength());
 	prepareExecuteOldProtocolPacket.writeExecute(packetWriter);
 	test.equal(packetWriter._toBuffer()[3], 69); // Total length
 

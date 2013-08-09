@@ -5,14 +5,13 @@ exports['test_BatchExecuteNoQueryPacket'] = function (test) {
 			BatchExecuteNoQueryPacket = require('../src' + codeCoveragePath + '/packets/BatchExecuteNoQueryPacket'),
 			CAS = require('../src' + codeCoveragePath + '/constants/CASConstants'),
 			packetReader = new PacketReader(),
-			packetWriter = new PacketWriter(),
-			options = {
+			batchExecuteNoQueryPacket = new BatchExecuteNoQueryPacket({
 				SQLs: ['create table t1(id int)', 'drop table t1'],
 				casInfo: [0, 255, 255, 255],
 				autoCommitMode: 1,
 				dbVersion: '8.4.1'
-			},
-			batchExecuteNoQueryPacket = new BatchExecuteNoQueryPacket(options);
+			}),
+			packetWriter = new PacketWriter(batchExecuteNoQueryPacket.getBufferLength());
 
 	test.expect(16);
 

@@ -7,9 +7,8 @@ exports['test_SetAutoCommitModePacket'] = function (test) {
 
 	test.expect(17);
 	var packetReader = new PacketReader();
-	var packetWriter = new PacketWriter();
-	var options = {casInfo : [0, 255, 255, 255], autoCommitMode : 1, dbVersion : '8.4.1'};
-	var setAutoCommitModePacket = new SetAutoCommitModePacket(options);
+	var setAutoCommitModePacket = new SetAutoCommitModePacket({casInfo : [0, 255, 255, 255], autoCommitMode : 1, dbVersion : '8.4.1'}),
+			packetWriter = new PacketWriter(setAutoCommitModePacket.getBufferLength());
 
 	setAutoCommitModePacket.write(packetWriter);
 	test.equal(packetWriter._toBuffer()[3], 1 + 4 * 4); // Total length

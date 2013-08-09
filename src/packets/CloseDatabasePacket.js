@@ -25,10 +25,7 @@ function CloseDatabasePacket(options) {
  * @param writer
  */
 CloseDatabasePacket.prototype.write = function (writer) {
-  var bufferLength = DATA_TYPES.DATA_LENGTH_SIZEOF + DATA_TYPES.CAS_INFO_SIZE +
-    DATA_TYPES.BYTE_SIZEOF;
-
-  writer._writeInt(bufferLength - DATA_TYPES.DATA_LENGTH_SIZEOF - DATA_TYPES.CAS_INFO_SIZE);
+  writer._writeInt(this.getBufferLength() - DATA_TYPES.DATA_LENGTH_SIZEOF - DATA_TYPES.CAS_INFO_SIZE);
   writer._writeBytes(DATA_TYPES.CAS_INFO_SIZE, this.casInfo);
   writer._writeByte(CAS.CASFunctionCode.CAS_FC_CON_CLOSE);
 
@@ -55,3 +52,9 @@ CloseDatabasePacket.prototype.parse = function (parser) {
   return this;
 };
 
+CloseDatabasePacket.prototype.getBufferLength = function () {
+	var bufferLength = DATA_TYPES.DATA_LENGTH_SIZEOF + DATA_TYPES.CAS_INFO_SIZE +
+			DATA_TYPES.BYTE_SIZEOF;
+
+	return bufferLength;
+};

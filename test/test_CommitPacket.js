@@ -5,12 +5,11 @@ exports['test_CommitPacket'] = function (test) {
 			CommitPacket = require('../src' + codeCoveragePath + '/packets/CommitPacket'),
 			CAS = require('../src' + codeCoveragePath + '/constants/CASConstants'),
 			packetReader = new PacketReader(),
-			packetWriter = new PacketWriter(),
-			options = {
+			commitPacket = new CommitPacket({
 				casInfo: [0, 255, 255, 255],
 				dbVersion : '8.4.1'
-			},
-			commitPacket = new CommitPacket(options);
+			}),
+			packetWriter = new PacketWriter(commitPacket.getBufferLength());
 
 	test.expect(16);
 

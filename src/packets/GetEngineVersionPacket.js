@@ -27,10 +27,7 @@ function GetEngineVersionPacket(options) {
  * @param writer
  */
 GetEngineVersionPacket.prototype.write = function (writer) {
-  var bufferLength = DATA_TYPES.DATA_LENGTH_SIZEOF + DATA_TYPES.CAS_INFO_SIZE +
-    DATA_TYPES.BYTE_SIZEOF + DATA_TYPES.INT_SIZEOF + DATA_TYPES.BYTE_SIZEOF;
-
-  writer._writeInt(bufferLength - DATA_TYPES.DATA_LENGTH_SIZEOF - DATA_TYPES.CAS_INFO_SIZE);
+  writer._writeInt(this.getBufferLength() - DATA_TYPES.DATA_LENGTH_SIZEOF - DATA_TYPES.CAS_INFO_SIZE);
   writer._writeBytes(DATA_TYPES.CAS_INFO_SIZE, this.casInfo);
   writer._writeByte(CAS.CASFunctionCode.CAS_FC_GET_DB_VERSION);
   writer._writeInt(DATA_TYPES.BYTE_SIZEOF);
@@ -60,4 +57,9 @@ GetEngineVersionPacket.prototype.parse = function (parser) {
   return this;
 };
 
+GetEngineVersionPacket.prototype.getBufferLength = function () {
+	var bufferLength = DATA_TYPES.DATA_LENGTH_SIZEOF + DATA_TYPES.CAS_INFO_SIZE +
+			DATA_TYPES.BYTE_SIZEOF + DATA_TYPES.INT_SIZEOF + DATA_TYPES.BYTE_SIZEOF;
 
+	return bufferLength;
+};

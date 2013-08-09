@@ -28,12 +28,7 @@ function SetDbParameterPacket(options) {
  * @param writer
  */
 SetDbParameterPacket.prototype.write = function (writer) {
-  var bufferLength = DATA_TYPES.DATA_LENGTH_SIZEOF + DATA_TYPES.CAS_INFO_SIZE +
-    DATA_TYPES.BYTE_SIZEOF +
-    DATA_TYPES.INT_SIZEOF + DATA_TYPES.INT_SIZEOF +
-    DATA_TYPES.INT_SIZEOF + DATA_TYPES.INT_SIZEOF;
-
-  writer._writeInt(bufferLength - DATA_TYPES.DATA_LENGTH_SIZEOF - DATA_TYPES.CAS_INFO_SIZE);
+  writer._writeInt(this.getBufferLength() - DATA_TYPES.DATA_LENGTH_SIZEOF - DATA_TYPES.CAS_INFO_SIZE);
   writer._writeBytes(DATA_TYPES.CAS_INFO_SIZE, this.casInfo);
   writer._writeByte(CAS.CASFunctionCode.CAS_FC_SET_DB_PARAMETER);
   writer._writeInt(DATA_TYPES.INT_SIZEOF);
@@ -63,3 +58,11 @@ SetDbParameterPacket.prototype.parse = function (parser) {
   return this;
 };
 
+SetDbParameterPacket.prototype.getBufferLength = function () {
+	var bufferLength = DATA_TYPES.DATA_LENGTH_SIZEOF + DATA_TYPES.CAS_INFO_SIZE +
+			DATA_TYPES.BYTE_SIZEOF +
+			DATA_TYPES.INT_SIZEOF + DATA_TYPES.INT_SIZEOF +
+			DATA_TYPES.INT_SIZEOF + DATA_TYPES.INT_SIZEOF;
+
+	return bufferLength;
+};
