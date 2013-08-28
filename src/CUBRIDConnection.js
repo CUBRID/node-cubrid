@@ -1252,8 +1252,10 @@ function close(callback) {
  */
 CUBRIDConnection.prototype.beginTransaction = function (callback) {
   var self = this;
+
   _toggleAutoCommitMode(self, self.AUTOCOMMIT_OFF, function (err) {
     Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_BEGIN_TRANSACTION);
+
     if (typeof(callback) === 'function') {
       callback(err);
     }
@@ -1287,10 +1289,8 @@ CUBRIDConnection.prototype.getAutoCommitMode = function () {
  * @param callback
  */
 CUBRIDConnection.prototype.rollback = function (callback) {
-  var self = this;
-  var err = self._NO_ERROR;
-  var responseData = new Buffer(0);
-  var expectedResponseLength = self._INVALID_RESPONSE_LENGTH;
+  var self = this,
+		  err = self._NO_ERROR;
 
   if (self.autoCommitMode === false) {
     var rollbackPacket = new RollbackPacket({
@@ -1301,26 +1301,28 @@ CUBRIDConnection.prototype.rollback = function (callback) {
 
     rollbackPacket.write(packetWriter);
     self._socket.write(packetWriter._buffer);
-  } else {
-    self._socket.removeAllListeners('data');
-    err = new Error(ErrorMessages.ERROR_NO_ROLLBACK);
-    Helpers._emitEvent(self, err, self.EVENT_ERROR, null);
-    if (typeof(callback) === 'function') {
-      callback(err);
-    }
-    return;
-  }
 
-  self._socket.on('data', self._receiveBytes({
-	  parserFunction: self._parseRollbackBuffer,
-	  dataPacket: rollbackPacket
-  }, function (err) {
-	  Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_ROLLBACK_COMPLETED);
+	  self._socket.on('data', self._receiveBytes({
+		  parserFunction: self._parseRollbackBuffer,
+		  dataPacket: rollbackPacket
+	  }, function (err) {
+		  self._socket.removeAllListeners('data');
+
+		  Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_ROLLBACK_COMPLETED);
+
+		  if (typeof(callback) === 'function') {
+			  callback(err);
+		  }
+	  }));
+  } else {
+    err = new Error(ErrorMessages.ERROR_NO_ROLLBACK);
+
+	  Helpers._emitEvent(self, err, self.EVENT_ERROR, null);
 
 	  if (typeof(callback) === 'function') {
-		  callback(err);
-	  }
-  }));
+      callback(err);
+    }
+  }
 };
 
 /**
@@ -1330,8 +1332,6 @@ CUBRIDConnection.prototype.rollback = function (callback) {
 CUBRIDConnection.prototype.commit = function (callback) {
   var self = this;
   var err = self._NO_ERROR;
-  var responseData = new Buffer(0);
-  var expectedResponseLength = self._INVALID_RESPONSE_LENGTH;
 
   if (self.autoCommitMode === false) {
     var commitPacket = new CommitPacket({
@@ -1342,8 +1342,20 @@ CUBRIDConnection.prototype.commit = function (callback) {
 
     commitPacket.write(packetWriter);
     self._socket.write(packetWriter._buffer);
+
+	  self._socket.on('data', self._receiveBytes({
+		  parserFunction: self._parseCommitBuffer,
+		  dataPacket: commitPacket
+	  }, function (err) {
+		  self._socket.removeAllListeners('data');
+
+		  Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_COMMIT_COMPLETED);
+
+		  if (typeof(callback) === 'function') {
+			  callback(err);
+		  }
+	  }));
   } else {
-    self._socket.removeAllListeners('data');
     err = new Error(ErrorMessages.ERROR_NO_COMMIT);
     Helpers._emitEvent(self, err, self.EVENT_ERROR, null);
     if (typeof(callback) === 'function') {
@@ -1351,17 +1363,6 @@ CUBRIDConnection.prototype.commit = function (callback) {
     }
     return;
   }
-
-  self._socket.on('data', self._receiveBytes({
-	  parserFunction: self._parseCommitBuffer,
-	  dataPacket: commitPacket
-  }, function (err) {
-	  Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_COMMIT_COMPLETED);
-
-	  if (typeof(callback) === 'function') {
-		  callback(err);
-	  }
-  }));
 };
 
 /**

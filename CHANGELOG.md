@@ -52,6 +52,7 @@
 - Ref: minor tweaks to tests.
 - Ref: major refactoring of buffer parsers to handle server responses.
 - Ref: major refactoring of protocol packets to optimize the work with `Buffer`. Updated tests.
+- Ref: refactored the `rollback` and `commit` functions.
 - Doc: updated supported CUBRID version.
 - Doc: updated README documentation.
 
