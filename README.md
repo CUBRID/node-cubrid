@@ -601,9 +601,87 @@ In case you are interested in checking if the queue is empty, call one of the ab
 
 The above function will return the number of requests currently in the queue. Remember that this number represents all requests, including READ and WRITE, and fetch, and rollback/commit, etc. Briefly all requests which initiate a network communication.
 
+### Transactions
+
+	client.beginTransaction(callback);
+	client.commit(callback);
+	client.rollback(callback);
+	
+	// All `callback(err)` functions accept one argument: the error message if any.
+
+	client.setAutoCommitMode(boolean, callback);
+	
+	// `boolean` is a boolean value which represents the auto_commit
+	//           mode you wish to set the current transaction to.
+	
+	// The `callback(err)` function accepts one argument: the error message if any.
+	
+**node-cubrid** fully supports SQL transactions. By default `auto_commit` mode is set to `true` meaning after every WRITE query CUBRID Server will commit the changes to the disk.
+
+When you start a new transactaction by calling `beginTransaction()`, **node-cubrid** will first commit the previous active transaction if any. This is according to CUBRID spec. Then it will start a new transaction by setting the `auto_commit` mode to `false`.
+
+**Note:** Unlike in other DBMS vendor drivers, in **node-cubrid** when a transaction is rolled back or committed, the `auto_commit` mode remains unchanged, i.e. `false`. This is according to CUBRID spec. This means that after you commit/rollback the transaction and you no longer need to execute queries in `auto_commit = false` mode, explicitly turn the `auto_commit` mode to `true` by calling `setAutoCommitMode()` function.
+
+	ActionQueue.enqueue([
+		function (cb) {
+			client.connect(cb);
+		},
+		function (cb) {
+			Helpers.logInfo('Connected...');
+			client.batchExecuteNoQuery('create table test_tran(id int)', cb);
+		},
+		function (cb) {
+			client.beginTransaction(cb);
+		},
+		function (cb) {
+			client.batchExecuteNoQuery('insert into test_tran values(1)', cb);
+		},
+		function (cb) {
+			client.query('select * from test_tran', cb);
+		},
+		function (result, queryHandle, cb) {
+			Helpers.logInfo('Should be true: ' + Result2Array.TotalRowsCount(result) === 1);
+			client.closeQuery(queryHandle, cb);
+		},
+		function (queryHandle, cb) {
+			client.rollback(cb);
+		},
+		function (cb) {
+			client.query('select * from test_tran', cb);
+		},
+		function (result, queryHandle, cb) {
+			Helpers.logInfo('Should be true: ' + Result2Array.TotalRowsCount(result) === 0);
+			client.closeQuery(queryHandle, cb);
+		},
+		function (queryHandle, cb) {
+			client.batchExecuteNoQuery('drop table test_tran', cb);
+		},
+		function (cb) {
+			client.commit(cb);
+		},
+		function (cb) {
+			// Explicitly set the auto commit mode to true, once done.
+			client.setAutoCommitMode(true, cb);
+		},
+		function (cb) {
+			client.query('select count(*) from db_class where class_name = \'test_tran\'', cb);
+		},
+		function (result, queryHandle, cb) {
+			Helpers.logInfo('Should be true: ' + Result2Array.RowsArray(result)[0][0] === 0);
+			client.close(cb);
+		}
+	], function (err) {
+		if (err) {
+			throw err;
+		} else {
+			Helpers.logInfo('Connection closed.');
+			Helpers.logInfo('Test passed.');
+		}
+	});
+
 ### Closing a connection
 
-	// callback(err) function accepts one arguments: the error message if any.
+	// callback(err) function accepts one argument: the error message if any.
 	client.close(callback);
 	// Alias function since version 2.1.0.
 	client.end(callback);
@@ -643,6 +721,28 @@ The following errors may be emitted when the application tries to close the conn
 		{ [Error: The connection is already closed!] }
 
 2. If closing a connection was unsuccessful, an error message returned by a database is emitted.
+
+### Events by EventEmitter
+
+**node-cubrid** implements, in addition to the standard callbacks model functionality, a rich event model:
+
+| Event name | Notes |
+| ---------------- | --------|
+| `EVENT_ERROR` | Emitted when an error is occurs. |
+| `EVENT_CONNECTED` | Emitted when a connection is established. |
+| `EVENT_ENGINE_VERSION_AVAILABLE` | Emitted when the database version information is returned from the server to a client. |
+| `EVENT_BATCH_COMMANDS_COMPLETED` | Emitted when the batch commands execution is completed. |
+| `EVENT_QUERY_DATA_AVAILABLE` | Emitted when the data from the query is available to a client. |
+| `EVENT_SCHEMA_DATA_AVAILABLE` | Emitted when the database schema information is available to a client. |
+| `EVENT_FETCH_DATA_AVAILABLE` | Emitted when more query data is available to a client through successive `fetch()` command(s). |
+| `EVENT_FETCH_NO_MORE_DATA_AVAILABLE` | Emitted when no more data is available from the query. |
+| `EVENT_BEGIN_TRANSACTION` | Emitted when a transaction is started in `auto_commit = OFF` mode. |
+| `EVENT_SET_AUTOCOMMIT_MODE_COMPLETED` | Emitted when the auto-commit mode is changed. |
+| `EVENT_COMMIT_COMPLETED` | Emitted when a commit request is completed. |
+| `EVENT_ROLLBACK_COMPLETED` | Emitted when a rollback request is completed. |
+| `EVENT_QUERY_CLOSED` | Emitted when a query is closed. |
+| `EVENT_CONNECTION_CLOSED` | Emitted when a connection is closed. |
+[**Table 1: Events emitted by node-cubrid**]
 
 ## More examples
 
