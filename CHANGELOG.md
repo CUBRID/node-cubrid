@@ -12,6 +12,7 @@
 - Enh: APIS-592, Allow to pass an object to createCUBRIDConnection().
 - Enh: allow to pass a connection timeout value as part of connection parameters.
 - Enh: no need to quote a number.
+- Enh: APIS-529, Queries queuing needs improvement. Or it is 4 times slower. Major refactoring of queries queueing mechanism for improved performance. Added params option to `query()` function.
 - Fix: test path for `node_modules`.
 - Fix: host name for tests.
 - Fix: travis script.

@@ -1,4 +1,6 @@
-exports['test_QueriesQueue_Events'] = function (test) {
+var path = require('path');
+
+exports[path.basename(__filename)] = function (test) {
 	var CUBRID = require('../'),
 			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
 			Helpers = CUBRID.Helpers,
@@ -58,7 +60,7 @@ exports['test_QueriesQueue_Events'] = function (test) {
 
   client.on(client.EVENT_QUERY_CLOSED, function (queryHandle) {
     Helpers.logInfo(queryHandle + ' was closed!');
-    if (client._queriesQueue.length === 0) {
+    if (client.queriesQueueIsEmpty()) {
       setTimeout(function () {
         client.close();
       }, 1000);

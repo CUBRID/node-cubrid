@@ -57,8 +57,9 @@ ExecuteQueryPacket.prototype.write = function (writer) {
 	// Why write only one byte?
 	writer._writeByte(this.dbVersion.startsWith('9.0.0') ? CAS.CASFunctionCode900.CAS_FC_PREPARE_AND_EXECUTE : CAS.CASFunctionCode.CAS_FC_PREPARE_AND_EXECUTE);
 
-	// TODO: what are these four bytes for?
-	// May this refer to the above CAS function.
+	// The length of the next piece of data, i.e. CAS function.
+	// The length of any piece of data should be represented by an
+	// integer value.
 	writer._writeInt(DATA_TYPES.INT_SIZEOF);
 
 	// Next, write how many arguments (integer value, thus 4 bytes)
@@ -69,7 +70,7 @@ ExecuteQueryPacket.prototype.write = function (writer) {
 	// Now goes the SQL query.
 	writer._writeNullTerminatedString(this.sql);
 
-	// The size of the next piece.
+	// The size of the next piece, also in 4-byte integer.
 	writer._writeInt(DATA_TYPES.BYTE_SIZEOF);
 	// The type of prepare CAS has to execute.
 	writer._writeByte(CAS.CCIPrepareOption.CCI_PREPARE_NORMAL);

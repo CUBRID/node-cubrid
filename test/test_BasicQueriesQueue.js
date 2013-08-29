@@ -1,4 +1,6 @@
-exports['test_BasicQueriesQueue'] = function (test) {
+var path = require('path');
+
+exports[path.basename(__filename)] = function (test) {
 	var CUBRID = require('../'),
 			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
 			Helpers = CUBRID.Helpers,

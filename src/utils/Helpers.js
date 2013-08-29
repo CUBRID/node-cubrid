@@ -220,17 +220,41 @@ exports._sqlFormat = function (sql, arrValues, arrDelimiters) {
       return match;
     }
 
-    var val = arrValues.shift();
-    var delimiter = arrDelimiters.shift();
+	  // Get the front element.
+    var val = arrValues.shift(),
+    // And the front delimiter.
+      delimiter = arrDelimiters.shift();
 
     if (val === undefined || val === null) {
       return 'NULL';
     }
 
-    if (!isNaN(parseFloat(val)) && isFinite(val) && typeof val !== 'string') {
+	  // Send numbers as real numbers. Numbers wrapped in strings
+	  // are not considered as numbers. They are sent as strings.
+    if (typeof val === 'number') {
       return val;
     }
 
+	  // If the value is of Date type, convert it into
+	  // CUBRID compatible DATETIME format strings.
+	  if (val instanceof Date) {
+		  // CUBRID 8.4.1+ supports many formats of DATETIME value.
+		  // Refer to http://www.cubrid.org/manual/841/en/DATETIME
+		  // for more information.
+		  // In the communication between node-cubrid and CUBRID
+		  // Broker we choose the
+		  // `'mm/dd[/yyyy] hh:mi[:ss[.ff]] [am|pm]'` format.
+
+      return "'" +
+			    // Month value in JavaScript is 0 based, i.e. 0-11,
+			    // but CUBRID is 1-12. Also CUBRID doesn't care if
+		      // dates are zero-padded or not.
+		      (val.getMonth() + 1) + '/' + val.getDate() + '/' + val.getFullYear() +
+		      ' ' + val.getHours() + ':' + val.getMinutes() + ':' + val.getSeconds() +
+		      '.' + val.getMilliseconds() + "'";
+    }
+
+	  // Otherwise, safely escape the string.
     return delimiter + _escapeString(val) + delimiter;
   });
 };

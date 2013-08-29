@@ -10,6 +10,9 @@ var Net = require('net'),
 		Helpers = require('./utils/Helpers'),
 		Cache = require('./utils/Cache'),
 
+		Query = require('./query/Query'),
+		Queue = require('./query/Queue'),
+
 		PacketReader = require('./packets/PacketReader'),
 		PacketWriter = require('./packets/PacketWriter'),
 		ClientInfoExchangePacket = require('./packets/ClientInfoExchangePacket'),
@@ -118,7 +121,6 @@ function CUBRIDConnection(brokerServer, brokerPort, user, password, database, ca
   // Execution semaphore variables; prevent double-connect-attempts, overlapping-queries etc.
   this.connectionOpened = false;
   this.connectionPending = false;
-  this.queryPending = false;
 
   // Driver events
   this.EVENT_ERROR = 'error';
@@ -168,51 +170,17 @@ function CUBRIDConnection(brokerServer, brokerPort, user, password, database, ca
   // Database engine version
   this._DB_ENGINE_VER = '';
 
-  // Enforce execute query using the old protocol
+  // Enforce query execution using the old protocol.
+	// One would enforce the old protocol when trying to connect
+	// to CUBRID SHARD Broker version 8.4.3 and 9.1.0.
+	// On later versions of CUBRID SHARD Broker (8.4.4+, 9.2.0+)
+	// users can use the default newer protocol.
   this._ENFORCE_OLD_QUERY_PROTOCOL = false;
 
-  // Each element in the queries queue array contains:
-  // 0:query handle, 1:sql, 2:query status, 3:callback to call when done
-  this._queriesQueue = [];
-  this._QUERY_INFO = {
-    HANDLE   : 0,
-    SQL      : 1,
-    STATUS   : 2,
-    CALLBACK : 3,
-    SQL_TYPE : 4
-  };
-
-  this._QUERY_STATUS = {
-    NOT_STARTED  : 0,
-    IN_EXECUTION : 1,
-    CLOSED       : 2
-  };
-
-  this._SQL_TYPE = {
-    IS_QUERY     : 0,
-    IS_NON_QUERY : 1
-  };
-
-  // Queries queue check interval (msec.)
-  // You can try to reduce this value to speed-up queries queue processing
-  // However, a small value will introduce a memory overhead and potential queries collision side effects
-  this._QUERIES_QUEUE_CHECK_INTERVAL = 1000;
-
-  // Current active status of the queries queue background processor
-  this._QUERIES_QUEUE_PROCESSOR_STARTED = false;
+	this._queue = new Queue();
 
   // Used for standard callbacks 'err' parameter
   this._NO_ERROR = null;
-
-  // Uncomment the following lines if you will not always provide an 'error' listener in your consumer code,
-  // to avoid any unexpected exception. Be aware that:
-  // Error events are treated as a special case in node. If there is no listener for it,
-  // then the default action is to print a stack trace and exit the program.
-  // http://nodejs.org/api/events.html
-  // this.on('error',function(err){
-  // Helpers.logError(err.message);
-  //// ... (add your own error-handling code)
-  //});
 }
 
 /**
@@ -392,7 +360,7 @@ CUBRIDConnection.prototype.connect = function (callback) {
       self._getEngineVersion(cb);
     }
   ], function (err) {
-      self.queryPending = false; // Reset query execution status
+      // Reset query execution status
       self.connectionPending = false;
       self.connectionOpened = !(typeof err !== 'undefined' && err !== null);
       Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_CONNECTED);
@@ -438,11 +406,21 @@ CUBRIDConnection.prototype.getEngineVersion = function (callback) {
  * @param callback
  */
 CUBRIDConnection.prototype.batchExecuteNoQuery = function (sqls, callback) {
+	var self = this,
+			query = new Query(null, callback);
+
+	this._queue.push(function (done) {
+		self._batchExecuteNoQuery(sqls, function (err) {
+			query.callback(err);
+			done();
+		});
+	});
+};
+
+CUBRIDConnection.prototype._batchExecuteNoQuery = function (sqls, callback) {
   var self = this,
 		  sqlsArr,
-		  err = self._NO_ERROR,
-		  responseData = new Buffer(0),
-			expectedResponseLength = self._INVALID_RESPONSE_LENGTH;
+		  err = self._NO_ERROR;
 
   if (Array.isArray(sqls)) {
     if (sqls.length === 0) {
@@ -458,7 +436,7 @@ CUBRIDConnection.prototype.batchExecuteNoQuery = function (sqls, callback) {
 
     sqlsArr = sqls;
   } else {
-    sqlsArr = new Array(sqls);
+    sqlsArr = [sqls];
   }
 
   ActionQueue.enqueue([
@@ -496,16 +474,12 @@ CUBRIDConnection.prototype.batchExecuteNoQuery = function (sqls, callback) {
 // for batch processing.
 // `callback(err)` function accepts one argument: an error object if any.
 CUBRIDConnection.prototype.execute = function (sql, callback) {
-  var self = this,
-		  err = self._NO_ERROR,
-		  arrSQL = [];
-
-  arrSQL.push(sql);
+  var self = this;
 
   if(this._ENFORCE_OLD_QUERY_PROTOCOL === true){
     return self.executeWithTypedParams(sql, null, null, callback);
   } else {
-    return self.batchExecuteNoQuery(arrSQL, callback);
+    return self.batchExecuteNoQuery(sql, callback);
   }
 };
 
@@ -534,6 +508,18 @@ CUBRIDConnection.prototype.executeWithParams = function (sql, arrParamsValues, a
  * @return {*}
  */
 CUBRIDConnection.prototype.executeWithTypedParams = function (sql, arrParamsValues, arrParamsDataTypes, callback) {
+	var self = this,
+			query = new Query(null, callback);
+
+	this._queue.push(function (done) {
+		self._executeWithTypedParams(sql, arrParamsValues, arrParamsDataTypes, function (err) {
+			query.callback(err);
+			done();
+		});
+	});
+};
+
+CUBRIDConnection.prototype._executeWithTypedParams = function (sql, arrParamsValues, arrParamsDataTypes, callback) {
   var self = this;
 
   ActionQueue.enqueue([
@@ -793,16 +779,6 @@ CUBRIDConnection.prototype._parseCloseQueryBuffer = function (packetReader) {
 				break;
 			}
 		}
-
-		// Remove query from queue
-		if (this._QUERIES_QUEUE_PROCESSOR_STARTED) {
-			for (i = 0; i < this._queriesQueue.length; ++i) {
-				if (this._queriesQueue[i][this._QUERY_INFO.HANDLE] === this._parserOptions.queryHandle) {
-					// Remove query from the queue.
-					this._queriesQueue.splice(i, 1);
-				}
-			}
-		}
 	}
 
 	this._callback(err);
@@ -897,12 +873,24 @@ CUBRIDConnection.prototype._parseLobNewBuffer = function (packetReader) {
 	this._callback(err, logObject);
 };
 
+CUBRIDConnection.prototype.query = function (sql, params, callback) {
+	var self = this,
+			query = new Query(sql, params, callback);
+
+	this._queue.push(function (done) {
+		self._query(query.sql, function (err, result, queryHandle) {
+			query.callback(err, result, queryHandle);
+			done();
+		});
+	});
+};
+
 /**
  * Execute query and retrieve rows results
  * @param sql
  * @param callback
  */
-CUBRIDConnection.prototype.query = function (sql, callback) {
+CUBRIDConnection.prototype._query = function (sql, callback) {
   if (this._ENFORCE_OLD_QUERY_PROTOCOL) {
     return this._queryOldProtocol(sql, null, null, callback);
   } else {
@@ -914,17 +902,6 @@ CUBRIDConnection.prototype._queryNewProtocol = function (sql, callback) {
   var self = this,
 		  err = self._NO_ERROR;
 
-  if (self.queryPending === true && self._PREVENT_CONCURRENT_REQUESTS) {
-    err = new Error(ErrorMessages.ERROR_QUERY_ALREADY_PENDING);
-    Helpers._emitEvent(self, err, self.EVENT_ERROR, null);
-    if (typeof(callback) === 'function') {
-      callback(err);
-    }
-    return;
-  }
-
-  self.queryPending = true;
-
   ActionQueue.enqueue([
     function (cb) {
 	    self._implyConnect(cb);
@@ -932,7 +909,7 @@ CUBRIDConnection.prototype._queryNewProtocol = function (sql, callback) {
     function (cb) {
       // Check if data is already in cache
       if (self._queryCache !== null && self._queryCache.contains(sql)) {
-        cb(null, self._queryCache.get(sql));
+	      cb(null, self._queryCache.get(sql));
       } else {
 	      var executeQueryPacket = new ExecuteQueryPacket({
 				      sql            : sql,
@@ -955,8 +932,6 @@ CUBRIDConnection.prototype._queryNewProtocol = function (sql, callback) {
 	    }
     }
   ], function (err, result, handle) {
-    self.queryPending = false;
-
     Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_QUERY_DATA_AVAILABLE, result, handle, sql);
 
 	  if (typeof(callback) === 'function') {
@@ -975,17 +950,6 @@ CUBRIDConnection.prototype._queryNewProtocol = function (sql, callback) {
 CUBRIDConnection.prototype._queryOldProtocol = function (sql, arrParamsValues, arrParamsDataTypes, callback) {
   var self = this,
 		  err = self._NO_ERROR;
-
-  if (self.queryPending === true && self._PREVENT_CONCURRENT_REQUESTS) {
-    err = new Error(ErrorMessages.ERROR_QUERY_ALREADY_PENDING);
-    Helpers._emitEvent(self, err, self.EVENT_ERROR, null);
-    if (typeof(callback) === 'function') {
-      callback(err);
-    }
-    return;
-  }
-
-  self.queryPending = true;
 
   ActionQueue.enqueue([
     function (cb) {
@@ -1011,8 +975,6 @@ CUBRIDConnection.prototype._queryOldProtocol = function (sql, arrParamsValues, a
       }, cb));
     }
   ], function (err, result, handle) {
-    self.queryPending = false;
-
     Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_QUERY_DATA_AVAILABLE, result, handle, sql);
 
 	  if (typeof(callback) === 'function') {
@@ -1055,6 +1017,18 @@ CUBRIDConnection.prototype.queryWithTypedParams = function (sql, arrParamsValues
  * @param callback
  */
 CUBRIDConnection.prototype.fetch = function (queryHandle, callback) {
+	var self = this,
+			query = new Query(null, callback);
+
+	this._queue.unshift(function (done) {
+		self._fetch(queryHandle, function (err, result, queryHandle) {
+			query.callback(err, result, queryHandle);
+			done();
+		});
+	});
+};
+
+CUBRIDConnection.prototype._fetch = function (queryHandle, callback) {
   var self = this,
 		  err = self._NO_ERROR,
 		  foundQueryHandle = false;
@@ -1112,44 +1086,38 @@ CUBRIDConnection.prototype.fetch = function (queryHandle, callback) {
  * @param callback
  */
 CUBRIDConnection.prototype.closeQuery = function (queryHandle, callback) {
+	var self = this,
+			query = new Query(queryHandle, callback);
+
+	this._queue.unshift(function (done) {
+		self._closeQuery(queryHandle, function (err) {
+			query.callback(err, queryHandle);
+			done();
+		});
+	});
+};
+
+CUBRIDConnection.prototype._closeQuery = function (queryHandle, callback) {
   var self = this,
-		  err = self._NO_ERROR;
+		  err = self._NO_ERROR,
+		  foundQueryHandle = false;
 
-  self.queryPending = false;
-
-  var foundQueryHandle = false;
   for (var i = 0; i < self._queriesPacketList.length; i++) {
     if (self._queriesPacketList[i].queryHandle === queryHandle) {
       foundQueryHandle = true;
       break;
     }
   }
+
   if (!foundQueryHandle) {
 	  err = new Error(ErrorMessages.ERROR_NO_ACTIVE_QUERY + ": " + queryHandle);
-    self._socket.removeAllListeners('data');
-    Helpers._emitEvent(self, err, self.EVENT_ERROR, null);
+
     if (typeof(callback) === 'function') {
       callback(err);
     }
+
+	  Helpers._emitEvent(self, err, self.EVENT_ERROR, null);
   } else {
-	  // Check if closing a query in the queriesQueue
-    // In this case, if there is a query executing in a queue try to close later
-    if (self._QUERIES_QUEUE_PROCESSOR_STARTED) {
-      // Check if some query is still in execution
-      for (i = 0; i < self._queriesQueue.length; i++) {
-        if (self._queriesQueue[i][self._QUERY_INFO.HANDLE] === queryHandle &&
-          self._queriesQueue[i][self._QUERY_INFO.STATUS] === self._QUERY_STATUS.IN_EXECUTION) {
-          Helpers.logInfo('...found a query in execution: ' + self._queriesQueue[i][self._QUERY_INFO.SQL] + ' ...retrying later...]');
-          // Retry queue processing after a while
-          setTimeout(function () {
-            self.closeQuery(queryHandle, callback);
-          }, self._QUERIES_QUEUE_CHECK_INTERVAL);
-
-          return;
-        }
-      }
-    }
-
     var closeQueryPacket = new CloseQueryPacket({
 		      casInfo    : self._CASInfo,
 		      reqHandle  : queryHandle,
@@ -1166,11 +1134,11 @@ CUBRIDConnection.prototype.closeQuery = function (queryHandle, callback) {
 		  parserFunction: self._parseCloseQueryBuffer,
 		  dataPacket: closeQueryPacket
 	  }, function (err) {
-		  Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_QUERY_CLOSED, queryHandle);
-
 		  if (typeof(callback) === 'function') {
 			  callback(err, queryHandle);
 		  }
+
+		  Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_QUERY_CLOSED, queryHandle);
 	  }));
   }
 };
@@ -1200,9 +1168,10 @@ function close(callback) {
 	}
 
 	// Reset connection status
-	self.queryPending = false;
 	self.connectionPending = false;
 	self.connectionOpened = false;
+	// Remove all pending requests.
+	this._queue.empty();
 
 	ActionQueue.enqueue([
 		function (cb) {
@@ -1289,6 +1258,18 @@ CUBRIDConnection.prototype.getAutoCommitMode = function () {
  * @param callback
  */
 CUBRIDConnection.prototype.rollback = function (callback) {
+	var self = this,
+			query = new Query(null, callback);
+
+	this._queue.unshift(function (done) {
+		self._rollback(function (err) {
+			query.callback(err);
+			done();
+		});
+	});
+};
+
+CUBRIDConnection.prototype._rollback = function (callback) {
   var self = this,
 		  err = self._NO_ERROR;
 
@@ -1330,6 +1311,18 @@ CUBRIDConnection.prototype.rollback = function (callback) {
  * @param callback
  */
 CUBRIDConnection.prototype.commit = function (callback) {
+	var self = this,
+			query = new Query(null, callback);
+
+	this._queue.unshift(function (done) {
+		self._commit(function (err) {
+			query.callback(err);
+			done();
+		});
+	});
+};
+
+CUBRIDConnection.prototype._commit = function (callback) {
   var self = this;
   var err = self._NO_ERROR;
 
@@ -1397,10 +1390,19 @@ function _toggleAutoCommitMode(self, autoCommitMode, callback) {
  * @param callback
  */
 CUBRIDConnection.prototype.getSchema = function (schemaType, tableNameFilter, callback) {
-  var self = this,
-		  err = self._NO_ERROR,
-		  responseData = new Buffer(0),
-		  expectedResponseLength = self._INVALID_RESPONSE_LENGTH;
+	var self = this,
+			query = new Query(null, callback);
+
+	this._queue.push(function (done) {
+		self._getSchema(schemaType, tableNameFilter, function (err, result) {
+			query.callback(err, result);
+			done();
+		});
+	});
+};
+
+CUBRIDConnection.prototype._getSchema = function (schemaType, tableNameFilter, callback) {
+  var self = this;
 
   ActionQueue.enqueue([
       function (cb) {
@@ -1443,6 +1445,18 @@ CUBRIDConnection.prototype.getSchema = function (schemaType, tableNameFilter, ca
  * @param callback
  */
 CUBRIDConnection.prototype.lobNew = function (lobType, callback) {
+	var self = this,
+			query = new Query(null, callback);
+
+	this._queue.push(function (done) {
+		self._lobNew(lobType, function (err, lobObject) {
+			query.callback(err, lobObject);
+			done();
+		});
+	});
+};
+
+CUBRIDConnection.prototype._lobNew = function (lobType, callback) {
   var self = this;
 
   ActionQueue.enqueue([
@@ -1486,13 +1500,25 @@ CUBRIDConnection.prototype.lobNew = function (lobType, callback) {
  * @param callback
  */
 CUBRIDConnection.prototype.lobWrite = function (lobObject, position, dataBuffer, callback) {
+	var self = this,
+			query = new Query(null, callback);
+
+	this._queue.push(function (done) {
+		self._lobWrite(lobObject, position, dataBuffer, function (err, lobObject, totalWriteLen) {
+			query.callback(err, lobObject, totalWriteLen);
+			done();
+		});
+	});
+};
+
+CUBRIDConnection.prototype._lobWrite = function (lobObject, position, dataBuffer, callback) {
   var self = this,
 		  err = self._NO_ERROR;
 
   if (lobObject.lobLength + 1 !== position) {
     err = new Error(ErrorMessages.ERROR_INVALID_LOB_POSITION);
     Helpers.logError(ErrorMessages.ERROR_INVALID_LOB_POSITION);
-    callback();
+    return callback(err);
   }
 
   --position;
@@ -1604,6 +1630,18 @@ CUBRIDConnection.prototype.lobWrite = function (lobObject, position, dataBuffer,
  * @param callback
  */
 CUBRIDConnection.prototype.lobRead = function (lobObject, position, length, callback) {
+	var self = this,
+			query = new Query(null, callback);
+
+	this._queue.push(function (done) {
+		self._lobRead(lobObject, position, length, function (err, buffer, totalReadLen) {
+			query.callback(err, buffer, totalReadLen);
+			done();
+		});
+	});
+};
+
+CUBRIDConnection.prototype._lobRead = function (lobObject, position, length, callback) {
   var self = this,
 		  err = self._NO_ERROR,
 		  buffer;
@@ -1619,7 +1657,7 @@ CUBRIDConnection.prototype.lobRead = function (lobObject, position, length, call
   if (lobObject.lobLength < position + length) {
     err = new Error(ErrorMessages.ERROR_INVALID_LOB_POSITION);
     Helpers.logError(ErrorMessages.ERROR_INVALID_LOB_POSITION);
-    callback();
+    return callback(err);
   }
 
   var realReadLen,
@@ -1738,6 +1776,18 @@ CUBRIDConnection.prototype.getConnectionTimeout = function () {
  * @param callback
  */
 CUBRIDConnection.prototype.setDatabaseParameter = function (parameter, value, callback) {
+	var self = this,
+			query = new Query(null, callback);
+
+	this._queue.push(function (done) {
+		self._setDatabaseParameter(parameter, value, function (err) {
+			query.callback(err);
+			done();
+		});
+	});
+};
+
+CUBRIDConnection.prototype._setDatabaseParameter = function (parameter, value, callback) {
   var self = this,
 		  err = self._NO_ERROR;
 
@@ -1780,6 +1830,18 @@ CUBRIDConnection.prototype.setDatabaseParameter = function (parameter, value, ca
  * @param callback
  */
 CUBRIDConnection.prototype.getDatabaseParameter = function (parameter, callback) {
+	var self = this,
+			query = new Query(null, callback);
+
+	this._queue.push(function (done) {
+		self._getDatabaseParameter(parameter, function (err, value) {
+			query.callback(err, value);
+			done();
+		});
+	});
+};
+
+CUBRIDConnection.prototype._getDatabaseParameter = function (parameter, callback) {
   var self = this,
 		  err = self._NO_ERROR;
 
@@ -1843,127 +1905,29 @@ CUBRIDConnection.prototype.getEnforceOldQueryProtocol = function () {
  * @param callback
  */
 CUBRIDConnection.prototype.addQuery = function (sql, callback) {
-  var self = this;
-
-  // -1: No valid handle for the query yet, as the query is pending execution start
-  self._queriesQueue.push([-1, sql, self._QUERY_STATUS.NOT_STARTED, callback, self._SQL_TYPE.IS_QUERY]);
-
-  if (self._QUERIES_QUEUE_PROCESSOR_STARTED === false) {
-    self._QUERIES_QUEUE_PROCESSOR_STARTED = true;
-    self._enableQueriesBackgroundProcessor();
-  }
+	this.query(sql, callback);
 };
 
-//TODO Add support for non queries in the queue:
 /**
  * Add a non-query (direct SQL execute statement) to the queries queue
  * @param sql SQL command to execute
  * @param callback
  */
 CUBRIDConnection.prototype.addNonQuery = function (sql, callback) {
-  var self = this;
-
-  // -1: No valid handle for the command yet, as the command is pending execution start
-  self._queriesQueue.push([-1, sql, self._QUERY_STATUS.NOT_STARTED, callback, self._SQL_TYPE.IS_NON_QUERY]);
-
-  if (self._QUERIES_QUEUE_PROCESSOR_STARTED === false) {
-    self._QUERIES_QUEUE_PROCESSOR_STARTED = true;
-    self._enableQueriesBackgroundProcessor();
-  }
-};
-
-/**
- * Execute a query from the queries queue
- * @param idx
- */
-CUBRIDConnection.prototype._executeQuery = function (idx) {
-  var self = this;
-
-  if (self._queriesQueue[idx][self._QUERY_INFO.SQL_TYPE] === self._SQL_TYPE.IS_QUERY) {
-    self.query(self._queriesQueue[idx][self._QUERY_INFO.SQL], function (err, result, queryHandle) {
-      self._queriesQueue[idx][self._QUERY_INFO.STATUS] = self._QUERY_STATUS.CLOSED;
-      self._queriesQueue[idx][self._QUERY_INFO.HANDLE] = queryHandle;
-
-      if (self._queriesQueue[idx][self._QUERY_INFO.CALLBACK] &&
-        typeof(self._queriesQueue[idx][self._QUERY_INFO.CALLBACK]) === 'function') {
-        self._queriesQueue[idx][self._QUERY_INFO.CALLBACK].call(self, err, result, queryHandle);
-      }
-
-      if (err) {
-        self._queriesQueue.splice(idx, 1);
-      }
-    });
-  } else {
-    self.execute(self._queriesQueue[idx][self._QUERY_INFO.SQL], function (err) {
-      self._queriesQueue[idx][self._QUERY_INFO.STATUS] = self._QUERY_STATUS.CLOSED;
-
-      if (self._queriesQueue[idx][self._QUERY_INFO.CALLBACK] &&
-        typeof(self._queriesQueue[idx][self._QUERY_INFO.CALLBACK]) === 'function') {
-        self._queriesQueue[idx][self._QUERY_INFO.CALLBACK].call(self, err);
-      }
-
-      // Remove the statement from the queue
-      self._queriesQueue.splice(idx, 1);
-    });
-  }
-};
-
-/**
- * Queries queue background processor
- * @private
- */
-CUBRIDConnection.prototype._enableQueriesBackgroundProcessor = function () {
-  var self = this;
-  var i;
-
-  if (self._queriesQueue.length === 0) {
-    self._QUERIES_QUEUE_PROCESSOR_STARTED = false;
-    return;
-  }
-
-  // Check if some query is still in execution
-  for (i = 0; i < self._queriesQueue.length; i++) {
-    if (self._queriesQueue[i][self._QUERY_INFO.STATUS] === self._QUERY_STATUS.IN_EXECUTION) {
-      // Retry queue processing after a while
-      setTimeout(function () {
-        self._enableQueriesBackgroundProcessor();
-      }, self._QUERIES_QUEUE_CHECK_INTERVAL);
-      return;
-    }
-  }
-
-  // Find the first query not started
-  for (i = 0; i < self._queriesQueue.length; i++) {
-    if (self._queriesQueue[i][self._QUERY_INFO.STATUS] === self._QUERY_STATUS.NOT_STARTED) {
-      self._queriesQueue[i][self._QUERY_INFO.STATUS] = self._QUERY_STATUS.IN_EXECUTION;
-      self._executeQuery(i);
-      break;
-    }
-  }
-
-  // Re-execute queries processor
-  setTimeout(function () {
-    self._enableQueriesBackgroundProcessor();
-  }, self._QUERIES_QUEUE_CHECK_INTERVAL);
+  this.execute(sql, callback);
 };
 
 /**
  * Return true if there are pending queries in the queries queue
  * @return {Boolean}
  */
-CUBRIDConnection.prototype.queriesQueueIsEmpty = function () {
-  if (this._queriesQueue.length === 0) {
-    return true;
-  } else {
-    var noQueriesPending = true;
+CUBRIDConnection.prototype.queriesQueueIsEmpty = isQueueEmpty;
+CUBRIDConnection.prototype.isQueueEmpty = isQueueEmpty;
 
-    for (var i = 0; i < this._queriesQueue.length; i++) {
-      if (this._queriesQueue[i][this._QUERY_INFO.STATUS] !== this._QUERY_STATUS.CLOSED) {
-        noQueriesPending = false;
-        break;
-      }
-    }
+function isQueueEmpty() {
+  return this._queue.isEmpty();
+};
 
-    return noQueriesPending;
-  }
+CUBRIDConnection.prototype.getQueueDepth = function () {
+	return this._queue.getDepth();
 };

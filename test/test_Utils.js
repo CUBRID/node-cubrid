@@ -1,12 +1,16 @@
-exports['test_Utils'] = function (test) {
+var path = require('path');
+
+exports[path.basename(__filename)] = function (test) {
 	var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
-			GetResultsArray = require('../src' + codeCoveragePath + '/resultset/Result2Array').RowsArray,
-			GetResultsColumnNamesArray = require('../src' + codeCoveragePath + '/resultset/Result2Array').ColumnNamesArray,
-			GetResultsColumnTypesArray = require('../src' + codeCoveragePath + '/resultset/Result2Array').ColumnTypesArray,
-			GetResultsCount = require('../src' + codeCoveragePath + '/resultset/Result2Array').TotalRowsCount,
-			GetResultsObjectsArrays = require('../src' + codeCoveragePath + '/resultset/Result2Array').ObjectsArray;
+			srcDir = '../src' + codeCoveragePath,
+			GetResultsArray = require(srcDir + '/resultset/Result2Array').RowsArray,
+			GetResultsColumnNamesArray = require(srcDir + '/resultset/Result2Array').ColumnNamesArray,
+			GetResultsColumnTypesArray = require(srcDir + '/resultset/Result2Array').ColumnTypesArray,
+			GetResultsCount = require(srcDir + '/resultset/Result2Array').TotalRowsCount,
+			GetResultsObjectsArrays = require(srcDir + '/resultset/Result2Array').ObjectsArray;
 
 	test.expect(10);
+
 	var json_str = '{"ColumnNames":["s_name","f_name"],' +
 			'"ColumnDataTypes":["char","string"],' +
 			'"RowsCount":99,' +
