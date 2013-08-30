@@ -1,6 +1,6 @@
 # node-cubrid change log
 
-## Version 2.1.0 (Unreleased)
+## Version 2.1.0 (Aug 30, 2013)
 
 - New: APIS-566, Release 3.0 - Add Travis support.
 - New: added CUBRID 8.4.4 version to Travis.
