@@ -27,10 +27,7 @@ function SetAutoCommitModePacket(options) {
  * @param writer
  */
 SetAutoCommitModePacket.prototype.write = function (writer) {
-  var bufferLength = DATA_TYPES.DATA_LENGTH_SIZEOF + DATA_TYPES.CAS_INFO_SIZE +
-    DATA_TYPES.BYTE_SIZEOF + 2 * DATA_TYPES.INT_SIZEOF + 2 * DATA_TYPES.INT_SIZEOF;
-
-  writer._writeInt(bufferLength - DATA_TYPES.DATA_LENGTH_SIZEOF - DATA_TYPES.CAS_INFO_SIZE);
+  writer._writeInt(this.getBufferLength() - DATA_TYPES.DATA_LENGTH_SIZEOF - DATA_TYPES.CAS_INFO_SIZE);
   writer._writeBytes(DATA_TYPES.CAS_INFO_SIZE, this.casInfo);
   writer._writeByte(CAS.CASFunctionCode.CAS_FC_SET_DB_PARAMETER);
   writer._writeInt(DATA_TYPES.INT_SIZEOF);
@@ -61,3 +58,9 @@ SetAutoCommitModePacket.prototype.parse = function (parser) {
   return this;
 };
 
+SetAutoCommitModePacket.prototype.getBufferLength = function () {
+	var bufferLength = DATA_TYPES.DATA_LENGTH_SIZEOF + DATA_TYPES.CAS_INFO_SIZE +
+			DATA_TYPES.BYTE_SIZEOF + 2 * DATA_TYPES.INT_SIZEOF + 2 * DATA_TYPES.INT_SIZEOF;
+
+	return bufferLength;
+};

@@ -6,10 +6,9 @@ exports['test_CloseConnectionPacket'] = function (test) {
 			CAS = require('../src' + codeCoveragePath + '/constants/CASConstants');
 
 	test.expect(14);
-	var packetReader = new PacketReader();
-	var packetWriter = new PacketWriter();
-	var options = {casInfo : [0, 255, 255, 255]};
-	var closeDatabasePacket = new CloseDatabasePacket(options);
+	var packetReader = new PacketReader(),
+			closeDatabasePacket = new CloseDatabasePacket({casInfo : [0, 255, 255, 255]}),
+			packetWriter = new PacketWriter(closeDatabasePacket.getBufferLength());
 
 	closeDatabasePacket.write(packetWriter);
 	test.equal(packetWriter._toBuffer()[3], 1); // Total length

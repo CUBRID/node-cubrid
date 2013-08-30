@@ -27,9 +27,7 @@ function CloseQueryPacket(options) {
  * @param writer
  */
 CloseQueryPacket.prototype.write = function (writer) {
-  var bufferLength = DATA_TYPES.DATA_LENGTH_SIZEOF + DATA_TYPES.CAS_INFO_SIZE +
-    DATA_TYPES.BYTE_SIZEOF + DATA_TYPES.INT_SIZEOF + DATA_TYPES.INT_SIZEOF +
-    DATA_TYPES.INT_SIZEOF + DATA_TYPES.BYTE_SIZEOF;
+  var bufferLength = this.getBufferLength();
 
   writer._writeInt(bufferLength - DATA_TYPES.DATA_LENGTH_SIZEOF - DATA_TYPES.CAS_INFO_SIZE);
   writer._writeBytes(DATA_TYPES.CAS_INFO_SIZE, this.casInfo);
@@ -62,3 +60,10 @@ CloseQueryPacket.prototype.parse = function (parser) {
   return this;
 };
 
+CloseQueryPacket.prototype.getBufferLength = function () {
+	var bufferLength = DATA_TYPES.DATA_LENGTH_SIZEOF + DATA_TYPES.CAS_INFO_SIZE +
+			DATA_TYPES.BYTE_SIZEOF + DATA_TYPES.INT_SIZEOF + DATA_TYPES.INT_SIZEOF +
+			DATA_TYPES.INT_SIZEOF + DATA_TYPES.BYTE_SIZEOF;
+
+	return bufferLength;
+};

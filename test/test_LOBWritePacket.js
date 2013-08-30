@@ -7,7 +7,6 @@ exports['test_LOBWritePacket'] = function (test) {
 
 	test.expect(116);
 	var packetReader = new PacketReader();
-	var packetWriter = new PacketWriter();
 	var packedLobHandle = new Buffer([0, 0, 0, 33, 0, 0, 0, 0, 0, 0, 20, 0, 0, 0, 0, 79, 102, 105, 108, 101, 58,
 		67, 58, 92, 67, 85, 66, 82, 73, 68, 92, 100, 97, 116, 97, 98, 97, 115, 101, 115, 92, 100, 101, 109, 111, 100,
 		98, 47, 108, 111, 98, 47, 99, 101, 115, 95, 48, 56, 50, 47, 116, 101, 115, 116, 95, 108, 111, 98, 46, 48, 48,
@@ -22,15 +21,15 @@ exports['test_LOBWritePacket'] = function (test) {
 	};
 	var value = new Buffer([1, 2, 3, 4]);
 
-	var options = {
-		casInfo   : [0, 255, 255, 255],
-		lobObject : lobHandle,
-		position  : 0,
-		data      : value,
-		writeLen  : 4,
-		dbVersion : '8.4.1'
-	};
-	var lobWritePacket = new LOBWritePacket(options);
+	var lobWritePacket = new LOBWritePacket({
+				casInfo   : [0, 255, 255, 255],
+				lobObject : lobHandle,
+				position  : 0,
+				data      : value,
+				writeLen  : 4,
+				dbVersion : '8.4.1'
+			}),
+			packetWriter = new PacketWriter(lobWritePacket.getBufferLength());
 
 	lobWritePacket.write(packetWriter);
 	test.equal(packetWriter._toBuffer()[3], 120); // Total length

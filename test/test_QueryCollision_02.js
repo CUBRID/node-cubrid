@@ -1,7 +1,10 @@
-exports['test_QueryCollision_02'] = function (test) {
+var path = require('path'),
+		Util = require('util');
+
+exports[path.basename(__filename)] = function (test) {
 	var CUBRID = require('../'),
 			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-			events = require('events'),
+			EventEmitter = require('events').EventEmitter,
 			Helpers = CUBRID.Helpers,
 			Result2Array = CUBRID.Result2Array;
 
@@ -9,66 +12,61 @@ exports['test_QueryCollision_02'] = function (test) {
   Helpers.logInfo(module.filename.toString() + ' started...');
 
   var getSingleValue = function (sql, client) {
-    var ret = null;
-    var self = this;
+    this.sql = sql;
+	  this.client = client;
 
-    client.query(sql, function (err, result, queryHandle) {
-      if (err) {
-        self.emit('error', err);
-      } else {
-        ret = Result2Array.RowsArray(result)[0][0];
-        client.closeQuery(queryHandle, function (err) {
-          if (err) {
-            self.emit('error', err);
-          } else {
-            self.emit('done');
-          }
-        });
-        self.emit('return', ret);
-      }
-    });
+	  EventEmitter.call(this);
   };
 
-  getSingleValue.prototype = new events.EventEmitter();
+	Util.inherits(getSingleValue, EventEmitter);
 
-  try {
-    var getMyValue = new getSingleValue('select count(*) from game', client);
-  }
-  catch (ex) {
-    Helpers.logInfo(ex.message);
-    throw 'We should not get here!';
-  }
+	getSingleValue.prototype.run = function () {
+		var self = this;
 
-  getMyValue.on('return', function (result) {
-    test.ok(result === 8653);
-    setTimeout(function(){
-      client.close(function () {
-      });
-    }, 100);
-  });
+		this.client.query(this.sql, function (err, result, queryHandle) {
+			if (err) {
+				self.emit('error', err);
+			} else {
+				self.client.closeQuery(queryHandle, function (err) {
+					if (err) {
+						self.emit('error', err);
+					} else {
+						self.emit('done', Result2Array.RowsArray(result)[0][0]);
+					}
+				});
+			}
+		});
+	};
+
+  var getMyValue = new getSingleValue('select count(*) from game', client);
 
   getMyValue.on('error', function (err) {
     Helpers.logInfo(err.message);
     throw err;
   });
 
-  getMyValue.on('done', function () {
-    setTimeout(function () {
-      Helpers.logInfo('Test 1 passed.');
-      test.done();
-    }, 300);
+  getMyValue.on('done', function (result) {
+	  test.ok(result === 8653);
+
+	  Helpers.logInfo('Test 1 passed.');
   });
 
-  try {
-    var getMyValue2 = new getSingleValue('select wrong_count(*) from game', client);
+  var getMyValue2 = new getSingleValue('select wrong_count(*) from game', client);
 
-    getMyValue2.on('return', function () {
-      throw 'We should not get here!';
-    });
-  }
-  catch (ex) {
-    Helpers.logInfo(ex.message);
-    test.ok(ex.message === "Another query is already in progress! - denying current query request.");
+  getMyValue2.on('error', function (err) {
+	  if (client.getEngineVersion().startsWith('8.4')) {
+		  test.ok(err.message === "-493:Syntax: syntax error, unexpected '*' ");
+	  } else {
+		  test.ok(err.message === "-493:Syntax: In line 1, column 20 before ') from game'\nSyntax error: unexpected '*', expecting SELECT or VALUE or VALUES or '(' ");
+	  }
+
     Helpers.logInfo('Test 2 passed.');
-  }
+
+	  client.close(function () {
+      test.done();
+	  });
+  });
+
+	getMyValue.run();
+	getMyValue2.run();
 };

@@ -60,7 +60,7 @@ function testExecuteQueryPacket_01() {
   assert.equal(prepareExecuteOldProtocolPacket.infoArray[0].IsShared, false);
 
   packetReader = new PacketReader();
-  packetWriter = new PacketWriter();
+  packetWriter = new PacketWriter(prepareExecuteOldProtocolPacket.getExecuteBufferLength());
   prepareExecuteOldProtocolPacket.writeExecute(packetWriter);
   assert.equal(packetWriter._toBuffer()[3], 69); // Total length
 

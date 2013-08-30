@@ -29,19 +29,12 @@ function BatchExecuteNoQueryPacket(options) {
  * @param writer
  */
 BatchExecuteNoQueryPacket.prototype.write = function (writer) {
-  var statementsLength = 0;
-  for (var i = 0; i < this.SQLs.length; i++) {
-    statementsLength += DATA_TYPES.INT_SIZEOF;
-    statementsLength += (Buffer.byteLength(this.SQLs[i]) + 1);
-  }
-  var bufferLength = DATA_TYPES.DATA_LENGTH_SIZEOF + DATA_TYPES.CAS_INFO_SIZE +
-    DATA_TYPES.BYTE_SIZEOF + DATA_TYPES.INT_SIZEOF + DATA_TYPES.BYTE_SIZEOF + statementsLength;
-
-  writer._writeInt(bufferLength - DATA_TYPES.DATA_LENGTH_SIZEOF - DATA_TYPES.CAS_INFO_SIZE);
+	writer._writeInt(this.getBufferLength() - DATA_TYPES.DATA_LENGTH_SIZEOF - DATA_TYPES.CAS_INFO_SIZE);
   writer._writeBytes(DATA_TYPES.CAS_INFO_SIZE, this.casInfo);
   writer._writeByte(CAS.CASFunctionCode.CAS_FC_EXECUTE_BATCH);
   writer._writeInt(DATA_TYPES.BYTE_SIZEOF);
   writer._writeByte(this.autoCommit ? 1 : 0); // Auto-commit mode value
+
   // For every sql statement in the batch
   for (var j = 0; j < this.SQLs.length; j++) {
     writer._writeNullTerminatedString(this.SQLs[j]); // SQL strings to be executed
@@ -96,3 +89,21 @@ BatchExecuteNoQueryPacket.prototype.parse = function (parser) {
   return this;
 };
 
+BatchExecuteNoQueryPacket.prototype.getBufferLength = function () {
+	var bufferLength =
+			DATA_TYPES.DATA_LENGTH_SIZEOF +
+			DATA_TYPES.CAS_INFO_SIZE +
+			DATA_TYPES.BYTE_SIZEOF +
+			DATA_TYPES.INT_SIZEOF +
+			DATA_TYPES.BYTE_SIZEOF +
+			// The length of all queries.
+			DATA_TYPES.INT_SIZEOF * this.SQLs.length +
+			// The number of NULL terminating characters: one for each query.
+			this.SQLs.length;
+
+	for (var i = 0; i < this.SQLs.length; ++i) {
+		bufferLength += Buffer.byteLength(this.SQLs[i]);
+	}
+
+	return bufferLength;
+};

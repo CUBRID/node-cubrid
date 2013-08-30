@@ -5,12 +5,11 @@ exports['test_GetDbPatameterPacket'] = function (test) {
 			GetDbParameterPacket = require('../src' + codeCoveragePath + '/packets/GetDbParameterPacket'),
 			CAS = require('../src' + codeCoveragePath + '/constants/CASConstants'),
 			packetReader = new PacketReader(),
-			packetWriter = new PacketWriter(),
-			options = {
+			getDbParameterPacket = new GetDbParameterPacket({
 				casInfo: [0, 255, 255, 255],
 				parameter: CAS.CCIDbParam.CCI_PARAM_MAX_STRING_LENGTH
-			},
-			getDbParameterPacket = new GetDbParameterPacket(options);
+			}),
+			packetWriter = new PacketWriter(getDbParameterPacket.getBufferLength());
 
 	test.expect(12);
 

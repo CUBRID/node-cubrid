@@ -6,15 +6,13 @@ exports['test_SetDbParameterPacket'] = function (test) {
 			CAS = require('../src' + codeCoveragePath + '/constants/CASConstants');
 
 	test.expect(13);
-	var packetReader = new PacketReader();
-	var packetWriter = new PacketWriter();
-	var options =
-	{
-		casInfo   : [0, 255, 255, 255],
-		parameter : CAS.CCIDbParam.CCI_PARAM_MAX_STRING_LENGTH,
-		value     : 99
-	};
-	var setDbParameterPacket = new SetDbParameterPacket(options);
+	var packetReader = new PacketReader(),
+			setDbParameterPacket = new SetDbParameterPacket(	{
+				casInfo   : [0, 255, 255, 255],
+				parameter : CAS.CCIDbParam.CCI_PARAM_MAX_STRING_LENGTH,
+				value     : 99
+			}),
+			packetWriter = new PacketWriter(setDbParameterPacket.getBufferLength());
 
 	setDbParameterPacket.write(packetWriter);
 	test.equal(packetWriter._toBuffer()[3], 17); // Total length

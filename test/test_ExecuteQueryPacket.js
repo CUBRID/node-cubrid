@@ -6,14 +6,13 @@ exports['test_ExecuteQueryPacket'] = function (test) {
 			CAS = require('../src' + codeCoveragePath + '/constants/CASConstants'),
 			assert = require('assert'),
 			packetReader = new PacketReader(),
-			packetWriter = new PacketWriter(),
-			options = {
+			executeQueryPacket = new ExecuteQueryPacket({
 				sql: 'select * from code',
 				casInfo: [0, 255, 255, 255],
 				autoCommitMode: 1,
 				dbVersion : '8.4.1'
-			},
-			executeQueryPacket = new ExecuteQueryPacket(options);
+			}),
+			packetWriter = new PacketWriter(executeQueryPacket.getBufferLength());
 
 	test.expect(17);
 

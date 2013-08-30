@@ -10,15 +10,19 @@ This is a Node.js driver for [CUBRID](http://www.cubrid.org) open-source relatio
 ## Key features
 
 - Full compatibility with CUBRID 8.4.1+ releases.
-- Rich database support: Connect, Query, Fetch, Execute, Commit etc.
+- Rich database support: Connect, Query, Fetch, Execute, Execute in batch, Commit, Rollback, etc.
 - Support for queries queueing.
 - Support for database schema.
 - Support for database parameters and transactions.
 - Support for LOB objects.
-- Out of the box driver events model.
+- Fully implements the event emitter.
 - Extensive tests suite (260K+ assertions).
 - User demos: E2E scenarios, web sites.
 - ...and many more!
+
+## CHANGELOG
+
+You can find the change logs in [CHANGELOG.md](https://github.com/CUBRID/node-cubrid/blob/master/CHANGELOG.md) file.
 
 ## Installation
 
@@ -289,23 +293,52 @@ If you need to change the default values for these parameters, it is highly reco
 #### READ queries
 
 	// Callback style.
-	// `sql` is a string representation of a READ query.
-	// `callback(err, result, queryHandle)` function accepts three arguments.
-	// 1. `err`: an error object if any.
-	// 2. `result`: a string value of the query result. No type casting as of version 2.1.0.
-	// 3. `queryHandle`: an integer ID for the query handle. Used to fetch more data.
 	client.query(sql, callback);
+	client.query(sql, params, callback);
+
+	// `sql` is a string representation of a READ query. Required.
 	
+	// `params` is an array of parameter values or the value itself
+	//          which a user wants to bind instead of `?` placeholders
+	//          in the `sql` query. If no placeholder is found, the `sql`
+	//          will not be modified. This argument is optional. When
+	//          omitted, `sql` will be sent to the server unmodified. This
+	//          `params` argument is available since version 2.1.0.
+	
+	// `callback` is a function which will be invoked when the query
+	//          finishes executing. Optional. The `callback` function
+	//          can be omitted in which case only the
+	//          `EVENT_QUERY_DATA_AVAILABLE` event will be
+	//          emitted when the query finishes execution.
+	
+	// The `callback(err, result, queryHandle)` function accepts three arguments.
+	// 1. `err`: an error object if any.
+	// 2. `result`: a string value of the query result. No type casting as of version 2.1.0. Users need to parse the value into JSON manually.
+	// 3. `queryHandle`: an integer ID for the query handle. Used to fetch more data.
+		
 	// Event style.
 	client.query(sql);
+	client.query(sql, params);
+	
 	// `callback(result, queryHandle, sql)` function accepts three arguments:
 	// 1. `result`: a string value of the query result. No type casting as of version 2.1.0.
 	// 2. `queryHandle`: an integer ID for the query handle. Used to fetch more data.
 	// 3. `sql`: the SQL query which was executed that matches the `result`.
 	// 	  `sql` argument is available since version 2.0.0.
 	client.on(client.EVENT_QUERY_DATA_AVAILABLE, callback);
+	
+	// Queries queueing.
+	client.query(sql);
+	client.query(sql, params);
+	
+	// When multiple queries are executed one after another without
+	// waiting for a callback or listening for an emmitted event, the queries
+	// will be queued and executed sequentially. Thus, callbacks and
+	// appropriate events will be executed/emitted in order.
 
 ##### Callback example
+
+Here is an example which executes a simple `SELECT	` query.
 
 	var CUBRID = require('node-cubrid'),
 		// `Result2Array` is a sub-module which provides a set of helper
@@ -327,10 +360,44 @@ If you need to change the default values for these parameters, it is highly reco
       }
     });
 
+The following example shows how to set placeholders and bind values in `SELECT` queries.
+
+	client.query('SELECT * FROM nation WHERE continent = ?', ['Asia'], function (err, result, queryHandle) {
+      if (err) {
+        throw err;
+      } else {
+        var arr = Result2Array.RowsArray(result);
+        
+        for (var j = 0, len = arr.length; j < len; ++j) {
+          console.log(arr[j]);
+        }
+        
+        // Fetch more data using queryHandle if necessary.
+      }
+    });
+
+Alternatively, the `params` value can be literal value.
+
+	client.query('SELECT * FROM nation WHERE continent = ?', 'Asia', callback);
+
+If the `params` value is `undefined` or `null`, it will be converted to SQL `NULL`.
+
+	client.query('SELECT * FROM nation WHERE continent IS ?', null, callback);
+
+The `Date` type values will be converted into CUBRID compatible `DATETIME` strings.
+
+	client.query('SELECT * FROM game WHERE game_date = ?', [new Date('8/28/2004')], callback);
+	// The query will be
+	// `SELECT * FROM game WHERE game_date = '8/28/2004 0:0:0.0'`
+
+And finally, everything else will be safely escaped and wrapped in single quotes.
+
 ##### Event style example
 
+	// Multiple queries will be queued and executed sequentially.
 	client.query('SELECT * FROM nation');
-
+	client.query('SELECT * FROM nation WHERE continent = ?', ['Asia']);
+	
 	client.on(client.EVENT_QUERY_DATA_AVAILABLE, function (result, queryHandle, sql) {
       var arr = Result2Array.RowsArray(result);
         
@@ -476,9 +543,145 @@ All READ queries must be closed explicitly.
 
 After executing WRITE queries there is no need to close the query.
 
+#### Queueing
+
+Since **node-cubrid** version 2.1.0 almost all requests, which initiate a network communication, pass through an internal queue. This includes READ and WRITE queries, close query requests, fetch requests, rollback/commit requests.
+
+Thus, in order to put queries into a queue, all you need to do is call query/execute and their equivalent functions one after another. They will be added into the queue as they come in (FIFO).
+
+Here is an example.
+
+	client.execute('CREATE TABLE tbl_test(id INT)', callback);
+	client.execute('INSERT INTO tbl_test (id) VALUES (1), (2), (3)', callback);
+	client.query('SELECT * FROM tbl_test', callback);
+	client.execute('DROP TABLE tbl_test', callback);
+
+Remember that the `callback` is optional in which case you should listen for events.
+
+Alternatively, for backward compatibility we still support `addQeury()` and `addNonQuery()` functions which we introduced in version 2.0.0.
+
+    var SQL_1 = "SELECT COUNT(*) FROM [code]";
+    var SQL_2 = "SELECT * FROM [code] WHERE s_name = 'X'";
+    var SQL_3 = "SELECT COUNT(*) FROM [code] WHERE f_name LIKE 'M%'";
+    var SQL_4 = "DELETE FROM code WHERE s_name = 'ZZZZ'";
+
+    Helpers.logInfo('Executing [1]: ' + SQL_1);
+    client.addQuery(SQL_1, function (err, result) {
+      Helpers.logInfo('Result [1]: ' + Result2Array.RowsArray(result));
+    });
+
+    Helpers.logInfo('Executing [2]: ' + SQL_2);
+    client.addQuery(SQL_2, function (err, result) {
+      Helpers.logInfo('Result [2]: ' + Result2Array.RowsArray(result));
+    });
+
+    Helpers.logInfo('Executing [3]: ' + SQL_3);
+    client.addQuery(SQL_3, function (err, result) {
+      Helpers.logInfo('Result [3]: ' + Result2Array.RowsArray(result));
+    });
+
+    Helpers.logInfo('Executing [4]: ' + SQL_4);
+    client.addNonQuery(SQL_4, function (err) {
+      Helpers.logInfo('Result [4]: ' + err);
+      client.close();
+    });
+
+`addQuery()` will simply pass its arguments to the main `query()` function, while `addNonQuery()` will pass its arguments to `execute()` function. Thus, if you want to avoid one more function call, get used to directly calling the `query()` or `execute()` functions.
+
+##### Check if queue is empty
+
+	client.isQueueEmpty();
+	client.queriesQueueIsEmpty();
+
+In case you are interested in checking if the queue is empty, call one of the above functions. Returns `true` or `false`.
+
+##### Get queue depth
+
+	client.getQueueDepth();
+
+The above function will return the number of requests currently in the queue. Remember that this number represents all requests, including READ and WRITE, and fetch, and rollback/commit, etc. Briefly all requests which initiate a network communication.
+
+### Transactions
+
+	client.beginTransaction(callback);
+	client.commit(callback);
+	client.rollback(callback);
+	
+	// All `callback(err)` functions accept one argument: the error message if any.
+
+	client.setAutoCommitMode(boolean, callback);
+	
+	// `boolean` is a boolean value which represents the auto_commit
+	//           mode you wish to set the current transaction to.
+	
+	// The `callback(err)` function accepts one argument: the error message if any.
+	
+**node-cubrid** fully supports SQL transactions. By default `auto_commit` mode is set to `true` meaning after every WRITE query CUBRID Server will commit the changes to the disk.
+
+When you start a new transactaction by calling `beginTransaction()`, **node-cubrid** will first commit the previous active transaction if any. This is according to CUBRID spec. Then it will start a new transaction by setting the `auto_commit` mode to `false`.
+
+**Note:** Unlike in other DBMS vendor drivers, in **node-cubrid** when a transaction is rolled back or committed, the `auto_commit` mode remains unchanged, i.e. `false`. This is according to CUBRID spec. This means that after you commit/rollback the transaction and you no longer need to execute queries in `auto_commit = false` mode, explicitly turn the `auto_commit` mode to `true` by calling `setAutoCommitMode()` function.
+
+	ActionQueue.enqueue([
+		function (cb) {
+			client.connect(cb);
+		},
+		function (cb) {
+			Helpers.logInfo('Connected...');
+			client.batchExecuteNoQuery('create table test_tran(id int)', cb);
+		},
+		function (cb) {
+			client.beginTransaction(cb);
+		},
+		function (cb) {
+			client.batchExecuteNoQuery('insert into test_tran values(1)', cb);
+		},
+		function (cb) {
+			client.query('select * from test_tran', cb);
+		},
+		function (result, queryHandle, cb) {
+			Helpers.logInfo('Should be true: ' + Result2Array.TotalRowsCount(result) === 1);
+			client.closeQuery(queryHandle, cb);
+		},
+		function (queryHandle, cb) {
+			client.rollback(cb);
+		},
+		function (cb) {
+			client.query('select * from test_tran', cb);
+		},
+		function (result, queryHandle, cb) {
+			Helpers.logInfo('Should be true: ' + Result2Array.TotalRowsCount(result) === 0);
+			client.closeQuery(queryHandle, cb);
+		},
+		function (queryHandle, cb) {
+			client.batchExecuteNoQuery('drop table test_tran', cb);
+		},
+		function (cb) {
+			client.commit(cb);
+		},
+		function (cb) {
+			// Explicitly set the auto commit mode to true, once done.
+			client.setAutoCommitMode(true, cb);
+		},
+		function (cb) {
+			client.query('select count(*) from db_class where class_name = \'test_tran\'', cb);
+		},
+		function (result, queryHandle, cb) {
+			Helpers.logInfo('Should be true: ' + Result2Array.RowsArray(result)[0][0] === 0);
+			client.close(cb);
+		}
+	], function (err) {
+		if (err) {
+			throw err;
+		} else {
+			Helpers.logInfo('Connection closed.');
+			Helpers.logInfo('Test passed.');
+		}
+	});
+
 ### Closing a connection
 
-	// callback(err) function accepts one arguments: the error message if any.
+	// callback(err) function accepts one argument: the error message if any.
 	client.close(callback);
 	// Alias function since version 2.1.0.
 	client.end(callback);
@@ -507,6 +710,8 @@ After executing WRITE queries there is no need to close the query.
 			console.log('connection is closed');
 	});
 
+When a connection is closed by calling `close()` or `end()`, all pending/queued requests will be removed from the internal queue.
+
 #### Errors on closing the connection
 
 The following errors may be emitted when the application tries to close the connection:
@@ -517,6 +722,28 @@ The following errors may be emitted when the application tries to close the conn
 
 2. If closing a connection was unsuccessful, an error message returned by a database is emitted.
 
+### Events by EventEmitter
+
+**node-cubrid** implements, in addition to the standard callbacks model functionality, a rich event model:
+
+| Event name | Notes |
+| ---------------- | --------|
+| `EVENT_ERROR` | Emitted when an error is occurs. |
+| `EVENT_CONNECTED` | Emitted when a connection is established. |
+| `EVENT_ENGINE_VERSION_AVAILABLE` | Emitted when the database version information is returned from the server to a client. |
+| `EVENT_BATCH_COMMANDS_COMPLETED` | Emitted when the batch commands execution is completed. |
+| `EVENT_QUERY_DATA_AVAILABLE` | Emitted when the data from the query is available to a client. |
+| `EVENT_SCHEMA_DATA_AVAILABLE` | Emitted when the database schema information is available to a client. |
+| `EVENT_FETCH_DATA_AVAILABLE` | Emitted when more query data is available to a client through successive `fetch()` command(s). |
+| `EVENT_FETCH_NO_MORE_DATA_AVAILABLE` | Emitted when no more data is available from the query. |
+| `EVENT_BEGIN_TRANSACTION` | Emitted when a transaction is started in `auto_commit = OFF` mode. |
+| `EVENT_SET_AUTOCOMMIT_MODE_COMPLETED` | Emitted when the auto-commit mode is changed. |
+| `EVENT_COMMIT_COMPLETED` | Emitted when a commit request is completed. |
+| `EVENT_ROLLBACK_COMPLETED` | Emitted when a rollback request is completed. |
+| `EVENT_QUERY_CLOSED` | Emitted when a query is closed. |
+| `EVENT_CONNECTION_CLOSED` | Emitted when a connection is closed. |
+[**Table 1: Events emitted by node-cubrid**]
+
 ## More examples
 
 The driver code release contains many demo examples and test cases which you can find in the following directories:
@@ -524,71 +751,48 @@ The driver code release contains many demo examples and test cases which you can
 - [/demo](https://github.com/CUBRID/node-cubrid/tree/master/demo)
 - [/test](https://github.com/CUBRID/node-cubrid/tree/master/test)
 
-Here is another driver usage example, using the well-known <b>async</b> library (https://github.com/caolan/async):
+Here is another **node-cubrid** usage example which uses the `ActionQueue` helper. The `ActionQueue.enqueue` function is the same as the [async.waterfall()](https://github.com/caolan/async#waterfall) from the well-known **async** library:
 
-    ActionQueue.enqueue(
-      [
+	var CUBRID = require('node-cubrid'),
+		ActionQueue = CUBRID.ActionQueue,
+		Helpers = CUBRID.Helpers,
+		client = CUBRID.createDefaultCUBRIDDemodbConnection();
+
+    ActionQueue.enqueue([
         function (cb) {
-          CUBRIDClient.connect(cb);
+           client.connect(cb);
         },
-
         function (cb) {
-          CUBRIDClient.getEngineVersion(cb);
+          client.getEngineVersion(cb);
         },
-
         function (engineVersion, cb) {
           Helpers.logInfo('Engine version is: ' + engineVersion);
-          CUBRIDClient.query('select * from code', cb);
+          client.query('select * from code', cb);
         },
-
         function (result, queryHandle, cb) {
           Helpers.logInfo('Query result rows count: ' + Result2Array.TotalRowsCount(result));
           Helpers.logInfo('Query results:');
           var arr = Result2Array.RowsArray(result);
+
           for (var k = 0; k < arr.length; k++) {
             Helpers.logInfo(arr[k].toString());
           }
-          CUBRIDClient.closeQuery(queryHandle, cb);
-          Helpers.logInfo('Query closed.');
+          
+          client.closeQuery(queryHandle, cb);
         },
-
         function (cb) {
-          CUBRIDClient.close(cb);
-          Helpers.logInfo('Connection closed.');
+          Helpers.logInfo('Query closed.');
+          client.close(cb);
         }
-      ],
-
-      function (err) {
-        if (err == null) {
-          Helpers.logInfo('Program closed.');
+      ], function (err) {
+        if (err) {
+          throw err;
         } else {
-          throw err.message;
+          Helpers.logInfo('Connection closed.');
         }
       }
     );
 	
-This is an example of the 2.0 release newly introduced queries queue processor usage:
-
-    var SQL_1 = 'SELECT COUNT(*) FROM [code]';
-    var SQL_2 = 'SELECT * FROM [code] WHERE s_name = \'X\'';
-    var SQL_3 = 'SELECT COUNT(*) FROM [code] WHERE f_name LIKE \'M%\'';
-
-    Helpers.logInfo('Executing [1]: ' + SQL_1);
-    CUBRIDClient.addQuery(SQL_1, function (err, result) {
-      Helpers.logInfo('Result [1]: ' + Result2Array.RowsArray(result));
-    });
-
-    Helpers.logInfo('Executing [2]: ' + SQL_2);
-    CUBRIDClient.addQuery(SQL_2, function (err, result) {
-      Helpers.logInfo('Result [2]: ' + Result2Array.RowsArray(result));
-    });
-
-    Helpers.logInfo('Executing [3]: ' + SQL_3);
-    CUBRIDClient.addQuery(SQL_3, function (err, result) {
-      Helpers.logInfo('Result [3]: ' + Result2Array.RowsArray(result));
-      CUBRIDClient.close();
-    });
-
 You can also find more tutorials at [http://www.cubrid.org/wiki_apis/entry/cubrid-node-js-tutorials](http://www.cubrid.org/wiki_apis/entry/cubrid-node-js-tutorials).
 
 ## Running tests

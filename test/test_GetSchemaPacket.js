@@ -5,14 +5,13 @@ exports['test_GetSchemaPacket'] = function (test) {
 			GetSchemaPacket = require('../src' + codeCoveragePath + '/packets/GetSchemaPacket.js'),
 			CAS = require('../src' + codeCoveragePath + '/constants/CASConstants'),
 			packetReader = new PacketReader(),
-			packetWriter = new PacketWriter(),
-			options = {
+			getSchemaPacket = new GetSchemaPacket({
 				casInfo: [0, 255, 255, 255],
 				tableNamePattern: null,
 				schemaType: CAS.CUBRIDSchemaType.CCI_SCH_CLASS,
 				dbVersion: '8.4.1'
-			},
-			getSchemaPacket = new GetSchemaPacket(options);
+			}),
+			packetWriter = new PacketWriter(getSchemaPacket.getRequestSchemaBufferLength());
 
 	test.expect(29);
 
@@ -46,7 +45,7 @@ exports['test_GetSchemaPacket'] = function (test) {
 	test.equal(getSchemaPacket.errorCode, 0);
 	test.equal(getSchemaPacket.errorMsg, '');
 
-	packetWriter = new PacketWriter();
+	packetWriter = new PacketWriter(getSchemaPacket.getFetchSchemaBufferLength());
 	getSchemaPacket.writeFetchSchema(packetWriter);
 	test.equal(packetWriter._toBuffer()[3], 38); //total length
 

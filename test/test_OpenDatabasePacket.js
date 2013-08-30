@@ -2,15 +2,13 @@ exports['test_OpenDatabasePacket'] = function (test) {
 	var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
 			PacketReader = require('../src' + codeCoveragePath + '/packets/PacketReader'),
 			PacketWriter = require('../src' + codeCoveragePath + '/packets/PacketWriter'),
-			OpenDatabasePacket = require('../src' + codeCoveragePath + '/packets/OpenDatabasePacket'),
-			CAS = require('../src' + codeCoveragePath + '/constants/CASConstants'),
-			assert = require('assert');
+			OpenDatabasePacket = require('../src' + codeCoveragePath + '/packets/OpenDatabasePacket');
 
 	test.expect(12);
 	var packetReader = new PacketReader();
-	var packetWriter = new PacketWriter();
 	var options = {database : 'demodb', user : 'public', password : ''};
 	var openDatabasePacket = new OpenDatabasePacket(options);
+	var packetWriter = new PacketWriter(openDatabasePacket.getBufferLength());
 
 	openDatabasePacket.write(packetWriter);
 	test.equal(packetWriter._toBuffer().slice(0, 6).toString(), options.database);

@@ -26,7 +26,7 @@ exports['test_Helpers'] = function (test) {
 	test.equal(comb3.toString(), '12345678');
 
 	var sql = 'insert into a values(?, ?, ?)';
-	var newsql = Helpers._sqlFormat(sql, ['1', 2, null], ['\'', '', '']);
+	var newsql = Helpers._sqlFormat(sql, ['1', 2, null], ["'", '', '']);
 
 	test.equal(newsql, "insert into a values('1', 2, NULL)");
 

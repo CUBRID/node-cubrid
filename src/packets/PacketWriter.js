@@ -7,8 +7,8 @@ module.exports = PacketWriter;
  * Create a new instance
  * @constructor
  */
-function PacketWriter() {
-  this._buffer = new Buffer(0);
+function PacketWriter(length) {
+	this._buffer = new Buffer(length || 0);
   this._offset = 0;
 }
 
@@ -341,18 +341,14 @@ PacketWriter.prototype._writeBuffer = function (value) {
  * @private
  */
 PacketWriter.prototype._allocate = function (count) {
-  if (!this._buffer) {
-    this._buffer = new Buffer(count);
-    return;
-  }
-
   // Verify if we need to allocate more space
   var bytesRemaining = this._buffer.length - this._offset;
-  if (bytesRemaining >= count) {
-    return;
-  }
 
-  var oldBuffer = this._buffer;
-  this._buffer = new Buffer(oldBuffer.length + count);
-  oldBuffer.copy(this._buffer);
+  if (bytesRemaining < count) {
+		var oldBuffer = this._buffer;
+
+	  this._buffer = new Buffer(oldBuffer.length + (count - bytesRemaining));
+
+	  oldBuffer.copy(this._buffer);
+  }
 };

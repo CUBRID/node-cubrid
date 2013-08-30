@@ -31,11 +31,7 @@ function LOBWritePacket(options) {
  * @param writer
  */
 LOBWritePacket.prototype.write = function (writer) {
-  var bufferLength = DATA_TYPES.DATA_LENGTH_SIZEOF + DATA_TYPES.CAS_INFO_SIZE +
-    DATA_TYPES.BYTE_SIZEOF + DATA_TYPES.INT_SIZEOF + this.lobObject.packedLobHandle.length +
-    DATA_TYPES.INT_SIZEOF + DATA_TYPES.LONG_SIZEOF + DATA_TYPES.INT_SIZEOF + this.writeLen;
-
-  writer._writeInt(bufferLength - DATA_TYPES.DATA_LENGTH_SIZEOF - DATA_TYPES.CAS_INFO_SIZE);
+  writer._writeInt(this.getBufferLength() - DATA_TYPES.DATA_LENGTH_SIZEOF - DATA_TYPES.CAS_INFO_SIZE);
   writer._writeBytes(DATA_TYPES.CAS_INFO_SIZE, this.casInfo);
 
   writer._writeByte(CAS.CASFunctionCode.CAS_FC_LOB_WRITE);
@@ -47,10 +43,11 @@ LOBWritePacket.prototype.write = function (writer) {
   if (this.lobObject.lobType === CAS.CUBRIDDataType.CCI_U_TYPE_BLOB) {
     writer._writeBytes(this.writeLen, this.data);
   } else {
-    if (this.lobObject.lobType === CAS.CUBRIDDataType.CCI_U_TYPE_CLOB) {
-      var dataInBytes = new Buffer(this.data, 'binary'); // Convert clob string to bytes
-      writer._writeBytes(this.writeLen, dataInBytes);
-    }
+	  // Otherwise, it must be `CAS.CUBRIDDataType.CCI_U_TYPE_CLOB`.
+
+	  // Convert clob string to bytes
+    var dataInBytes = new Buffer(this.data, 'binary');
+    writer._writeBytes(this.writeLen, dataInBytes);
   }
 
   return writer;
@@ -78,4 +75,10 @@ LOBWritePacket.prototype.parse = function (parser) {
   return this;
 };
 
+LOBWritePacket.prototype.getBufferLength = function () {
+	var bufferLength = DATA_TYPES.DATA_LENGTH_SIZEOF + DATA_TYPES.CAS_INFO_SIZE +
+			DATA_TYPES.BYTE_SIZEOF + DATA_TYPES.INT_SIZEOF + this.lobObject.packedLobHandle.length +
+			DATA_TYPES.INT_SIZEOF + DATA_TYPES.LONG_SIZEOF + DATA_TYPES.INT_SIZEOF + this.writeLen;
 
+	return bufferLength;
+};

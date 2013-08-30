@@ -5,13 +5,12 @@ exports['test_LOBNewPacket'] = function (test) {
 			LOBNewPacket = require('../src' + codeCoveragePath + '/packets/LOBNewPacket'),
 			CAS = require('../src' + codeCoveragePath + '/constants/CASConstants'),
 			packetReader = new PacketReader(),
-			packetWriter = new PacketWriter(),
-			options = {
+			lobnewPacket = new LOBNewPacket({
 				casInfo: [0, 255, 255, 255],
 				lobType: CAS.CUBRIDDataType.CCI_U_TYPE_BLOB,
 				dbVersion: '8.4.1'
-			},
-			lobnewPacket = new LOBNewPacket(options);
+			}),
+			packetWriter = new PacketWriter(lobnewPacket.getBufferLength());
 
 	test.expect(18);
 
