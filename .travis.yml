@@ -8,6 +8,7 @@ node_js:
 
 env:
   - CUBRID_VERSION=9.1.0
+  - CUBRID_VERSION=8.4.4
   - CUBRID_VERSION=8.4.3
   - CUBRID_VERSION=8.4.1
 

@@ -3,6 +3,7 @@
 ## Version 2.1.0 (Unreleased)
 
 - New: APIS-566, Release 3.0 - Add Travis support.
+- New: added CUBRID 8.4.4 version to Travis.
 - Enh: APIS-568, Release 3.0 - Fix inconsistent function return values.
 - Enh: APIS-567, Release 3.0 - Fix and improve code comments.
 - Enh: added tests for APIS-582.
