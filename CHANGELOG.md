@@ -1,8 +1,9 @@
 # node-cubrid change log
 
-## Version 2.1.0 (Unreleased)
+## Version 2.1.0 (Aug 30, 2013)
 
 - New: APIS-566, Release 3.0 - Add Travis support.
+- New: added CUBRID 8.4.4 version to Travis.
 - Enh: APIS-568, Release 3.0 - Fix inconsistent function return values.
 - Enh: APIS-567, Release 3.0 - Fix and improve code comments.
 - Enh: added tests for APIS-582.
@@ -11,6 +12,9 @@
 - Enh: allow to get engine version synchronously.
 - Enh: APIS-592, Allow to pass an object to createCUBRIDConnection().
 - Enh: allow to pass a connection timeout value as part of connection parameters.
+- Enh: no need to quote a number.
+- Enh: APIS-529, Queries queuing needs improvement. Or it is 4 times slower. Major refactoring of queries queueing mechanism for improved performance. Added params option to `query()` function.
+- Enh: if delimiter is not specified when formatting SQL, default to single quotes.
 - Fix: test path for `node_modules`.
 - Fix: host name for tests.
 - Fix: travis script.
@@ -45,6 +49,13 @@
 - Ref: install JSCoverage to instrument code covered version of the node-cubrid module.
 - Ref: fix the tests name.
 - Ref: no need to create a socket when creating a connection client. It should be created upon connection.
+- Ref: remove browser related code.
+- Ref: no need to run `call()` on callback functions. No need to verify the callback function inside async flow.
+- Ref: no need to verify the SQL string. It's user's job.
+- Ref: minor tweaks to tests.
+- Ref: major refactoring of buffer parsers to handle server responses.
+- Ref: major refactoring of protocol packets to optimize the work with `Buffer`. Updated tests.
+- Ref: refactored the `rollback` and `commit` functions.
 - Doc: updated supported CUBRID version.
 - Doc: updated README documentation.
 

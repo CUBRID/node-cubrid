@@ -6,10 +6,9 @@ exports['test_RollbackPacket'] = function (test) {
 			CAS = require('../src' + codeCoveragePath + '/constants/CASConstants');
 
 	test.expect(16);
-	var packetReader = new PacketReader();
-	var packetWriter = new PacketWriter();
-	var options = {casInfo : [0, 255, 255, 255], dbVersion : '8.4.1'};
-	var rollbackPacket = new RollbackPacket(options);
+	var packetReader = new PacketReader(),
+			rollbackPacket = new RollbackPacket({casInfo : [0, 255, 255, 255], dbVersion : '8.4.1'}),
+			packetWriter = new PacketWriter(rollbackPacket.getBufferLength());
 
 	rollbackPacket.write(packetWriter);
 	test.equal(packetWriter._toBuffer()[3], 6); // Total length

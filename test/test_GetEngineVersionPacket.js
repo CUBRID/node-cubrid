@@ -5,9 +5,8 @@ exports['test_GetEngineVersionPacket'] = function (test) {
 			GetEngineVersionPacket = require('../src' + codeCoveragePath + '/packets/GetEngineVersionPacket'),
 			CAS = require('../src' + codeCoveragePath + '/constants/CASConstants'),
 			packetReader = new PacketReader(),
-			packetWriter = new PacketWriter(),
-			options = {casInfo : [0, 255, 255, 255]},
-			getEngineVersionPacket = new GetEngineVersionPacket(options);
+			getEngineVersionPacket = new GetEngineVersionPacket({casInfo : [0, 255, 255, 255]}),
+			packetWriter = new PacketWriter(getEngineVersionPacket.getBufferLength());
 
 	test.expect(16);
 

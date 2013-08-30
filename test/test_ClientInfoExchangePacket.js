@@ -4,8 +4,8 @@ exports['test_clientInfoExchangePacket'] = function (test) {
 			PacketWriter = require('../src' + codeCoveragePath + '/packets/PacketWriter'),
 			ClientInfoExchange = require('../src' + codeCoveragePath + '/packets/ClientInfoExchangePacket'),
 			packetReader = new PacketReader(),
-			packetWriter = new PacketWriter(),
-			clientInfoExchange = new ClientInfoExchange();
+			clientInfoExchange = new ClientInfoExchange(),
+			packetWriter = new PacketWriter(clientInfoExchange.getBufferLength());
 
 	test.expect(3);
 

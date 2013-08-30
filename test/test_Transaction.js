@@ -53,12 +53,12 @@ exports['test_Transaction'] = function (test) {
       client.close(cb);
     }
   ], function (err) {
-    if (err === null) {
+    if (err) {
+      throw err;
+    } else {
       Helpers.logInfo('Connection closed.');
       Helpers.logInfo('Test passed.');
       test.done();
-    } else {
-      throw err.message;
     }
   });
 };

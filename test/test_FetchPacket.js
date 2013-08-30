@@ -6,14 +6,14 @@ exports['test_FetchPacket'] = function (test) {
 			FetchPacket = require('../src' + codeCoveragePath + '/packets/FetchPacket'),
 			CAS = require('../src' + codeCoveragePath + '/constants/CASConstants'),
 			packetReader = new PacketReader(),
-			packetWriter = new PacketWriter(),
 			options = {
 				sql: 'select * from code',
 				casInfo: [0, 255, 255, 255],
 				autoCommitMode: 1,
 				dbVersion : '8.4.1'
 			},
-			executeQueryPacket = new ExecuteQueryPacket(options);
+			executeQueryPacket = new ExecuteQueryPacket(options),
+			packetWriter = new PacketWriter(executeQueryPacket.getBufferLength());
 
 	test.expect(16);
 
@@ -30,9 +30,9 @@ exports['test_FetchPacket'] = function (test) {
 	var resultSet = executeQueryPacket.parse(packetReader).resultSet;
 	test.equal(resultSet, '{"ColumnNames":["s_name","f_name"],"ColumnDataTypes":["Char","String"],"RowsCount":6,"ColumnValues":[["X","Mixed"],["W","Woman"],["M","Man"],["B","Bronze"],["S","Silver"],["G","Gold"]]}');
 
-	packetReader = new PacketReader();
-	packetWriter = new PacketWriter();
 	var fetchPacket = new FetchPacket(options);
+	packetReader = new PacketReader();
+	packetWriter = new PacketWriter(fetchPacket.getBufferLength());
 	fetchPacket.write(packetWriter, executeQueryPacket);
 	test.equal(packetWriter._toBuffer()[3], 38); // Total length
 	test.equal(packetWriter._toBuffer()[8], CAS.CASFunctionCode.CAS_FC_FETCH);

@@ -39,11 +39,11 @@ exports['test_Clob'] = function (test) {
       client.close(cb);
     }
   ], function (err) {
-    if (err === null) {
+    if (err) {
+      throw err;
+    } else {
       Helpers.logInfo('Test passed.');
       test.done();
-    } else {
-      throw err.message;
     }
   });
 };

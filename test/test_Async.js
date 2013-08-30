@@ -64,7 +64,7 @@ exports['test_Async'] = function (test) {
 										Helpers.logInfo('There is no more data to fetch.');
 									}
 									fetchResult = result;
-									callback.call(err);
+									callback(err);
 								}
 						);
 					},
@@ -72,7 +72,7 @@ exports['test_Async'] = function (test) {
 						if (err) {
 							throw err.message;
 						} else {
-							cb.call(err);
+							cb(err);
 						}
 					}
 			);
@@ -84,11 +84,11 @@ exports['test_Async'] = function (test) {
 			client.close(cb);
 		}
 	], function (err) {
-		if (err === null) {
+		if (err) {
+			throw err;
+		} else {
 			Helpers.logInfo('Test passed.');
 			test.done();
-		} else {
-			throw 'Error executing test!';
 		}
 	});
 };

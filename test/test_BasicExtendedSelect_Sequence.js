@@ -48,11 +48,11 @@ exports['test_BasicExtendedSelect_Sequence'] = function (test) {
       Helpers.logInfo('Connection closed.');
     }
   ], function (err) {
-    if (err === null) {
+    if (err) {
+      throw err;
+    } else {
       Helpers.logInfo('Test passed.');
       test.done();
-    } else {
-      throw err.message;
     }
   });
 };

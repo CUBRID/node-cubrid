@@ -1,7 +1,9 @@
 var DEBUG_ENABLED = require('../config').DEBUG_ENABLED,
-  DATA_TYPES = require('../constants/DataTypes'),
-  ErrorMessages = require('../constants/ErrorMessages'),
-  CAS = require('../constants/CASConstants');
+		DATA_TYPES = require('../constants/DataTypes'),
+		ErrorMessages = require('../constants/ErrorMessages'),
+		CAS = require('../constants/CASConstants'),
+// Default delimiter to wrap character strings in SQL queries.
+		DEFAULT_DELIMITER = "'";
 
 /**
  * Emit event only if there are registered listeners for the event
@@ -200,33 +202,67 @@ exports._escapeString = _escapeString;
  * @private
  */
 exports._sqlFormat = function (sql, arrValues, arrDelimiters) {
-  arrValues = [].concat(arrValues);
-  if (arrDelimiters.length !== 0) {
-    arrDelimiters = [].concat(arrDelimiters);
-  } else {
-    arrDelimiters = [];
+	if (!Array.isArray(arrValues)) {
+    arrValues = [arrValues];
+	}
 
-    for (var i = arrValues.length; i > 0; --i) {
-      arrDelimiters.push("'");
-    }
-  }
+	if (!Array.isArray(arrDelimiters)) {
+		arrDelimiters = [arrDelimiters];
+	}
 
-  return sql.replace(/\?/g, function (match) {
-    if (!arrValues.length) {
+	var i = -1,
+			valCount = arrValues.length,
+			delimitersCount = arrDelimiters.length;
+
+	return sql.replace(/\?/g, function (match) {
+    if (++i == valCount) {
       return match;
     }
 
-    var val = arrValues.shift();
-    var delimiter = arrDelimiters.shift();
+		// Get the value for the current placeholder.
+		// We iterate via `i` instead of shifting from the front of the
+		// array because we do not want to alter the original array
+		// received from the application. The application may
+		// choose to reuse it in the loop.
+		var val = arrValues[i],
+		// And its delimiter. If not defined, use single quotes.
+				delimiter = (i >= delimitersCount ? DEFAULT_DELIMITER : arrDelimiters[i]);
 
-    if (val === undefined || val === null) {
-      return 'NULL';
+		if (val === undefined || val === null) {
+		  return 'NULL';
+		}
+
+		// Send numbers as real numbers. Numbers wrapped in strings
+		// are not considered as numbers. They are sent as strings.
+		if (typeof val === 'number') {
+		  return val;
+		}
+
+	  // If the value is of Date type, convert it into
+	  // CUBRID compatible DATETIME format strings.
+	  if (val instanceof Date) {
+		  // CUBRID 8.4.1+ supports many formats of DATETIME value.
+		  // Refer to http://www.cubrid.org/manual/841/en/DATETIME
+		  // for more information.
+		  // In the communication between node-cubrid and CUBRID
+		  // Broker we choose the
+		  // `'mm/dd[/yyyy] hh:mi[:ss[.ff]] [am|pm]'` format.
+
+      return DEFAULT_DELIMITER +
+			    // Month value in JavaScript is 0 based, i.e. 0-11,
+			    // but CUBRID is 1-12. Also CUBRID doesn't care if
+		      // dates are zero-padded or not.
+		      (val.getMonth() + 1) + '/' + val.getDate() + '/' + val.getFullYear() +
+		      ' ' + val.getHours() + ':' + val.getMinutes() + ':' + val.getSeconds() +
+		      '.' + val.getMilliseconds() + DEFAULT_DELIMITER;
     }
 
-    if (!isNaN(parseFloat(val)) && isFinite(val) && delimiter !== "'" && delimiter !== '"') {
-      return val + '';
-    }
+		// Delimiters must be specified as strings.
+		if (typeof delimiter !== 'string') {
+			delimiter = DEFAULT_DELIMITER;
+		}
 
+	  // Otherwise, safely escape the string.
     return delimiter + _escapeString(val) + delimiter;
   });
 };
@@ -277,17 +313,6 @@ exports._combineData = function (buffer, value) {
  */
 exports.logInfo = function logInfo(data) {
   if (DEBUG_ENABLED) {
-    if (typeof window !== 'undefined') {
-      if (!("console" in window) || !("firebug" in console)) {
-        var names = ["log", "debug", "info", "warn", "error", "assert", "dir", "dirxml", "group", "groupEnd", "time", "timeEnd", "count", "trace", "profile", "profileEnd"];
-        window.console = {};
-        for (var i = 0, len = names.length; i < len; ++i) {
-          window.console[names[i]] = function () {
-          };
-        }
-      }
-    }
-
     console.warn(data);
   }
 };
@@ -299,17 +324,6 @@ exports.logInfo = function logInfo(data) {
  */
 exports.logError = function logError(data) {
   if (DEBUG_ENABLED) {
-    if (typeof window != 'undefined') {
-      if (!("console" in window) || !("firebug" in console)) {
-        var names = ["log", "debug", "info", "warn", "error", "assert", "dir", "dirxml", "group", "groupEnd", "time", "timeEnd", "count", "trace", "profile", "profileEnd"];
-        window.console = {};
-        for (var i = 0, len = names.length; i < len; ++i) {
-          window.console[names[i]] = function () {
-          };
-        }
-      }
-    }
-
     console.error(data);
   }
 };

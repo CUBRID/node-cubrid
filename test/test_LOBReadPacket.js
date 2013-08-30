@@ -4,8 +4,7 @@ exports['test_LOBReadPacket'] = function (test) {
 			PacketWriter = require('../src' + codeCoveragePath + '/packets/PacketWriter'),
 			LOBReadPacket = require('../src' + codeCoveragePath + '/packets/LOBReadPacket'),
 			CAS = require('../src' + codeCoveragePath + '/constants/CASConstants'),
-			packetReader = new PacketReader(),
-			packetWriter = new PacketWriter();
+			packetReader = new PacketReader();
 	
 	test.expect(116);
 
@@ -21,14 +20,15 @@ exports['test_LOBReadPacket'] = function (test) {
 		fileLocator     : 'file:C:\\CUBRID\\databases\\demodb/lob/ces_670/test_lob.00001361976357078000_1538',
 		lobLength       : 4
 	};
-	var options = {
-		casInfo      : [0, 255, 255, 255],
-		lobObject    : lobHandle,
-		position     : 0,
-		lengthToRead : 4,
-		dbVersion    : '8.4.1'
-	};
-	var lobReadPacket = new LOBReadPacket(options);
+	var lobReadPacket = new LOBReadPacket({
+				casInfo      : [0, 255, 255, 255],
+				lobObject    : lobHandle,
+				position     : 0,
+				lengthToRead : 4,
+				dbVersion    : '8.4.1'
+			}),
+			packetWriter = new PacketWriter(lobReadPacket.getBufferLength());
+
 	lobReadPacket.write(packetWriter);
 	test.equal(packetWriter._toBuffer()[3], 120); // Total length
 

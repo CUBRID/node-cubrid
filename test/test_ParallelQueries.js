@@ -29,28 +29,30 @@ exports['test_ParallelQueries'] = function (test) {
         throw err;
       } else {
         Helpers.logInfo('Connected [A], on port: ' + client.connectionBrokerPort);
-        setTimeout(client.query('select * from nation', function (err, result, queryHandle) {
-          Helpers.logInfo('Querying [A]: select * from nation');
-          if (err) {
-            throw err;
-          } else {
-            Helpers.logInfo('Query result rows count [A]: ' + Result2Array.TotalRowsCount(result));
-            client.closeQuery(queryHandle, function (err) {
-              if (err) {
-                throw err;
-              } else {
-                Helpers.logInfo('Query closed [A].');
-                client.close(function (err) {
-                  if (err) {
-                    throw err;
-                  } else {
-                    Helpers.logInfo('Connection closed [A].');
-                  }
-                });
-              }
-            });
-          }
-        }), 3000);
+        setTimeout(function () {
+	        client.query('select * from nation', function (err, result, queryHandle) {
+		        Helpers.logInfo('Querying [A]: select * from nation');
+		        if (err) {
+			        throw err;
+		        } else {
+			        Helpers.logInfo('Query result rows count [A]: ' + Result2Array.TotalRowsCount(result));
+			        client.closeQuery(queryHandle, function (err) {
+				        if (err) {
+					        throw err;
+				        } else {
+					        Helpers.logInfo('Query closed [A].');
+					        client.close(function (err) {
+						        if (err) {
+							        throw err;
+						        } else {
+							        Helpers.logInfo('Connection closed [A].');
+						        }
+					        });
+				        }
+			        });
+		        }
+	        });
+        }, 3000);
       }
     });
   }

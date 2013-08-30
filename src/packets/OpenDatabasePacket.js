@@ -60,4 +60,17 @@ OpenDatabasePacket.prototype.parse = function (parser) {
   return this;
 };
 
+OpenDatabasePacket.prototype.getBufferLength = function () {
+	var bufferLength =
+			// Fixed database length +
+			// User login ID +
+			// User login password.
+			32 * 3 +
+			// Used for extended connection info.
+			512 +
+			// Reserved.
+			20
+			;
 
+	return bufferLength;
+};
