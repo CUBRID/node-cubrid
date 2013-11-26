@@ -137,6 +137,7 @@ function CUBRIDConnection(brokerServer, brokerPort, user, password, database, ca
   this.EVENT_ROLLBACK_COMPLETED = 'rollback';
   this.EVENT_QUERY_CLOSED = 'close query';
   this.EVENT_CONNECTION_CLOSED = 'close';
+  this.EVENT_CONNECTION_DISCONNECTED = 'disconnect';
   this.EVENT_LOB_READ_COMPLETED = 'LOB read completed';
   this.EVENT_LOB_NEW_COMPLETED = 'LOB new completed';
   this.EVENT_LOB_WRITE_COMPLETED = 'LOB write completed';
@@ -164,7 +165,6 @@ function CUBRIDConnection(brokerServer, brokerPort, user, password, database, ca
   this._CASInfo = [0, 0xFF, 0xFF, 0xFF];
   this._queriesPacketList = [];
   this._INVALID_RESPONSE_LENGTH = -1;
-  this._PREVENT_CONCURRENT_REQUESTS = true;
   this._LOB_MAX_IO_LENGTH = 128 * 1024;
 
   // Database engine version
@@ -200,35 +200,17 @@ CUBRIDConnection.prototype._doGetBrokerPort = function (callback) {
 		  packetWriter = new PacketWriter(clientInfoExchangePacket.getBufferLength());
 
   clientInfoExchangePacket.write(packetWriter);
+
+	this._setSocketTimeoutErrorListeners(callback);
+
   self._socket.write(packetWriter._buffer);
-
-  self._socket.on('timeout', function () {
-	  // `timeout` is emitted (without an error message), if the socket
-	  // times out from inactivity. This is only to notify that the
-	  // socket has been idle. That's why we must manually close the
-	  // connection.
-	  // We need to force disconnection using `destroy()` function
-	  // which will ensure that no more I/O activity happens on this
-	  // socket. In contrast, `end()` function doesn't close the
-	  // connection immediately; the server may still send some data,
-	  // which we don't want.
-	  self._socket.destroy();
-
-    this.connectionOpened = false;
-
-	  callback(new Error(ErrorMessages.ERROR_CONNECTION_TIMEOUT));
-  });
-
-  self._socket.on('error', function (err) {
-	  // When `error` event is emitted, the socket client gets automatically
-	  // closed. So, no need to close it manually.
-    this.connectionOpened = false;
-	  callback(err);
-  });
 
   self._socket.once('data', function (data) {
 	  // Clear connection timeout
-	  self._socket.setTimeout(0);
+	  this.setTimeout(0);
+	  this.removeAllListeners('timeout')
+			  .removeAllListeners('data');
+
     var packetReader = new PacketReader();
     packetReader.write(data);
     clientInfoExchangePacket.parse(packetReader);
@@ -237,16 +219,82 @@ CUBRIDConnection.prototype._doGetBrokerPort = function (callback) {
 
     self.connectionBrokerPort = newPort;
 
-	  if (newPort > 0) {
+	  if (newPort != 0) {
       self._socket.end();
     }
 
-	  if (newPort >= 0) {
+	  if (newPort > -1) {
       callback();
     } else {
       callback(new Error(ErrorMessages.ERROR_NEW_BROKER_PORT));
     }
   });
+};
+
+CUBRIDConnection.prototype._setSocketTimeoutErrorListeners = function (callback) {
+	var self = this;
+
+	this._socket.on('timeout', function () {
+		// The `timeout` event listener is a one time only event.
+		// Refer to http://nodejs.org/api/net.html#net_socket_settimeout_timeout_callback.
+
+		// `timeout` is emitted (without an error message), if the socket
+		// times out from inactivity. This is only to notify that the
+		// socket has been idle. That's why we must manually close the
+		// connection.
+		// We need to force disconnection using `destroy()` function
+		// which will ensure that no more I/O activity happens on this
+		// socket. In contrast, `end()` function doesn't close the
+		// connection immediately; the server may still send some data,
+		// which we don't want.
+		self._socket.destroy();
+
+		self.connectionOpened = false;
+
+		callback(new Error(ErrorMessages.ERROR_CONNECTION_TIMEOUT));
+	});
+
+	this._socketCurrentEventCallback = callback;
+
+	this._socket.on('error', function (err) {
+		// As of node 0.10.15 there is a known open bug in Node.js
+		// (https://github.com/joyent/node/issues/5851)
+		// which escalates the stream write error to the network socket,
+		// thus the same error is triggered twice. To handle this case,
+		// we need to catch only the first of the two events and ignore
+		// the second one. Since the same error object is escalated, we
+		// can set a boolean flag whether or not this error has been
+		// handled by node-cubrid.
+		if (!err.isHandledByNodeCubrid) {
+			err.isHandledByNodeCubrid = true;
+			this.setTimeout(0);
+			this.removeAllListeners('timeout')
+					.removeAllListeners('data');
+
+			// When `error` event is emitted, the socket client gets automatically
+			// closed. So, no need to close it manually.
+			self.connectionOpened = false;
+
+			if (typeof self._socketCurrentEventCallback === 'function') {
+				self._socketCurrentEventCallback(err);
+				self._socketCurrentEventCallback = null;
+			} else {
+				throw err;
+			}
+		}
+	});
+
+	this._socket.on('end', function () {
+		self.connectionOpened = false;
+
+		// Since node-cubrid supports reconnecting to the disconnected
+		// server, we do not consider socket disconnection by server
+		// as a fatal error. However, if anybody is listening for the
+		// disconnect event, we are eager to notify them.
+		if (self.listeners(self.EVENT_CONNECTION_DISCONNECTED).length > 0) {
+			self.emit(self.EVENT_CONNECTION_DISCONNECTED);
+		}
+	});
 };
 
 /**
@@ -257,11 +305,13 @@ CUBRIDConnection.prototype._doGetBrokerPort = function (callback) {
 CUBRIDConnection.prototype._doDatabaseLogin = function (callback) {
 	var self = this;
 
-  if (self.connectionBrokerPort > 0) {
+	if (self.connectionBrokerPort) {
     self._socket = Net.createConnection(self.connectionBrokerPort, self.brokerServer);
     self._socket.setNoDelay(true);
     self._socket.setTimeout(self._CONNECTION_TIMEOUT);
-  }
+
+		this._setSocketTimeoutErrorListeners(callback);
+	}
 
   var openDatabasePacket = new OpenDatabasePacket({
 		    database : self.database,
@@ -274,18 +324,6 @@ CUBRIDConnection.prototype._doDatabaseLogin = function (callback) {
   openDatabasePacket.write(packetWriter);
 
 	self._socket.write(packetWriter._buffer);
-
-  self._socket.on('timeout', function () {
-    self._socket.destroy();
-    this.connectionOpened = false;
-    callback(new Error(ErrorMessages.ERROR_CONNECTION_TIMEOUT));
-  });
-
-  self._socket.on('error', function (err) {
-	  self._socket.removeAllListeners('data');
-    self.connectionOpened = false;
-    callback(err);
-  });
 
   self._socket.on('data', self._receiveBytes({
 	  parserFunction: self._parseDatabaseLoginBuffer,
@@ -307,7 +345,9 @@ CUBRIDConnection.prototype._getEngineVersion = function (callback) {
 
   getEngineVersionPacket.write(packetWriter);
 
-  self._socket.write(packetWriter._buffer);
+	this._socketCurrentEventCallback = callback;
+
+	self._socket.write(packetWriter._buffer);
 
   self._socket.on('data', self._receiveBytes({
 	  parserFunction: self._parseEngineVersionBuffer,
@@ -351,16 +391,14 @@ CUBRIDConnection.prototype.connect = function (callback) {
     function (cb) {
       self._doGetBrokerPort(cb);
     },
-
     function (cb) {
       self._doDatabaseLogin(cb);
     },
-
     function (cb) {
-      self._getEngineVersion(cb);
+	    self._getEngineVersion(cb);
     }
   ], function (err) {
-      // Reset query execution status
+	    // Reset query execution status
       self.connectionPending = false;
       self.connectionOpened = !(typeof err !== 'undefined' && err !== null);
       Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_CONNECTED);
@@ -453,7 +491,10 @@ CUBRIDConnection.prototype._batchExecuteNoQuery = function (sqls, callback) {
 		      packetWriter = new PacketWriter(batchExecuteNoQueryPacket.getBufferLength());
 
       batchExecuteNoQueryPacket.write(packetWriter);
-      self._socket.write(packetWriter._buffer);
+
+	    self._socketCurrentEventCallback = cb;
+
+	    self._socket.write(packetWriter._buffer);
 
       self._socket.on('data', self._receiveBytes({
 	      parserFunction: self._parseBatchExecuteBuffer,
@@ -538,7 +579,10 @@ CUBRIDConnection.prototype._executeWithTypedParams = function (sql, arrParamsVal
 		      packetWriter = new PacketWriter(prepareExecuteOldProtocolPacket.getPrepareBufferLength());
 	    
       prepareExecuteOldProtocolPacket.writePrepare(packetWriter);
-      self._socket.write(packetWriter._buffer);
+
+	    self._socketCurrentEventCallback = cb;
+
+	    self._socket.write(packetWriter._buffer);
 
       self._socket.on('data', self._receiveBytes({
 	      parserFunction: self._parsePrepareBufferForOldProtocol,
@@ -568,6 +612,7 @@ CUBRIDConnection.prototype._receiveBytes = function (options, cb) {
 CUBRIDConnection.prototype._receiveFirstBytes = function (data) {
 	// Clear timeout if any.
 	this._socket.setTimeout(0);
+	this._socket.removeAllListeners('timeout');
 
 	this._totalBuffLength += data.length;
 	this._buffArr.push(data);
@@ -609,12 +654,13 @@ CUBRIDConnection.prototype._receiveRemainingBytes = function (data) {
 
 	// If we have received all the expected data, start parsing it.
 	if (this._totalBuffLength === this._expectedResponseLength) {
-		this._socket.removeAllListeners('data');
 		this._parseBuffer();
 	}
 };
 
 CUBRIDConnection.prototype._parseBuffer = function () {
+	this._socket.removeAllListeners('data');
+
 	var packetReader = new PacketReader();
 	packetReader.write(Buffer.concat(this._buffArr, this._totalBuffLength));
 
@@ -659,6 +705,9 @@ CUBRIDConnection.prototype._parseExecuteForOldProtocol = function () {
 			packetWriter = new PacketWriter(dataPacket.getExecuteBufferLength());
 
 	dataPacket.writeExecute(packetWriter);
+
+	this._socketCurrentEventCallback = this._callback;
+
 	this._socket.write(packetWriter._buffer);
 
 	this._socket.on('data', this._receiveBytes({
@@ -839,6 +888,9 @@ CUBRIDConnection.prototype._parseWriteFetchSchema = function () {
 			packetWriter = new PacketWriter(dataPacket.getFetchSchemaBufferLength());
 
 	dataPacket.writeFetchSchema(packetWriter);
+
+	this._socketCurrentEventCallback = this._callback;
+
 	this._socket.write(packetWriter._buffer);
 
 	this._socket.on('data', this._receiveBytes({
@@ -899,8 +951,7 @@ CUBRIDConnection.prototype._query = function (sql, callback) {
 };
 
 CUBRIDConnection.prototype._queryNewProtocol = function (sql, callback) {
-  var self = this,
-		  err = self._NO_ERROR;
+  var self = this;
 
   ActionQueue.enqueue([
     function (cb) {
@@ -920,6 +971,9 @@ CUBRIDConnection.prototype._queryNewProtocol = function (sql, callback) {
 			      packetWriter = new PacketWriter(executeQueryPacket.getBufferLength());
 
 	      executeQueryPacket.write(packetWriter);
+
+	      self._socketCurrentEventCallback = cb;
+
 	      self._socket.write(packetWriter._buffer);
 
 	      // `_receiveBytes()` will return a function which will process the
@@ -967,7 +1021,10 @@ CUBRIDConnection.prototype._queryOldProtocol = function (sql, arrParamsValues, a
 		      packetWriter = new PacketWriter(prepareExecuteOldProtocolPacket.getPrepareBufferLength());
 
       prepareExecuteOldProtocolPacket.writePrepare(packetWriter);
-      self._socket.write(packetWriter._buffer);
+
+	    self._socketCurrentEventCallback = cb;
+
+	    self._socket.write(packetWriter._buffer);
 
       self._socket.on('data', self._receiveBytes({
 	      parserFunction: self._parsePrepareBufferForOldProtocol,
@@ -1063,7 +1120,10 @@ CUBRIDConnection.prototype._fetch = function (queryHandle, callback) {
 		      packetWriter = new PacketWriter(fetchPacket.getBufferLength());
 
       fetchPacket.write(packetWriter, self._queriesPacketList[i]);
-      self._socket.write(packetWriter._buffer);
+
+	    self._socketCurrentEventCallback = callback;
+
+	    self._socket.write(packetWriter._buffer);
 
 	    self._socket.on('data', self._receiveBytes({
 		    i: i,
@@ -1127,6 +1187,8 @@ CUBRIDConnection.prototype._closeQuery = function (queryHandle, callback) {
 
 	  closeQueryPacket.write(packetWriter);
 
+	  self._socketCurrentEventCallback = callback;
+
 	  self._socket.write(packetWriter._buffer);
 
 	  self._socket.on('data', self._receiveBytes({
@@ -1152,16 +1214,14 @@ CUBRIDConnection.prototype.close = close;
 CUBRIDConnection.prototype.end = close;
 
 function close(callback) {
-	var self = this,
-			err = self._NO_ERROR;
+	var self = this;
 
-	if (self.connectionOpened === false) {
-		err = new Error(ErrorMessages.ERROR_CONNECTION_ALREADY_CLOSED);
-
-		Helpers._emitEvent(self, err, self.EVENT_ERROR, null);
-
+	if (!self.connectionOpened) {
+		// If the connection has already been closed, no need to emit
+		// the error. After all this is what the client wants - to
+		// close the connection
 		if (typeof(callback) === 'function') {
-			callback(err);
+			callback();
 		}
 
 		return;
@@ -1200,6 +1260,9 @@ function close(callback) {
 					packetWriter = new PacketWriter(closeDatabasePacket.getBufferLength());
 
 			closeDatabasePacket.write(packetWriter);
+
+			self._socketCurrentEventCallback = cb;
+
 			self._socket.write(packetWriter._buffer);
 
 			self._socket.on('data', self._receiveBytes({
@@ -1281,14 +1344,15 @@ CUBRIDConnection.prototype._rollback = function (callback) {
 		    packetWriter = new PacketWriter(rollbackPacket.getBufferLength());
 
     rollbackPacket.write(packetWriter);
-    self._socket.write(packetWriter._buffer);
+
+	  self._socketCurrentEventCallback = callback;
+
+	  self._socket.write(packetWriter._buffer);
 
 	  self._socket.on('data', self._receiveBytes({
 		  parserFunction: self._parseRollbackBuffer,
 		  dataPacket: rollbackPacket
 	  }, function (err) {
-		  self._socket.removeAllListeners('data');
-
 		  Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_ROLLBACK_COMPLETED);
 
 		  if (typeof(callback) === 'function') {
@@ -1334,14 +1398,15 @@ CUBRIDConnection.prototype._commit = function (callback) {
 		    packetWriter = new PacketWriter(commitPacket.getBufferLength());
 
     commitPacket.write(packetWriter);
+
+	  self._socketCurrentEventCallback = callback;
+
     self._socket.write(packetWriter._buffer);
 
 	  self._socket.on('data', self._receiveBytes({
 		  parserFunction: self._parseCommitBuffer,
 		  dataPacket: commitPacket
 	  }, function (err) {
-		  self._socket.removeAllListeners('data');
-
 		  Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_COMMIT_COMPLETED);
 
 		  if (typeof(callback) === 'function') {
@@ -1422,7 +1487,10 @@ CUBRIDConnection.prototype._getSchema = function (schemaType, tableNameFilter, c
 		        packetWriter = new PacketWriter(getSchemaPacket.getRequestSchemaBufferLength());
 
         getSchemaPacket.writeRequestSchema(packetWriter);
-        self._socket.write(packetWriter._buffer);
+
+	      self._socketCurrentEventCallback = cb;
+
+	      self._socket.write(packetWriter._buffer);
 
         self._socket.on('data', self._receiveBytes({
 	        parserFunction: self._parseGetSchemaBuffer,
@@ -1476,6 +1544,9 @@ CUBRIDConnection.prototype._lobNew = function (lobType, callback) {
 		      packetWriter = new PacketWriter(lobNewPacket.getBufferLength());
 
       lobNewPacket.write(packetWriter);
+
+	    self._socketCurrentEventCallback = cb;
+
       self._socket.write(packetWriter._buffer);
 
       self._socket.on('data', self._receiveBytes({
@@ -1560,7 +1631,10 @@ CUBRIDConnection.prototype._lobWrite = function (lobObject, position, dataBuffer
 		      buffArr = [];
 
       lobWritePacket.write(packetWriter);
-      self._socket.write(packetWriter._buffer);
+
+	    self._socketCurrentEventCallback = cb;
+
+	    self._socket.write(packetWriter._buffer);
 
       self._socket.on('data', function (data) {
 	      totalBuffLength += data.length;
@@ -1684,7 +1758,10 @@ CUBRIDConnection.prototype._lobRead = function (lobObject, position, length, cal
 	    readLen = Math.min(length, self._LOB_MAX_IO_LENGTH);
 
 	    lobReadPacket.write(packetWriter);
-      self._socket.write(packetWriter._buffer);
+
+	    self._socketCurrentEventCallback = cb;
+
+	    self._socket.write(packetWriter._buffer);
 
       self._socket.on('data', function (data) {
 	      totalBuffLength += data.length;
@@ -1810,7 +1887,10 @@ CUBRIDConnection.prototype._setDatabaseParameter = function (parameter, value, c
 		  packetWriter = new PacketWriter(setDbParameterPacket.getBufferLength());
 
   setDbParameterPacket.write(packetWriter);
-  self._socket.write(packetWriter._buffer);
+
+	self._socketCurrentEventCallback = callback;
+
+	self._socket.write(packetWriter._buffer);
 
   self._socket.on('data', self._receiveBytes({
 	  parserFunction: self._parseSetDatabaseParameterBuffer,
@@ -1863,7 +1943,10 @@ CUBRIDConnection.prototype._getDatabaseParameter = function (parameter, callback
 		  packetWriter = new PacketWriter(getDbParameterPacket.getBufferLength());
 
   getDbParameterPacket.write(packetWriter);
-  self._socket.write(packetWriter._buffer);
+
+	self._socketCurrentEventCallback = callback;
+
+	self._socket.write(packetWriter._buffer);
 
 	self._socket.on('data', self._receiveBytes({
 		parserFunction: self._parseGetDatabaseParameterBuffer,

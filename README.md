@@ -182,7 +182,7 @@ There can be several reasons for a connection to fail:
 			{ [Error: connect ECONNREFUSED] code: 'ECONNREFUSED', errno: 'ECONNREFUSED', syscall: 'connect' }
 	
 	* If the port is not listened by any service, then you will see the **Connection timeout** error as in the first case.
-	* The last type of error message you woud receive if an incorrect port is provided is:
+	* The last type of error message you would receive if an incorrect port is provided is:
 
 			{ [Error: read ECONNRESET] code: 'ECONNRESET', errno: 'ECONNRESET', syscall: 'read' }
 

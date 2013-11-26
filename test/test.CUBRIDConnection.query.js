@@ -406,4 +406,4 @@ exports['multiple execute(sql, callback) in the queue'] = function (test) {
 			})
 		}
 	});
-}
+};

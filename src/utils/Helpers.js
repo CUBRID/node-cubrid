@@ -179,9 +179,9 @@ var _escapeString = function (val) {
         return "\\t";
       case "\x1a":
         return "\\Z";
-      case "\'":
+      case "'":
         return "''";
-      case "\"":
+      case '"':
         return '""';
       default:
         return "\\" + s;

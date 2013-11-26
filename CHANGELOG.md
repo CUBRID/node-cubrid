@@ -1,5 +1,10 @@
 # node-cubrid change log
 
+## Version 2.1.1 (Nov 26, 2013)
+
+- Enh: APIS-690, Handle the case when the socket is disconnected by the server.
+- Fix: APIS-691, Socket error is escalated twice to a connection callback.
+
 ## Version 2.1.0 (Aug 30, 2013)
 
 - New: APIS-566, Release 3.0 - Add Travis support.
