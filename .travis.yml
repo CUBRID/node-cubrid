@@ -21,7 +21,7 @@ before_script:
   # Install Chef Solo.
   # Chef Solo 11.4.4 is broken, so install a previous version.
   # The bug is planned to be fixed in 11.4.5 which haven't been released yet.
-  - sudo gem install chef --no-rdoc --no-ri
+  - gem install --version '<11.4.4' chef --no-rdoc --no-ri
   # Make sure the target directory for cookbooks exists.
   - mkdir -p /tmp/chef-solo
   # Prepare a file with runlist for Chef Solo.
