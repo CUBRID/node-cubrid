@@ -1,7 +1,7 @@
-exports['test_Helpers'] = function (test) {
-	var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
-			Helpers = require('../src' + codeCoveragePath + '/utils/Helpers');
+var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
+		Helpers = require('../src' + codeCoveragePath + '/utils/Helpers');
 
+exports['validate input'] = function (test) {
 	test.expect(32);
 
 	var buffer = new Buffer(5);
@@ -70,3 +70,32 @@ exports['test_Helpers'] = function (test) {
 
 	test.done();
 };
+
+//exports['_sqlFormat()'] = function (test) {
+//	var arr = [
+//		{
+//			sql: 'INSERT INTO project (projectname, team, creator, description, log_limit, esm_code, sink_config, createtime, lastmodified) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+//			values: ['qqqesen', 'qa', 60136, '1234123412', 20000000, '123456', JSON.stringify({
+//				type: "hdfs",
+//				server: [
+//					{
+//						ip: "1.1.1.1",
+//						port: 2222
+//					}
+//				],
+//				user: "hadoop",
+//				path:"/data"
+//			}), '2013-09-25 17:00:52', '2013-09-25 17:00:52'],
+//			outputSQL: "INSERT INTO project (projectname, team, creator, description, log_limit, esm_code, sink_config, createtime, lastmodified) VALUES ('qqqesen', 'qa', 60136, '1234123412', 20000000, '123456', '{\"type\":\"hdfs\",\"server\":[{\"ip\":\"1.1.1.1\",\"port\":2222}],\"user\":\"hadoop\",\"path\":\"/data\"}', '2013-09-25 17:00:52', '2013-09-25 17:00:52')"
+//		}
+//	];
+//
+//	test.expect(arr.length);
+//
+//	async.each(arr, function(obj, done) {
+//		Helpers._sqlFormat(obj.sql, obj.values);
+//	}, function (err) {
+//
+//	});
+//
+//};
