@@ -4,6 +4,7 @@
 
 - Enh: APIS-690, Handle the case when the socket is disconnected by the server.
 - Fix: APIS-691, Socket error is escalated twice to a connection callback.
+- Fix: Chef gem version 11.4.4 is not found. Use the latest version.
 
 ## Version 2.1.0 (Aug 30, 2013)
 
