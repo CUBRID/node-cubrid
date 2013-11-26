@@ -137,6 +137,7 @@ function CUBRIDConnection(brokerServer, brokerPort, user, password, database, ca
   this.EVENT_ROLLBACK_COMPLETED = 'rollback';
   this.EVENT_QUERY_CLOSED = 'close query';
   this.EVENT_CONNECTION_CLOSED = 'close';
+  this.EVENT_CONNECTION_DISCONNECTED = 'disconnect';
   this.EVENT_LOB_READ_COMPLETED = 'LOB read completed';
   this.EVENT_LOB_NEW_COMPLETED = 'LOB new completed';
   this.EVENT_LOB_WRITE_COMPLETED = 'LOB write completed';
@@ -280,6 +281,18 @@ CUBRIDConnection.prototype._setSocketTimeoutErrorListeners = function (callback)
 			} else {
 				throw err;
 			}
+		}
+	});
+
+	this._socket.on('end', function () {
+		self.connectionOpened = false;
+
+		// Since node-cubrid supports reconnecting to the disconnected
+		// server, we do not consider socket disconnection by server
+		// as a fatal error. However, if anybody is listening for the
+		// disconnect event, we are eager to notify them.
+		if (self.listeners(self.EVENT_CONNECTION_DISCONNECTED).length > 0) {
+			self.emit(self.EVENT_CONNECTION_DISCONNECTED);
 		}
 	});
 };
