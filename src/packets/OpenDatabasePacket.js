@@ -42,13 +42,13 @@ OpenDatabasePacket.prototype.write = function (writer) {
  * @param parser
  */
 OpenDatabasePacket.prototype.parse = function (parser) {
-  var reponseLength = parser._parseInt();
+  var responseLength = parser._parseInt();
   this.casInfo = parser._parseBytes(DATA_TYPES.CAS_INFO_SIZE);
 
   this.responseCode = parser._parseInt();
   if (this.responseCode < 0) {
     this.errorCode = parser._parseInt();
-    this.errorMsg = parser._parseNullTerminatedString(reponseLength - DATA_TYPES.INT_SIZEOF * 2);
+    this.errorMsg = parser._parseNullTerminatedString(responseLength - DATA_TYPES.INT_SIZEOF * 2);
     if (this.errorMsg.length === 0) {
       this.errorMsg = Helpers._resolveErrorCode(this.errorCode);
     }

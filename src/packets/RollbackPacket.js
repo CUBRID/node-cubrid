@@ -40,13 +40,13 @@ RollbackPacket.prototype.write = function (writer) {
  * @param parser
  */
 RollbackPacket.prototype.parse = function (parser) {
-  var reponseLength = parser._parseInt();
+  var responseLength = parser._parseInt();
   this.casInfo = parser._parseBytes(DATA_TYPES.CAS_INFO_SIZE);
 
   this.responseCode = parser._parseInt();
   if (this.responseCode < 0) {
     this.errorCode = parser._parseInt();
-    this.errorMsg = parser._parseNullTerminatedString(reponseLength - 2 * DATA_TYPES.INT_SIZEOF);
+    this.errorMsg = parser._parseNullTerminatedString(responseLength - 2 * DATA_TYPES.INT_SIZEOF);
     if (this.errorMsg.length === 0) {
       this.errorMsg = Helpers._resolveErrorCode(this.errorCode);
     }
