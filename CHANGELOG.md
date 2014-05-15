@@ -1,5 +1,9 @@
 # node-cubrid change log
 
+## Version 2.2.0 (May 15, 2014)
+
+- New: APIS-730, Add support for ENUM data type.
+
 ## Version 2.1.1 (Nov 26, 2013)
 
 - Enh: APIS-690, Handle the case when the socket is disconnected by the server.

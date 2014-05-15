@@ -121,13 +121,16 @@ ExecuteQueryPacket.prototype.write = function (writer) {
  * @param parser
  */
 ExecuteQueryPacket.prototype.parse = function (parser) {
-	var reponseLength = parser._parseInt();
+	var responseLength = parser._parseInt();
+
 	this.casInfo = parser._parseBytes(DATA_TYPES.CAS_INFO_SIZE);
 
 	this.responseCode = parser._parseInt();
+
 	if (this.responseCode < 0) {
 		this.errorCode = parser._parseInt();
-		this.errorMsg = parser._parseNullTerminatedString(reponseLength - 2 * DATA_TYPES.INT_SIZEOF);
+		this.errorMsg = parser._parseNullTerminatedString(responseLength - 2 * DATA_TYPES.INT_SIZEOF);
+
 		if (this.errorMsg.length === 0) {
 			this.errorMsg = Helpers._resolveErrorCode(this.errorCode);
 		}
@@ -139,6 +142,7 @@ ExecuteQueryPacket.prototype.parse = function (parser) {
 		this.isUpdatable = (parser._parseByte() === 0); // Is updatable?
 		this.columnCount = parser._parseInt(); // Query result columns count
 		this.infoArray = [];
+
 		for (i = 0; i < this.columnCount; i++) {
 			var info = new ColumnMetaData();
 			info.ColumnType = parser._parseByte(); // Column type
@@ -183,22 +187,20 @@ ExecuteQueryPacket.prototype.parse = function (parser) {
 		this.tupleCount = parser._parseInt(); // Tuple count
 		var columnNames = new Array(this.columnCount);
 		var columnDataTypes = new Array(this.columnCount);
-		var columnValues = new Array(this.tupleCount);
+
 		for (var i = 0; i < this.columnCount; i++) {
 			columnNames[i] = this.infoArray[i].Name;
 			columnDataTypes[i] = CAS.getCUBRIDDataTypeName(this.infoArray[i].ColumnType);
 		}
 
-		columnValues = this._getData(parser, this.tupleCount);
+		var columnValues = this._getData(parser, this.tupleCount);
 
-		this.resultSet =  JSON.stringify(
-				{
-					ColumnNames     : columnNames,
-					ColumnDataTypes : columnDataTypes,
-					RowsCount       : this.totalTupleCount,
-					ColumnValues    : columnValues
-				}
-		);
+		this.resultSet = JSON.stringify({
+			ColumnNames     : columnNames,
+			ColumnDataTypes : columnDataTypes,
+			RowsCount       : this.totalTupleCount,
+			ColumnValues    : columnValues
+		});
 	}
 
 	return this;
@@ -211,13 +213,18 @@ ExecuteQueryPacket.prototype.parse = function (parser) {
  */
 ExecuteQueryPacket.prototype._getData = function (parser, tupleCount) {
 	var columnValues = new Array(tupleCount);
-	for (var i = 0; i < tupleCount; i++) {
-		columnValues[i] = new Array(this.columnCount);
+
+	// Loop through rows.
+	for (var i = 0; i < tupleCount; ++i) {
 		var index = parser._parseInt(); // Column index
 		var Oid = parser._parseBytes(DATA_TYPES.OID_SIZEOF); // OID
-		for (var j = 0; j < this.columnCount; j++) {
+
+		columnValues[i] = new Array(this.columnCount);
+
+		for (var j = 0; j < this.columnCount; ++j) {
 			var size = parser._parseInt(); // Value size
 			var val;
+
 			if (size <= 0) {
 				val = null;
 			} else {
@@ -228,12 +235,13 @@ ExecuteQueryPacket.prototype._getData = function (parser, tupleCount) {
 						this.statementType === CAS.CUBRIDStatementType.CUBRID_STMT_CALL_SP ||
 						this.infoArray[j].ColumnType === CAS.CUBRIDDataType.CCI_U_TYPE_NULL) {
 					type = parser._parseByte(); // Column data type
-					size--;
+					--size;
 				} else {
 					type = this.infoArray[j].ColumnType;
 				}
 
 				val = this._readValue(j, type, size, parser); // Read value
+
 				columnValues[i][j] = val;
 			}
 		}
@@ -256,6 +264,7 @@ ExecuteQueryPacket.prototype._readValue = function (index, type, size, parser) {
 		case CAS.CUBRIDDataType.CCI_U_TYPE_NCHAR:
 		case CAS.CUBRIDDataType.CCI_U_TYPE_STRING:
 		case CAS.CUBRIDDataType.CCI_U_TYPE_VARNCHAR:
+		case CAS.CUBRIDDataType.CCI_U_TYPE_ENUM:
 			return parser._parseNullTerminatedString(size);
 
 		case CAS.CUBRIDDataType.CCI_U_TYPE_SHORT:
@@ -318,38 +327,38 @@ ExecuteQueryPacket.prototype._readValue = function (index, type, size, parser) {
 ExecuteQueryPacket.prototype.getBufferLength = function () {
 	var bufferLength = // Total length of the request without itself and CAS info.
 			DATA_TYPES.DATA_LENGTH_SIZEOF +
-				// CAS info.
-					DATA_TYPES.CAS_INFO_SIZE +
-				// CAS function.
-					DATA_TYPES.BYTE_SIZEOF +
-				// TODO: what are these four bytes for?
-					DATA_TYPES.INT_SIZEOF +
-				// CAS arguments.
-					DATA_TYPES.INT_SIZEOF +
-				// TODO: These four bytes are absent below. Why?
-					DATA_TYPES.INT_SIZEOF +
-				// A NULL terminated SQL query string.
-					Buffer.byteLength(this.sql) + 1 +
-				// The length of the next part.
-					DATA_TYPES.INT_SIZEOF +
-				// The type of CCI prepare.
-					DATA_TYPES.BYTE_SIZEOF +
-				// The length of the next part.
-					DATA_TYPES.INT_SIZEOF +
-				// Autocommit mode
-					DATA_TYPES.BYTE_SIZEOF +
-					DATA_TYPES.INT_SIZEOF +
-					DATA_TYPES.BYTE_SIZEOF +
-					DATA_TYPES.INT_SIZEOF +
-					DATA_TYPES.INT_SIZEOF +
-					DATA_TYPES.INT_SIZEOF +
-					DATA_TYPES.INT_SIZEOF +
-					DATA_TYPES.INT_SIZEOF +
-					DATA_TYPES.INT_SIZEOF +
-					DATA_TYPES.INT_SIZEOF +
-					DATA_TYPES.INT_SIZEOF +
-					DATA_TYPES.INT_SIZEOF +
-					DATA_TYPES.INT_SIZEOF;
+			// CAS info.
+			DATA_TYPES.CAS_INFO_SIZE +
+			// CAS function.
+			DATA_TYPES.BYTE_SIZEOF +
+			// TODO: what are these four bytes for?
+			DATA_TYPES.INT_SIZEOF +
+			// CAS arguments.
+			DATA_TYPES.INT_SIZEOF +
+			// TODO: These four bytes are absent below. Why?
+			DATA_TYPES.INT_SIZEOF +
+			// A NULL terminated SQL query string.
+			Buffer.byteLength(this.sql) + 1 +
+			// The length of the next part.
+			DATA_TYPES.INT_SIZEOF +
+			// The type of CCI prepare.
+			DATA_TYPES.BYTE_SIZEOF +
+			// The length of the next part.
+			DATA_TYPES.INT_SIZEOF +
+			// Autocommit mode
+			DATA_TYPES.BYTE_SIZEOF +
+			DATA_TYPES.INT_SIZEOF +
+			DATA_TYPES.BYTE_SIZEOF +
+			DATA_TYPES.INT_SIZEOF +
+			DATA_TYPES.INT_SIZEOF +
+			DATA_TYPES.INT_SIZEOF +
+			DATA_TYPES.INT_SIZEOF +
+			DATA_TYPES.INT_SIZEOF +
+			DATA_TYPES.INT_SIZEOF +
+			DATA_TYPES.INT_SIZEOF +
+			DATA_TYPES.INT_SIZEOF +
+			DATA_TYPES.INT_SIZEOF +
+			DATA_TYPES.INT_SIZEOF;
 
 	return bufferLength;
 };

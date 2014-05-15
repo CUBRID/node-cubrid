@@ -14,7 +14,8 @@ This is a Node.js driver for [CUBRID](http://www.cubrid.org) open-source relatio
 - Support for queries queueing.
 - Support for database schema.
 - Support for database parameters and transactions.
-- Support for LOB objects.
+- Support for [LOB](http://www.cubrid.org/manual/92/en/sql/datatype.html#blob-clob-data-types) objects.
+- Support for [ENUM](http://www.cubrid.org/manual/92/en/sql/datatype.html#enum-data-type) data types since CUBRID 9+.
 - Fully implements the event emitter.
 - Extensive tests suite (260K+ assertions).
 - User demos: E2E scenarios, web sites.
