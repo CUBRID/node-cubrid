@@ -3,6 +3,7 @@
 ## Version 2.2.0 (May 15, 2014)
 
 - New: APIS-730, Add support for ENUM data type.
+- Ref: remove documentation directory as documentation is managed in README.
 
 ## Version 2.1.1 (Nov 26, 2013)
 
