@@ -3,6 +3,7 @@
 ## Version 2.2.0 (May 15, 2014)
 
 - New: APIS-730, Add support for ENUM data type.
+- Fix: chef-solo command not found travis error.
 - Ref: remove documentation directory as documentation is managed in README.
 - Ref: fix typo.
 - Ref: update dev dependencies.

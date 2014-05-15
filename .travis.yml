@@ -12,16 +12,26 @@ env:
   - CUBRID_VERSION=8.4.3
   - CUBRID_VERSION=8.4.1
 
-before_script:
-  - sudo hostname localhost
-  # Update OS before installing prerequisites.
+before_install:
+  # According to http://docs.travis-ci.com/user/build-configuration/
+  # prepare the system to install prerequisites or dependencies.
+  # Update the OS before installing prerequisites.
   - sudo apt-get update
+
+install:
+  # Install any prerequisites or dependencies necessary to run your build.
   # Install Chef Solo prerequisites.
-  - sudo apt-get install ruby ruby-dev libopenssl-ruby rdoc ri irb build-essential ssl-cert
+  - sudo apt-get install ruby ruby-dev rubygems libopenssl-ruby rdoc ri irb build-essential ssl-cert
   # Install Chef Solo.
   # Chef Solo 11.4.4 is broken, so install a previous version.
   # The bug is planned to be fixed in 11.4.5 which haven't been released yet.
-  - gem install --version '<11.4.4' chef --no-rdoc --no-ri
+  - sudo gem install --version '<11.4.4' chef --no-rdoc --no-ri
+  # Install dev dependencies for this Node.js project.
+  - npm install
+  # CUBRID operates on IPv4 address, while Travis defaults to IPv6.
+  # Therefore, we need to explicitly override the default `hostname`
+  # to point to an IPv4 address.
+  - sudo hostname localhost
   # Make sure the target directory for cookbooks exists.
   - mkdir -p /tmp/chef-solo
   # Prepare a file with runlist for Chef Solo.
@@ -29,7 +39,7 @@ before_script:
   # Install CUBRID via Chef Solo. Download all cookbooks from a remote URL.
   - sudo chef-solo -c test/testSetup/solo.rb -j cubrid_chef.json -r http://sourceforge.net/projects/cubrid/files/CUBRID-Demo-Virtual-Machines/Vagrant/chef-cookbooks.tar.gz/download
 
-after_script:
+after_success:
   # Install JSCoverage prerequisites.
   - sudo apt-get install zip
   # Install JSCoverage to instrument code covered version of the node-cubrid module.
