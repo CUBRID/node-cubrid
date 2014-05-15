@@ -499,7 +499,7 @@ And finally, everything else will be safely escaped and wrapped in single quotes
 	// `queryHandle`: the query handle ID which was just closed.
 	client.on(client.EVENT_QUERY_CLOSED, callback);
 
-All READ queries must be closed explicitly.
+All READ queries **must be** closed explicitly.
 
 ##### Callback example
 

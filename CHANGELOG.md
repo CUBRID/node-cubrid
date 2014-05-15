@@ -7,6 +7,7 @@
 - Ref: remove documentation directory as documentation is managed in README.
 - Ref: fix typo.
 - Ref: update dev dependencies.
+- Doc: updated README documentation.
 
 ## Version 2.1.1 (Nov 26, 2013)
 
