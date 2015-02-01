@@ -2,6 +2,7 @@
 
 ## Version 2.2.1 (Unreleased)
 
+- Fix #15: When closing a query, if connection is closed, consider the request was successful.
 - Travis: ohai requires Ruby version >= 2.0.0.
 
 ## Version 2.2.0 (May 15, 2014)
