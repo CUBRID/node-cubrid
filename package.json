@@ -1,6 +1,6 @@
 {
   "name": "node-cubrid",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "This is a Node.js driver for CUBRID RDBMS. It is developed in 100% JavaScript and does not require specific platform compilation.",
   "author": "CUBRID <contact@cubrid.org> (http://www.cubrid.org/)",
   "repository": {

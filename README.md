@@ -810,6 +810,50 @@ To run tests on **node-cubrid** module:
 
 There are over 268K assertion tests which should all pass on CUBRID 8.4.1+.
 
+### Running tests in a Docker container
+
+For development purpose, we have created a Docker image which can be used in order to
+run the tests suit. The image does not include a copy of the node-cubrid source code
+as it should be available at run time to be able to run tests against the uncommitted
+changes.
+
+By following these steps you will install CUBRID 9.1.x inside the container and run
+node-cubrid tests.
+
+1. Define the environment variable which point to the location of the node-cubrid
+repository
+
+        NODE_CUBRID_SRC=/Users/user/repos/node-cubrid
+
+2. Then pull the Docker image:
+
+        docker pull lighthopper/node-cubrid:dev
+
+3. Start the container by mounting the node-cubrid directory to `/node-cubrid`
+inside the container:
+
+        docker run --name node-cubrid -v $NODE_CUBRID_SRC:/node-cubrid lighthopper/node-cubrid:dev
+
+4. This will enter into the bash inside the container. At this point all commands you type
+will be executed inside this container. Install all NPM dependencies.
+
+        npm install
+
+5. Prepare a build instructions for Chef to install CUBRID Database. Defaults to version 9.1.x.
+If you prefer to test against a different version of CUBRID like `8.4.1`, set 
+`CUBRID_VERSION=8.4.1` environment variable. Then run the following command to prepare
+the Chef instructions.
+
+        echo '{"cubrid":{"version":"'$CUBRID_VERSION'"},"run_list":["cubrid::demodb"]}' > cubrid_chef.json
+
+6. Run Chef to actually install and start up CUBRID Server:
+
+        chef-solo -c test/testSetup/solo.rb -j cubrid_chef.json -r http://sourceforge.net/projects/cubrid/files/CUBRID-Demo-Virtual-Machines/Vagrant/chef-cookbooks.tar.gz/download
+
+7. Now CUBRID is running. Run the node-cubrid tests.
+
+        npm test
+
 ## What's next
 
 We intend to continuosly improve this driver, by adding more features and improving the existing code base.
@@ -821,7 +865,7 @@ And you are more than welcomed to suggest what we should improve or add - please
 
 The authors of this driver are the members of the CUBRID API team - [http://www.cubrid.org/wiki_apis](http://www.cubrid.org/wiki_apis).
 
-We welcome any new contributors and we hope you will enjoy using and coding with CUBRID! :)
+We welcome new contributors and hope you will enjoy using and coding with CUBRID! :)
 
 ### Special thanks
 

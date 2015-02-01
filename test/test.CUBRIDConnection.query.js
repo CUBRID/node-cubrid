@@ -29,7 +29,7 @@ exports['single query(sql, callback)'] = function (test) {
 
 			client.close(function (err) {
 				test.done(err);
-			})
+			});
 		}
 	});
 };
@@ -59,7 +59,7 @@ exports['multiple query(sql, callback) in the queue with closeQuery()'] = functi
 
 			client.close(function (err) {
 				test.done(err);
-			})
+			});
 		}
 	});
 };
@@ -89,7 +89,7 @@ exports['multiple query(sql, callback) in the queue without closeQuery()'] = fun
 
 			client.close(function (err) {
 				test.done(err);
-			})
+			});
 		}
 	});
 
@@ -220,7 +220,7 @@ exports['single query(sql, params, callback)'] = function (test) {
 
 			client.close(function (err) {
 				test.done(err);
-			})
+			});
 		}
 	});
 };
@@ -321,7 +321,7 @@ exports['multiple query(sql, params, callback) in the queue without closeQuery()
 
 			client.close(function (err) {
 				test.done(err);
-			})
+			});
 		}
 	});
 };
@@ -349,7 +349,7 @@ exports['single execute(sql, callback)'] = function (test) {
 
 			client.close(function (err) {
 				test.done(err);
-			})
+			});
 		}
 	});
 };
@@ -403,7 +403,7 @@ exports['multiple execute(sql, callback) in the queue'] = function (test) {
 
 			client.close(function (err) {
 				test.done(err);
-			})
+			});
 		}
 	});
 };

@@ -17,15 +17,32 @@ before_install:
   # prepare the system to install prerequisites or dependencies.
   # Update the OS before installing prerequisites.
   - sudo apt-get update
+  # Install Chef Solo prerequisites.
+  # Ruby >=2.0.0 is required by one of the Chef dependencies.
+  # Build Ruby from source. Will auto install gem. 
+  - RUBY_MAJOR_VERSION=2.2
+  - RUBY_VERSION=$RUBY_MAJOR_VERSION.0
+  # Install Ruby prerequisites.
+  - sudo apt-get install -y build-essential zlib1g-dev libssl-dev libreadline6-dev libyaml-dev wget ssl-cert
+  # Download Ruby source into the current directory.
+  - wget http://cache.ruby-lang.org/pub/ruby/$RUBY_MAJOR_VERSION/ruby-$RUBY_VERSION.tar.gz
+  # Extract Ruby source
+  - tar -xvzf ruby-$RUBY_VERSION.tar.gz
+  # Enter the Ruby directory.
+  - cd ruby-$RUBY_VERSION
+  # Configure Ruby.
+  - ./configure --prefix=/usr/local
+  - make
+  # Install Ruby.
+  - sudo make install
+  # Return back to the previous directory.
+  - cd ..
+  # Install Chef Solo.
+  # Chef Solo 11.4.4 is broken, so install one of the later versions.
+  # The bug was supposed to be fixed in 11.4.5 which is already released.
+  - sudo gem install chef --no-rdoc --no-ri
 
 install:
-  # Install any prerequisites or dependencies necessary to run your build.
-  # Install Chef Solo prerequisites.
-  - sudo apt-get install ruby ruby-dev rubygems libopenssl-ruby rdoc ri irb build-essential ssl-cert
-  # Install Chef Solo.
-  # Chef Solo 11.4.4 is broken, so install a previous version.
-  # The bug is planned to be fixed in 11.4.5 which haven't been released yet.
-  - sudo gem install --version '<11.4.4' chef --no-rdoc --no-ri
   # Install dev dependencies for this Node.js project.
   - npm install
   # CUBRID operates on IPv4 address, while Travis defaults to IPv6.
