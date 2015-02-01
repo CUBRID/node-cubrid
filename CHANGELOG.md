@@ -1,9 +1,13 @@
 # node-cubrid change log
 
+## Version 2.2.1 (Unreleased)
+
+- Travis: ohai requires Ruby version >= 2.0.0.
+
 ## Version 2.2.0 (May 15, 2014)
 
 - New: APIS-730, Add support for ENUM data type.
-- Fix: chef-solo command not found travis error.
+- Travis: chef-solo command not found travis error.
 - Ref: remove documentation directory as documentation is managed in README.
 - Ref: fix typo.
 - Ref: update dev dependencies.
@@ -13,8 +17,8 @@
 
 - Enh: APIS-690, Handle the case when the socket is disconnected by the server.
 - Fix: APIS-691, Socket error is escalated twice to a connection callback.
-- Fix: Chef gem version 11.4.4 is not found. Use the latest version.
-- Fix: gem command not found travis error.
+- Travis: Chef gem version 11.4.4 is not found. Use the latest version.
+- Travis: gem command not found travis error.
 
 ## Version 2.1.0 (Aug 30, 2013)
 
@@ -103,7 +107,7 @@
 - Task: APIS-438, CUBRID 9.1 code is available now. Please test node-cubrid with it.
 - Task: APIS-429, Please update Node.js release notes.
 
-## Version 1.1.1 (Jan 11, 2012)
+## Version 1.1.1 (Jan 15, 2012)
 
 - New: APIS-336, Create a function which converts a query result to a JSON object where column names are keys.
 - Enh: APIS-304, Helpers._sqlFormat should be improved regarding detecting whether a val === 'number'.
@@ -113,7 +117,7 @@
 - Fix: APIS-391, node-cubrid returns incorrect datatime. Adds one month + some hours to the actual value.
 - Fix: APIS-430, Cannot find module '.src/utils/ActionQueue.js'. Must be "./" in front of the path.
 
-## Version 1.1.0 (Dec 15, 2012)
+## Version 1.1.0 (Dec 19, 2012)
 
 - New: added compatibility with CUBRID 8.4.3 stable release, CUBRID 9.0.0 beta release.
 - New: APIS-327, Advanced driver tutorial publish.
@@ -130,7 +134,7 @@
 - Doc: APIS-377, Please document the purpose of arrDelimiters parameter in _sqlFormat.
 - Task: APIS-383, Please push the latest bug fixes to NPM.
 
-## Version 1.0.0 (Oct 26, 2012)
+## Version 1.0.0 (Oct 27, 2012)
 
 - New: initial release compatible with CUBRID 8.4.1 stable release.
 - New: APIS-15, Porting CUBRID to Node.js.
@@ -143,7 +147,7 @@
 - Fix: APIS-305, Password with multiple single quotes is not correctly quoted or passed which fails the connection.
 - Fix: APIS-349, Node driver doesn't escape single quotes in strings [fix included].
 
-## Version 1.0.0 beta (Sep 29, 2012)
+## Version 1.0.0 beta (Sep 30, 2012)
 
 - New: APIS-15, first beta release.
 - New: APIS-330, Node.js driver beta release.
@@ -166,7 +170,7 @@
 - Fix: APIS-299, Cannot connect to remote host.
 - Fix: APIS-300, Result2Array has no method 'GetResultsCount'.
 
-## Milestone 2 (Sep 16, 2012)
+## Milestone 2 (Sep 17, 2012)
 
 - New: APIS-329, Milestone 2 release.
 
