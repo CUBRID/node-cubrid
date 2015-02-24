@@ -587,7 +587,7 @@ Here is an example.
 
 Remember that the `callback` is optional in which case you should listen for events.
 
-Alternatively, for backward compatibility we still support `addQeury()` and `addNonQuery()` functions which we introduced in version 2.0.0.
+Alternatively, for backward compatibility we still support `addQuery()` and `addNonQuery()` functions which we introduced in version 2.0.0.
 
     var SQL_1 = "SELECT COUNT(*) FROM [code]";
     var SQL_2 = "SELECT * FROM [code] WHERE s_name = 'X'";
