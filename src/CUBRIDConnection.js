@@ -1307,11 +1307,11 @@ function close(callback) {
 			socket.write(packetWriter._buffer);
 		}
 	], function (err) {
-		Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_CONNECTION_CLOSED);
-
 		// Reset connection status
 		self.connectionPending = false;
 		self.connectionOpened = false;
+
+		Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_CONNECTION_CLOSED);
 		
 		if (typeof(callback) === 'function') {
 			callback(err);
