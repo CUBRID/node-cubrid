@@ -1,9 +1,13 @@
 # node-cubrid change log
 
+## Version 2.2.2 (Feb 24, 2015)
+
+- Fix #15: When closing a query, if connection is reset, consider the request was successful.
+- Doc: add Table of Contents to README documentation.
+
 ## Version 2.2.1 (Feb 1, 2015)
 
 - Fix #15: When closing a query, if connection is closed, consider the request was successful.
-- Fix #15: When closing a query, if connection is reset, consider the request was successful.
 - Ref #14: Reduce the use of self where this can be used directly.
 - Travis: ohai requires Ruby version >= 2.0.0.
 

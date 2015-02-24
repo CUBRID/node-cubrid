@@ -3,6 +3,34 @@
 [![Build Status](https://travis-ci.org/CUBRID/node-cubrid.png)](https://travis-ci.org/CUBRID/node-cubrid)
 [![Coverage Status](https://coveralls.io/repos/CUBRID/node-cubrid/badge.png)](https://coveralls.io/r/CUBRID/node-cubrid)
 
+**Table of Contents**
+
+* [Introduction](#introduction)
+* [Key features](#key-features)
+* [CHANGELOG](#changelog)
+* [Installation](#installation)
+* [Request flow in node-cubrid](#request-flow-in-node-cubrid)
+* [API Documentation](#api-documentation)
+	* [Creating a CUBRID client](#creating-a-cubrid-client)
+	* [Establishing a connection](#establishing-a-connection)
+	* [Connection configuration](#connection-configuration)
+		* [Setting connection timeout](#setting-connection-timeout)
+		* [Setting CUBRID Server Parameters](#setting-cubrid-server-parameters)
+	* [Executing SQL queries](#executing-sql-queries)
+		* [READ queries](#read-queries)
+		* [Close Query](#close-query)
+		* [WRITE queries](#write-queries)
+	* [Queueing](#queueing)
+	* [Transactions](#transactions)
+	* [Closing a connection](#closing-a-connection)
+	* [Events by EventEmitter](#events-by-eventemitter)
+* [More examples](#more-examples)
+* [Running tests](#running-tests)
+	* [Running tests in a Docker container](#running-tests-in-a-docker-container)
+* [What's next](#whats-next)
+* [Authors and Contributors](#authors-and-contributors)
+* [Special thanks](#special-thanks)
+
 ## Introduction
 
 This is a Node.js driver for [CUBRID](http://www.cubrid.org) open-source relational database. **node-cubrid** is implemented in 100% JavaScript with no external dependency. Besides the database specific APIs, the module supplies several *helper* APIs which are useful to sanitize and validate user input values, format and parameterize SQL statements, etc.
