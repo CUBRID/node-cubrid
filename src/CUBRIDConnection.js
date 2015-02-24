@@ -1166,66 +1166,81 @@ CUBRIDConnection.prototype._closeQuery = function (queryHandle, callback) {
 
 	  Helpers._emitEvent(this, err, this.EVENT_ERROR, null);
   } else {
-    var closeQueryPacket = new CloseQueryPacket({
-		      casInfo    : this._CASInfo,
-		      reqHandle  : queryHandle,
-		      db_version : this._DB_ENGINE_VER
-		    }),
-		    packetWriter = new PacketWriter(closeQueryPacket.getBufferLength()),
-		    socket = this._socket;
+	  ActionQueue.enqueue([
+		  this._implyConnect.bind(this),
+		  function (cb) {
+			  var closeQueryPacket = new CloseQueryPacket({
+						  casInfo    : self._CASInfo,
+						  reqHandle  : queryHandle,
+						  db_version : self._DB_ENGINE_VER
+					  }),
+					  packetWriter = new PacketWriter(closeQueryPacket.getBufferLength()),
+					  socket = self._socket;
 
-	  closeQueryPacket.write(packetWriter);
+			  closeQueryPacket.write(packetWriter);
 
-	  this._socketCurrentEventCallback = callback;
-	  
-	  function onResponse(err) {
-		  // Remove the event we've previously bound to.
-		  socket.removeListener('end', onConnectionReset);
+			  function onResponse(err) {
+				  // Remove the event we've previously bound to.
+				  socket.removeListener('end', onConnectionReset);
 
-		  if (!err) {
-			  // Remove the referenced query packet from the hash.
-			  self._queriesPacketList.splice(foundQueryHandle, 1);
+				  if (!err) {
+					  // Remove the referenced query packet from the hash.
+					  self._queriesPacketList.splice(foundQueryHandle, 1);
+				  }
+
+				  cb(err);
+			  }
+
+			  function onConnectionReset() {
+				  // CUBRID Broker may occasionally reset the connection between the client and the 
+				  // CAS that the Broker has assigned to this client. Refer to 
+				  // https://github.com/CUBRID/node-cubrid/issues/15 for details. According to 
+				  // CUBRID CCI native driver implementation function qe_send_close_handle_msg(),
+				  // we can consider the connection closed operation as a successful request.
+				  // This is true because internally CUBRID Broker manages a pool of CAS 
+				  // (CUBRID Application Server) processes. When a client connects, the Broker 
+				  // assigns/connect it to one of the CAS. Then the client sends some query requests
+				  // to this CAS. After the client receives a response, it may decide to do some
+				  // other application logic before it closes the query handle. Once the client is
+				  // done with the response, it may try to close the query handle.
+				  // In between these receive response and close query, CUBRID Broker may reassign
+				  // the CAS to another client. Notice the client-Broker connection is not broken.
+				  // When the actual close query request arrives to the Broker, it finds out that 
+				  // the CAS referred by the client is reassigned, it sends CONNECTION RESET to the
+				  // client. node-cubrid should listen it and consider such event as if the close 
+				  // query request was successful.
+				  socket.removeAllListeners('data');
+				  // Execute `onResponse` without an error.
+				  onResponse();
+			  }
+
+			  function onError(err) {
+				  socket.removeAllListeners('data');
+
+				  // `ECONNRESET` should also be considered as a connection
+				  // reset.
+				  onResponse(err.code == 'ECONNRESET' ? null : err);
+			  }
+
+			  self._socketCurrentEventCallback = onError;
+
+			  socket.on('data', self._receiveBytes({
+				  queryHandle: queryHandle,
+				  parserFunction: self._parseCloseQueryBuffer,
+				  dataPacket: closeQueryPacket
+			  }, onResponse));
+
+			  socket.on('end', onConnectionReset);
+
+			  socket.write(packetWriter._buffer);
 		  }
-
+	  ], function (err) {
 		  if (typeof(callback) === 'function') {
 			  callback(err, queryHandle);
 		  }
-		  
+
 		  Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_QUERY_CLOSED, queryHandle);
-	  }
-
-	  function onConnectionReset() {
-		  // CUBRID Broker may occasionally reset the connection between the client and the 
-		  // CAS that the Broker has assigned to this client. Refer to 
-		  // https://github.com/CUBRID/node-cubrid/issues/15 for details. According to 
-		  // CUBRID CCI native driver implementation function qe_send_close_handle_msg(),
-		  // we can consider the connection closed operation as a successful request.
-		  // This is true because internally CUBRID Broker manages a pool of CAS 
-		  // (CUBRID Application Server) processes. When a client connects, the Broker 
-		  // assigns/connect it to one of the CAS. Then the client sends some query requests
-		  // to this CAS. After the client receives a response, it may decide to do some
-		  // other application logic before it closes the query handle. Once the client is
-		  // done with the response, it may try to close the query handle.
-		  // In between these receive response and close query, CUBRID Broker may reassign
-		  // the CAS to another client. Notice the client-Broker connection is not broken.
-		  // When the actual close query request arrives to the Broker, it finds out that 
-		  // the CAS referred by the client is reassigned, it sends CONNECTION RESET to the
-		  // client. node-cubrid should listen it and consider such event as if the close 
-		  // query request was successful.
-		  socket.removeAllListeners('data');
-		  // Execute `onResponse` without an error.
-		  onResponse();
-	  }
-
-	  socket.on('data', this._receiveBytes({
-		  queryHandle: queryHandle,
-		  parserFunction: this._parseCloseQueryBuffer,
-		  dataPacket: closeQueryPacket
-	  }, onResponse));
-
-	  socket.on('end', onConnectionReset);
-
-	  socket.write(packetWriter._buffer);
+	  });
   }
 };
 

@@ -876,4 +876,4 @@ for the code we have (re)used and for doing such a great job for the open-source
 -	[https://github.com/felixge/node-mysql](https://github.com/felixge/node-mysql)
 -	[https://github.com/jeromeetienne/microcache.js](https://github.com/jeromeetienne/microcache.js)
 
-...Stay tuned for the next great driver releases! :)
+... Stay tuned for the next great driver releases! :)
