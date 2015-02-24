@@ -81,6 +81,7 @@ Util.inherits(CUBRIDConnection, EventEmitter);
  * @param password
  * @param database
  * @param cacheTimeout
+ * @param connectionTimeout
  * @constructor
  */
 function CUBRIDConnection(brokerServer, brokerPort, user, password, database, cacheTimeout, connectionTimeout) {
@@ -185,7 +186,6 @@ function CUBRIDConnection(brokerServer, brokerPort, user, password, database, ca
 
 /**
  * Get broker connection port
- * @param self
  * @param callback
  * @private
  */
@@ -336,7 +336,6 @@ CUBRIDConnection.prototype._doDatabaseLogin = function (callback) {
 
 /**
  * Get the server database engine version
- * @param self
  * @param callback
  */
 CUBRIDConnection.prototype._getEngineVersion = function (callback) {
@@ -1258,7 +1257,7 @@ function close(callback) {
 	if (!this.connectionOpened) {
 		// If the connection has already been closed, no need to emit
 		// the error. After all this is what the client wants - to
-		// close the connection
+		// close the connection.
 		if (typeof(callback) === 'function') {
 			callback();
 		}
@@ -1266,9 +1265,6 @@ function close(callback) {
 		return;
 	}
 
-	// Reset connection status
-	this.connectionPending = false;
-	this.connectionOpened = false;
 	// Remove all pending requests.
 	this._queue.empty();
 
@@ -1313,6 +1309,10 @@ function close(callback) {
 	], function (err) {
 		Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_CONNECTION_CLOSED);
 
+		// Reset connection status
+		self.connectionPending = false;
+		self.connectionOpened = false;
+		
 		if (typeof(callback) === 'function') {
 			callback(err);
 		}

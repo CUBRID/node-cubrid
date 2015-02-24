@@ -3,6 +3,7 @@
 ## Version 2.2.2 (Feb 24, 2015)
 
 - Fix #15: When closing a query, if connection is reset, consider the request was successful.
+- Fix: mark the connection as closed only after closing the connection.
 - Doc: add Table of Contents to README documentation.
 
 ## Version 2.2.1 (Feb 1, 2015)
