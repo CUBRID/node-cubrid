@@ -1,5 +1,12 @@
 # node-cubrid change log
 
+## Version 2.2.2 (Feb 24, 2015)
+
+- Fix #15: When closing a query, if connection is reset, consider the request was successful.
+- Fix: mark the connection as closed only after closing the connection.
+- Doc: add Table of Contents to README documentation.
+- Travis: remove Node.js 0.6 and 0.8 support. Some of dependent modules for testing dropped the support of these versions.
+
 ## Version 2.2.1 (Feb 1, 2015)
 
 - Fix #15: When closing a query, if connection is closed, consider the request was successful.
