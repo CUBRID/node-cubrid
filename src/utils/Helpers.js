@@ -164,31 +164,47 @@ Number.prototype.formatAsMoney = function (decimals, decimal_sep, thousands_sep)
  * @return {*}
  * @private
  */
-var _escapeString = function (val) {
-  val = val.replace(/[\0\n\r\b\t\\'"\x1a]/g, function (s) {
-    switch (s) {
-      case "\0":
-        return "\\0";
-      case "\n":
-        return "\\n";
-      case "\r":
-        return "\\r";
-      case "\b":
-        return "\\b";
-      case "\t":
-        return "\\t";
-      case "\x1a":
-        return "\\Z";
-      case "'":
-        return "''";
-      case '"':
-        return '""';
-      default:
-        return "\\" + s;
-    }
-  });
+var _escapeString = function (val, delimiter) {
+	val = val.replace(/[\0\n\r\b\t\\'"\x1a]/g, function (s) {
+		switch (s) {
+			case "\0":
+				return "\\0";
+			case "\n":
+				return "\\n";
+			case "\r":
+				return "\\r";
+			case "\b":
+				return "\\b";
+			case "\t":
+				return "\\t";
+			case "\x1a":
+				return "\\Z";
+			case "'":
+				// If the string includes a single quote and we are wrapping
+				// the string with single quotes, then we need to escape these single quotes.
+				if (!delimiter || s == delimiter) {
+					return "''";
+				}
 
-  return val;
+				// Otherwise, no need to escape single quotes if the string is
+				// wrapped by double quotes.
+				return s;
+			case '"':
+				// If the string includes a double quote and we are wrapping
+				// the string with double quotes, then we need to escape these double quotes.
+				if (!delimiter || s == delimiter) {
+					return '""';
+				}
+
+				// Otherwise, no need to escape double quotes if the string is
+				// wrapped by single quotes.
+				return s;
+			default:
+				return "\\" + s;
+		}
+	});
+
+	return val;
 };
 
 exports._escapeString = _escapeString;
@@ -238,6 +254,11 @@ exports._sqlFormat = function (sql, arrValues, arrDelimiters) {
 		  return val;
 		}
 
+		// Delimiters must be specified as strings.
+		if (typeof delimiter !== 'string') {
+			delimiter = DEFAULT_DELIMITER;
+		}
+
 	  // If the value is of Date type, convert it into
 	  // CUBRID compatible DATETIME format strings.
 	  if (val instanceof Date) {
@@ -248,22 +269,17 @@ exports._sqlFormat = function (sql, arrValues, arrDelimiters) {
 		  // Broker we choose the
 		  // `'mm/dd[/yyyy] hh:mi[:ss[.ff]] [am|pm]'` format.
 
-      return DEFAULT_DELIMITER +
+      return delimiter +
 			    // Month value in JavaScript is 0 based, i.e. 0-11,
 			    // but CUBRID is 1-12. Also CUBRID doesn't care if
 		      // dates are zero-padded or not.
 		      (val.getMonth() + 1) + '/' + val.getDate() + '/' + val.getFullYear() +
 		      ' ' + val.getHours() + ':' + val.getMinutes() + ':' + val.getSeconds() +
-		      '.' + val.getMilliseconds() + DEFAULT_DELIMITER;
+		      '.' + val.getMilliseconds() + delimiter;
     }
 
-		// Delimiters must be specified as strings.
-		if (typeof delimiter !== 'string') {
-			delimiter = DEFAULT_DELIMITER;
-		}
-
 	  // Otherwise, safely escape the string.
-    return delimiter + _escapeString(val) + delimiter;
+    return delimiter + _escapeString(val, delimiter) + delimiter;
   });
 };
 

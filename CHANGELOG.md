@@ -1,5 +1,9 @@
 # node-cubrid change log
 
+## Version 2.2.3 (Mar 17, 2015)
+
+- Enh #40: No need to escape double quotes when wrapped in single quotes.
+
 ## Version 2.2.2 (Feb 24, 2015)
 
 - Fix #15: When closing a query, if connection is reset, consider the request was successful.

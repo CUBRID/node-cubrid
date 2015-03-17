@@ -16,19 +16,19 @@ exports['test_BasicExecute'] = function (test) {
       errorHandler(err);
     } else {
       Helpers.logInfo('Connected.');
-      client.execute('drop table if exists node_test', function (err) {
+      client.execute('DROP TABLE IF EXISTS node_test', function (err) {
         if (err) {
           errorHandler(err);
         } else {
-          client.execute('create table node_test(id int)', function (err) {
+          client.execute('CREATE TABLE node_test(id INT)', function (err) {
             if (err) {
               errorHandler(err);
             } else {
-              client.execute('insert into node_test values(1)', function (err) {
+              client.execute('INSERT INTO node_test VALUES(1)', function (err) {
                 if (err) {
                   errorHandler(err);
                 } else {
-                  client.execute('drop table node_test', function (err) {
+                  client.execute('DROP TABLE node_test', function (err) {
                     if (err) {
                       errorHandler(err);
                     } else {
