@@ -555,20 +555,49 @@ All READ queries **must be** closed explicitly.
 
 #### WRITE queries
 
-	// `sql` is a string which represents a WRITE query or an array of strings
-	// for batch processing.
-	// `callback(err)` function accepts one argument: an error object if any.
-	client.execute(sql, callback);
+	// `execute(sql, callback)` function accepts two arguments.
+	// 1. `sql`: a string which represents a WRITE query or an array
+	//           of strings for batch processing.
+	// 2. `callback(err)`: a function that accepts one argument:
+	             1. `err`: an error object if any.
 
-##### Example
+	client.execute("INSERT INTO a VALUES(1, 2, 'val')", function callback(err) {});
 
-	client.execute('CREATE TABLE tbl_test(id INT)', function (err) {
-      if (err) {
-        throw err;
-      } else {
-        // Do something else.
-      }
-    });
+	// `executeWithParams(sql, params, paramDelimiters, callback)` 
+	// function accepts four arguments.
+	// 1. `sql`: a string which represents a WRITE query. **Note**
+	//           not an array of strings.
+	// 2. `params`: an array of parameter values or the value itself
+	//           which a user wants to bind instead of `?` placeholders
+	//           in the `sql` query. If no placeholder is found, the `sql`
+	//           will not be modified.
+	// 3. `paramDelimiters`: an optional array of delimiters which
+	//           must be used to wrap parameter values. If omitted,
+	//           it will try to guess the type and apply a default 
+	//           delimiter of that type.
+	//           - `null` is passed as an unwrapped SQL equivalent `NULL`.
+	//           - `number` is not wrapped.
+	//           - `Date` instance is wrapped by a single quote and 
+	//             converted into CUBRID's `DATETIME` format such as
+	//             `'mm/dd/yyyy hh:mi:ss.ff am|pm'` omitting the
+	//             timezone information as CUBRID as of version 9
+	//             does not support timezones.
+	//           - Everything else, including `string`, is wrapped 
+	//             by a single quote.
+	// 4. `callback(err)`: a function that accepts one argument:
+	             1. `err`: an error object if any.
+	             
+	// Under the hood, `executeWithParams()` as well as `query()` and
+	// `queryWithParams()` all call `Helpers._sqlFormat()` function
+	// to perform the actual formatting.
+	
+	var sql = 'INSERT INTO a VALUES(?, ?, ?, ?)',
+			params = [1, 2, 'val', new Date()],
+			paramDelimiters = ["", "", "'", "'"];
+	
+	client.executeWithParams(sql, params, paramDelimiters, function callback(err) {});
+	// Will send to the server the following formatted SQL:
+	// `INSERT INTO a VALUES(1, 2, 'val', '02/24/2015 03:09:20.12 pm')`
 
 After executing WRITE queries there is no need to close the query.
 
@@ -860,10 +889,10 @@ repository
 3. Start the container by mounting the node-cubrid directory to `/node-cubrid`
 inside the container:
 
-        docker run --name node-cubrid -v $NODE_CUBRID_SRC:/node-cubrid lighthopper/node-cubrid:dev
+        docker run -it --name node-cubrid -v $NODE_CUBRID_SRC:/node-cubrid lighthopper/node-cubrid:dev
 
 4. This will enter into the bash inside the container. At this point all commands you type
-will be executed inside this container. Install all NPM dependencies.
+will be executed inside this container. Now install all NPM dependencies.
 
         npm install
 
