@@ -194,7 +194,7 @@ CUBRIDConnection.prototype._doGetBrokerPort = function (callback) {
 		  packetWriter = new PacketWriter(clientInfoExchangePacket.getBufferLength()),
 		  self = this,
 		  socket = this._socket = Net.createConnection(this.initialBrokerPort, this.brokerServer);
-	
+
   socket.setNoDelay(true);
   socket.setTimeout(this._CONNECTION_TIMEOUT);
 
@@ -304,7 +304,7 @@ CUBRIDConnection.prototype._setSocketTimeoutErrorListeners = function (callback)
  */
 CUBRIDConnection.prototype._doDatabaseLogin = function (callback) {
 	var socket;
-	
+
 	if (this.connectionBrokerPort) {
 		socket = this._socket = Net.createConnection(this.connectionBrokerPort, this.brokerServer);
 
@@ -353,7 +353,7 @@ CUBRIDConnection.prototype._getEngineVersion = function (callback) {
 	  parserFunction: this._parseEngineVersionBuffer,
 	  dataPacket: getEngineVersionPacket
   }, callback));
-	
+
 	socket.write(packetWriter._buffer);
 };
 
@@ -420,7 +420,7 @@ CUBRIDConnection.prototype._implyConnect = function(cb) {
  */
 CUBRIDConnection.prototype.getEngineVersion = function (callback) {
 	var self = this;
-	
+
 	Helpers._emitEvent(this, this._NO_ERROR, this.EVENT_ERROR, this.EVENT_ENGINE_VERSION_AVAILABLE, this._DB_ENGINE_VER);
 
 	if (typeof(callback) === 'function') {
@@ -565,7 +565,7 @@ CUBRIDConnection.prototype._executeWithTypedParams = function (sql, arrParamsVal
 	        }),
 		      packetWriter = new PacketWriter(prepareExecuteOldProtocolPacket.getPrepareBufferLength()),
 		      socket = self._socket;
-	    
+
       prepareExecuteOldProtocolPacket.writePrepare(packetWriter);
 
 	    self._socketCurrentEventCallback = cb;
@@ -580,7 +580,7 @@ CUBRIDConnection.prototype._executeWithTypedParams = function (sql, arrParamsVal
     }
   ], function (err) {
     Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_BATCH_COMMANDS_COMPLETED);
-    
+
 	  if (typeof(callback) === 'function') {
       callback(err);
     }
@@ -600,7 +600,7 @@ CUBRIDConnection.prototype._receiveBytes = function (options, cb) {
 
 CUBRIDConnection.prototype._receiveFirstBytes = function (data) {
 	var socket = this._socket;
-	
+
 	// Clear timeout if any.
 	socket.setTimeout(0);
 	socket.removeAllListeners('timeout');
@@ -746,7 +746,13 @@ CUBRIDConnection.prototype._parseBatchExecuteBuffer = function (packetReader) {
 	var errorCode = dataPacket.errorCode,
 			err;
 
-	if (!this._DB_ENGINE_VER.startsWith('8.4.1')) {
+	// If there is a gloal error, get the error message
+	// from dataPacket.errorMsg.
+	if (errorCode !== 0 && dataPacket.errorMsg) {
+		err = new Error(errorCode + ':' + dataPacket.errorMsg);
+	} else {
+		// Otherwise, check the individual responses of each query in the batch
+		// and see if there is an error.
 		err = [];
 
 		for (var i = 0; i < dataPacket.arrResultsCode.length; ++i) {
@@ -757,10 +763,6 @@ CUBRIDConnection.prototype._parseBatchExecuteBuffer = function (packetReader) {
 
 		if (!err.length) {
 			err = null;
-		}
-	} else {
-		if (errorCode !== 0) {
-			err = new Error(errorCode + ':' + dataPacket.errorMsg);
 		}
 	}
 
@@ -1155,7 +1157,7 @@ CUBRIDConnection.prototype._closeQuery = function (queryHandle, callback) {
       break;
     }
   }
-	
+
   if (foundQueryHandle === false) {
 	  err = new Error(ErrorMessages.ERROR_NO_ACTIVE_QUERY + ": " + queryHandle);
 
@@ -1191,22 +1193,22 @@ CUBRIDConnection.prototype._closeQuery = function (queryHandle, callback) {
 			  }
 
 			  function onConnectionReset() {
-				  // CUBRID Broker may occasionally reset the connection between the client and the 
-				  // CAS that the Broker has assigned to this client. Refer to 
-				  // https://github.com/CUBRID/node-cubrid/issues/15 for details. According to 
+				  // CUBRID Broker may occasionally reset the connection between the client and the
+				  // CAS that the Broker has assigned to this client. Refer to
+				  // https://github.com/CUBRID/node-cubrid/issues/15 for details. According to
 				  // CUBRID CCI native driver implementation function qe_send_close_handle_msg(),
 				  // we can consider the connection closed operation as a successful request.
-				  // This is true because internally CUBRID Broker manages a pool of CAS 
-				  // (CUBRID Application Server) processes. When a client connects, the Broker 
+				  // This is true because internally CUBRID Broker manages a pool of CAS
+				  // (CUBRID Application Server) processes. When a client connects, the Broker
 				  // assigns/connect it to one of the CAS. Then the client sends some query requests
 				  // to this CAS. After the client receives a response, it may decide to do some
 				  // other application logic before it closes the query handle. Once the client is
 				  // done with the response, it may try to close the query handle.
 				  // In between these receive response and close query, CUBRID Broker may reassign
 				  // the CAS to another client. Notice the client-Broker connection is not broken.
-				  // When the actual close query request arrives to the Broker, it finds out that 
+				  // When the actual close query request arrives to the Broker, it finds out that
 				  // the CAS referred by the client is reassigned, it sends CONNECTION RESET to the
-				  // client. node-cubrid should listen it and consider such event as if the close 
+				  // client. node-cubrid should listen it and consider such event as if the close
 				  // query request was successful.
 				  socket.removeAllListeners('data');
 				  // Execute `onResponse` without an error.
@@ -1312,7 +1314,7 @@ function close(callback) {
 		self.connectionOpened = false;
 
 		Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_CONNECTION_CLOSED);
-		
+
 		if (typeof(callback) === 'function') {
 			callback(err);
 		}
@@ -1341,7 +1343,7 @@ CUBRIDConnection.prototype.beginTransaction = function (callback) {
  */
 CUBRIDConnection.prototype.setAutoCommitMode = function (autoCommitMode, callback) {
   var self = this;
-	
+
   _toggleAutoCommitMode(this, autoCommitMode, function (err) {
     Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_SET_AUTOCOMMIT_MODE_COMPLETED);
     if (typeof(callback) === 'function') {
@@ -1458,9 +1460,9 @@ CUBRIDConnection.prototype._commit = function (callback) {
     socket.write(packetWriter._buffer);
   } else {
     err = new Error(ErrorMessages.ERROR_NO_COMMIT);
-	  
+
     Helpers._emitEvent(this, err, this.EVENT_ERROR, null);
-    
+
 	  if (typeof(callback) === 'function') {
       callback(err);
     }
@@ -1479,7 +1481,7 @@ function _toggleAutoCommitMode(self, autoCommitMode, callback) {
 
   if (!Helpers._validateInputBoolean(autoCommitMode)) {
 	  err = new Error(ErrorMessages.ERROR_INPUT_VALIDATION);
-	  
+
     Helpers._emitEvent(self, err, self.EVENT_ERROR, null);
   } else {
     self.autoCommitMode = autoCommitMode;
@@ -1588,7 +1590,7 @@ CUBRIDConnection.prototype._lobNew = function (lobType, callback) {
   ],
   function (err, lobObject) {
     Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_LOB_NEW_COMPLETED, lobObject);
-	  
+
     if (typeof(callback) === 'function') {
       callback(err, lobObject);
     }
@@ -1720,7 +1722,7 @@ CUBRIDConnection.prototype._lobWrite = function (lobObject, position, dataBuffer
       if (totalWriteLen > lobObject.lobLength) {
         lobObject.lobLength = totalWriteLen;
       }
-	    
+
       Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_LOB_WRITE_COMPLETED, lobObject, totalWriteLen);
 
       if (typeof(callback) === 'function') {
@@ -1855,7 +1857,7 @@ CUBRIDConnection.prototype._lobRead = function (lobObject, position, length, cal
     },
     function (err) {
       Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_LOB_READ_COMPLETED, buffer, totalReadLen);
-      
+
 	    if (typeof(callback) === 'function') {
         callback(err, buffer, totalReadLen);
       }
@@ -1906,15 +1908,15 @@ CUBRIDConnection.prototype._setDatabaseParameter = function (parameter, value, c
   if (parameter === CASConstants.CCIDbParam.CCI_PARAM_MAX_STRING_LENGTH) {
     var errorCode = -1011,
 		    errorMsg = Helpers._resolveErrorCode(errorCode);
-	  
+
     err = new Error(errorCode + ':' + errorMsg);
-    
+
 	  Helpers._emitEvent(this, err, this.EVENT_ERROR, null);
-    
+
 	  if (typeof(callback) === 'function') {
       callback(err);
     }
-    
+
 	  return;
   }
 
@@ -1968,15 +1970,15 @@ CUBRIDConnection.prototype._getDatabaseParameter = function (parameter, callback
   if (parameter === CASConstants.CCIDbParam.CCI_PARAM_MAX_STRING_LENGTH) {
     var errorCode = -1011,
 		    errorMsg = Helpers._resolveErrorCode(errorCode);
-	  
+
     err = new Error(errorCode + ':' + errorMsg);
-    
+
 	  Helpers._emitEvent(this, err, this.EVENT_ERROR, null);
-    
+
 	  if (typeof(callback) === 'function') {
       callback(err);
     }
-    
+
 	  return;
   }
 

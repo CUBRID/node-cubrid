@@ -48,37 +48,44 @@ BatchExecuteNoQueryPacket.prototype.write = function (writer) {
  * @param parser
  */
 BatchExecuteNoQueryPacket.prototype.parse = function (parser) {
-  var responseLength = parser._parseInt();
-  var errCode = 0;
+  var responseLength = parser._parseInt(),
+      errCode = 0;
+
   this.casInfo = parser._parseBytes(DATA_TYPES.CAS_INFO_SIZE);
 
   this.responseCode = parser._parseInt();
+
   if (this.responseCode < 0) {
     this.errorCode = parser._parseInt();
     this.errorMsg = parser._parseNullTerminatedString(responseLength - 2 * DATA_TYPES.INT_SIZEOF);
+
     if (this.errorMsg.length === 0) {
       this.errorMsg = Helpers._resolveErrorCode(this.errorCode);
     }
   } else {
     this.executedCount = parser._parseInt();
+
     for (var i = 0; i < this.executedCount; i++) {
       parser._parseByte(); //not used
+
       var result = parser._parseInt();
+
       if (result < 0) {
         if (this.dbVersion.startsWith('8.4.3')) {
           errCode = parser._parseInt();
-        }
-        var errMsgLength = parser._parseInt();
-        var errMsg = parser._parseNullTerminatedString(errMsgLength);
-        if (this.dbVersion.startsWith('8.4.3')) {
           this.arrResultsCode.push(errCode);
         } else {
           this.arrResultsCode.push(result);
         }
+
+        var errMsgLength = parser._parseInt(),
+            errMsg = parser._parseNullTerminatedString(errMsgLength);
+
         this.arrResultsMsg.push(errMsg);
       } else {
         this.arrResultsCode.push(result);
         this.arrResultsMsg.push('');
+
         parser._parseInt(); // Not used
         parser._parseShort(); // Not used
         parser._parseShort(); // Not used

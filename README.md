@@ -884,22 +884,23 @@ repository
 
 2. Then pull the Docker image:
 
-        docker pull lighthopper/node-cubrid:dev
+        docker pull lighthopper/node-cubrid:0.10-test
 
 3. Start the container by mounting the node-cubrid directory to `/node-cubrid`
 inside the container:
 
-        docker run -it --name node-cubrid -v $NODE_CUBRID_SRC:/node-cubrid lighthopper/node-cubrid:dev
+        docker run -it --name node-cubrid -v $NODE_CUBRID_SRC:/node-cubrid lighthopper/node-cubrid:0.10-test
 
 4. This will enter into the bash inside the container. At this point all commands you type
 will be executed inside this container. Now install all NPM dependencies.
 
         npm install
 
-5. Prepare a build instructions for Chef to install CUBRID Database. Defaults to version 9.1.x.
-If you prefer to test against a different version of CUBRID like `8.4.1`, set 
-`CUBRID_VERSION=8.4.1` environment variable. Then run the following command to prepare
-the Chef instructions.
+5. The default CUBRID Database version is 9.1.0. You can override it as follows. Supported version are: `9.1.0`, `9.0.0`, `8.4.4`, `8.4.3`, and `8.4.1`.
+ 
+        CUBRID_VERSION=8.4.1
+
+6. Run the following command to prepare the Chef instructions.
 
         echo '{"cubrid":{"version":"'$CUBRID_VERSION'"},"run_list":["cubrid::demodb"]}' > cubrid_chef.json
 
@@ -907,9 +908,15 @@ the Chef instructions.
 
         chef-solo -c test/testSetup/solo.rb -j cubrid_chef.json -r http://sourceforge.net/projects/cubrid/files/CUBRID-Demo-Virtual-Machines/Vagrant/chef-cookbooks.tar.gz/download
 
-7. Now CUBRID is running. Run the node-cubrid tests.
+7. Now CUBRID is running. Run the node-cubrid tests as follows.
 
         npm test
+
+### Build a Docker container
+
+Run the following in order to build an image for node-cubrid testing.
+
+	docker build -t="lighthopper/node-cubrid:0.10-test" .
 
 ## What's next
 
