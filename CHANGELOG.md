@@ -1,5 +1,9 @@
 # node-cubrid change log
 
+## Version 2.2.4 (May 29, 2015)
+
+- Fix #42: Error on batch execute request is not propagated.
+
 ## Version 2.2.3 (Mar 17, 2015)
 
 - Enh #40: No need to escape double quotes when wrapped in single quotes.
