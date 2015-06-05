@@ -922,7 +922,7 @@ Run the following in order to build an image for node-cubrid testing.
 
 We intend to continuosly improve this driver, by adding more features and improving the existing code base.
 
-And you are more than welcomed to suggest what we should improve or add - please let us know! :)
+And you are more than welcome to suggest what we should improve or add - please let us know! :)
 
 
 ## Authors and Contributors

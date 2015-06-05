@@ -1,5 +1,9 @@
 # node-cubrid change log
 
+## Version 2.2.5 (June 5, 2015)
+
+- Fix #45: Imply the connection before beginning the transaction.
+
 ## Version 2.2.4 (May 29, 2015)
 
 - Fix #42: Error on batch execute request is not propagated.
