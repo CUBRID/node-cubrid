@@ -1325,15 +1325,20 @@ function close(callback) {
  * @param callback
  */
 CUBRIDConnection.prototype.beginTransaction = function (callback) {
-  var self = this;
+	var self = this;
 
-  _toggleAutoCommitMode(this, this.AUTOCOMMIT_OFF, function (err) {
-    Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_BEGIN_TRANSACTION);
+	ActionQueue.enqueue([
+		this._implyConnect.bind(this),
+		function (cb) {
+			_toggleAutoCommitMode(self, self.AUTOCOMMIT_OFF, cb);
+		}
+	], function (err) {
+		Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_BEGIN_TRANSACTION);
 
-    if (typeof(callback) === 'function') {
-      callback(err);
-    }
-  });
+		if (typeof(callback) === 'function') {
+			callback(err);
+		}
+	});
 };
 
 /**
