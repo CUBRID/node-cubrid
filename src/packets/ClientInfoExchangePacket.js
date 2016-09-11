@@ -1,5 +1,5 @@
 var DRIVER_VERSION = require('../constants/DriverVersion'),
-		DATA_TYPES = require('../constants/DataTypes');
+    DATA_TYPES = require('../constants/DataTypes');
 
 module.exports = ClientInfoExchangePacket;
 
@@ -37,11 +37,11 @@ ClientInfoExchangePacket.prototype.parse = function (parser) {
 };
 
 ClientInfoExchangePacket.prototype.getBufferLength = function () {
-	var bufferLength =
-			// The length of "CUBRK" string.
-			5 +
-			// JDBC client type + CAS version + 0 + 0 + 0. All bytes.
-			DATA_TYPES.BYTE_SIZEOF * 5;
+  var bufferLength =
+      // The length of "CUBRK" string.
+      5 +
+      // JDBC client type + CAS version + 0 + 0 + 0. All bytes.
+      DATA_TYPES.BYTE_SIZEOF * 5;
 
-	return bufferLength;
+  return bufferLength;
 };
