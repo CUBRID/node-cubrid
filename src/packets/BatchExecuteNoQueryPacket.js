@@ -1,6 +1,6 @@
 var DATA_TYPES = require('../constants/DataTypes'),
-  Helpers = require('../utils/Helpers'),
-  CAS = require('../constants/CASConstants');
+    Helpers = require('../utils/Helpers'),
+    CAS = require('../constants/CASConstants');
 
 module.exports = BatchExecuteNoQueryPacket;
 
@@ -29,7 +29,7 @@ function BatchExecuteNoQueryPacket(options) {
  * @param writer
  */
 BatchExecuteNoQueryPacket.prototype.write = function (writer) {
-	writer._writeInt(this.getBufferLength() - DATA_TYPES.DATA_LENGTH_SIZEOF - DATA_TYPES.CAS_INFO_SIZE);
+  writer._writeInt(this.getBufferLength() - DATA_TYPES.DATA_LENGTH_SIZEOF - DATA_TYPES.CAS_INFO_SIZE);
   writer._writeBytes(DATA_TYPES.CAS_INFO_SIZE, this.casInfo);
   writer._writeByte(CAS.CASFunctionCode.CAS_FC_EXECUTE_BATCH);
   writer._writeInt(DATA_TYPES.BYTE_SIZEOF);
@@ -97,20 +97,20 @@ BatchExecuteNoQueryPacket.prototype.parse = function (parser) {
 };
 
 BatchExecuteNoQueryPacket.prototype.getBufferLength = function () {
-	var bufferLength =
-			DATA_TYPES.DATA_LENGTH_SIZEOF +
-			DATA_TYPES.CAS_INFO_SIZE +
-			DATA_TYPES.BYTE_SIZEOF +
-			DATA_TYPES.INT_SIZEOF +
-			DATA_TYPES.BYTE_SIZEOF +
-			// The length of all queries.
-			DATA_TYPES.INT_SIZEOF * this.SQLs.length +
-			// The number of NULL terminating characters: one for each query.
-			this.SQLs.length;
+  var bufferLength =
+      DATA_TYPES.DATA_LENGTH_SIZEOF +
+      DATA_TYPES.CAS_INFO_SIZE +
+      DATA_TYPES.BYTE_SIZEOF +
+      DATA_TYPES.INT_SIZEOF +
+      DATA_TYPES.BYTE_SIZEOF +
+      // The length of all queries.
+      DATA_TYPES.INT_SIZEOF * this.SQLs.length +
+      // The number of NULL terminating characters: one for each query.
+      this.SQLs.length;
 
-	for (var i = 0; i < this.SQLs.length; ++i) {
-		bufferLength += Buffer.byteLength(this.SQLs[i]);
-	}
+  for (var i = 0; i < this.SQLs.length; ++i) {
+    bufferLength += Buffer.byteLength(this.SQLs[i]);
+  }
 
-	return bufferLength;
+  return bufferLength;
 };
