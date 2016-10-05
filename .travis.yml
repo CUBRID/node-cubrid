@@ -23,8 +23,9 @@ env:
 
 before_install:
   - docker pull lighthopper/cubrid:$CUBRID_VERSION
-  - docker run -d -p 33000:33000 lighthopper/cubrid:$CUBRID_VERSION ./create-start-demodb.sh
+  - docker run -d -p 33000:33000 --name cubrid lighthopper/cubrid:$CUBRID_VERSION ./create-start-demodb.sh
   - docker ps -a
+  - docker logs cubrid
 
 after_success:
   - npm run coverage
