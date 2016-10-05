@@ -336,101 +336,106 @@ describe('CUBRIDConnection', function () {
                 .to.be.an('array')
                 .with.length(2);
 
-            let table = schema[0];
+            let table1 = schema[0];
+            let table2 = schema[1];
 
-            expect(table)
+            if ([/* 8.4.1 */1, /* 8.4.3 */3].indexOf(client.brokerInfo.protocolVersion) === -1) {
+              let t = table1;
+              table1 = table2;
+              table2 = t;
+            }
+
+            expect(table1)
                 .to.be.an('object')
                 .to.have.property('FkName')
                 .to.be.a('string')
                 .to.equal('fk_game_athlete_code');
 
-            expect(table)
+            expect(table1)
                 .to.be.an('object')
                 .to.have.property('PkName')
                 .to.be.a('string')
                 .to.equal('pk_athlete_code');
 
-            expect(table)
+            expect(table1)
                 .to.be.an('object')
                 .to.have.property('FkTableName')
                 .to.be.a('string')
                 .to.equal('game');
 
-            expect(table)
+            expect(table1)
                 .to.be.an('object')
                 .to.have.property('PkTableName')
                 .to.be.a('string')
                 .to.equal('athlete');
 
-            expect(table)
+            expect(table1)
                 .to.be.an('object')
                 .to.have.property('FkColumnName')
                 .to.be.a('string')
                 .to.equal('athlete_code');
 
-            expect(table)
+            expect(table1)
                 .to.be.an('object')
                 .to.have.property('PkColumnName')
                 .to.be.a('string')
                 .to.equal('code');
 
-            expect(table)
+            expect(table1)
                 .to.be.an('object')
                 .to.have.property('UpdateAction')
                 .to.be.a('number')
                 .to.equal(1);
 
-            expect(table)
+            expect(table1)
                 .to.be.an('object')
                 .to.have.property('DeleteAction')
                 .to.be.a('number')
                 .to.equal(1);
 
-            table = schema[1];
-
-            expect(table)
+            expect(table2)
                 .to.be.an('object')
                 .to.have.property('FkName')
                 .to.be.a('string')
                 .to.equal('fk_game_event_code');
 
-            expect(table)
+            expect(table2)
                 .to.be.an('object')
                 .to.have.property('PkName')
                 .to.be.a('string')
                 .to.equal('pk_event_code');
 
-            expect(table)
+            expect(table2)
                 .to.be.an('object')
                 .to.have.property('FkTableName')
                 .to.be.a('string')
                 .to.equal('game');
 
-            expect(table)
+            expect(table2)
                 .to.be.an('object')
                 .to.have.property('PkTableName')
                 .to.be.a('string')
                 .to.equal('event');
 
-            expect(table)
+            expect(table2)
                 .to.be.an('object')
                 .to.have.property('FkColumnName')
                 .to.be.a('string')
                 .to.equal('event_code');
 
-            expect(table)
+            expect(table2)
                 .to.be.an('object')
                 .to.have.property('PkColumnName')
                 .to.be.a('string')
                 .to.equal('code');
 
-            expect(table)
+            expect(table2)
                 .to.be.an('object')
                 .to.have.property('UpdateAction')
                 .to.be.a('number')
                 .to.equal(1);
 
-            expect(table)
+            expect(table2)
                 .to.be.an('object')
                 .to.have.property('DeleteAction')
                 .to.be.a('number')
@@ -452,101 +457,106 @@ describe('CUBRIDConnection', function () {
             .to.be.an('array')
             .with.length(2);
 
-        let table = schema[0];
+        let table1 = schema[0];
+        let table2 = schema[1];
 
-        expect(table)
+        if ([/* 8.4.1 */1, /* 8.4.3 */3].indexOf(client.brokerInfo.protocolVersion) === -1) {
+          let t = table1;
+          table1 = table2;
+          table2 = t;
+        }
+
+        expect(table1)
             .to.be.an('object')
             .to.have.property('FkName')
             .to.be.a('string')
             .to.equal('fk_game_athlete_code');
 
-        expect(table)
+        expect(table1)
             .to.be.an('object')
             .to.have.property('PkName')
             .to.be.a('string')
             .to.equal('pk_athlete_code');
 
-        expect(table)
+        expect(table1)
             .to.be.an('object')
             .to.have.property('FkTableName')
             .to.be.a('string')
             .to.equal('game');
 
-        expect(table)
+        expect(table1)
             .to.be.an('object')
             .to.have.property('PkTableName')
             .to.be.a('string')
             .to.equal('athlete');
 
-        expect(table)
+        expect(table1)
             .to.be.an('object')
             .to.have.property('FkColumnName')
             .to.be.a('string')
             .to.equal('athlete_code');
 
-        expect(table)
+        expect(table1)
             .to.be.an('object')
             .to.have.property('PkColumnName')
             .to.be.a('string')
             .to.equal('code');
 
-        expect(table)
+        expect(table1)
             .to.be.an('object')
             .to.have.property('UpdateAction')
             .to.be.a('number')
             .to.equal(1);
 
-        expect(table)
+        expect(table1)
             .to.be.an('object')
             .to.have.property('DeleteAction')
             .to.be.a('number')
             .to.equal(1);
 
-        table = schema[1];
-
-        expect(table)
+        expect(table2)
             .to.be.an('object')
             .to.have.property('FkName')
             .to.be.a('string')
             .to.equal('fk_game_event_code');
 
-        expect(table)
+        expect(table2)
             .to.be.an('object')
             .to.have.property('PkName')
             .to.be.a('string')
             .to.equal('pk_event_code');
 
-        expect(table)
+        expect(table2)
             .to.be.an('object')
             .to.have.property('FkTableName')
             .to.be.a('string')
             .to.equal('game');
 
-        expect(table)
+        expect(table2)
             .to.be.an('object')
             .to.have.property('PkTableName')
             .to.be.a('string')
             .to.equal('event');
 
-        expect(table)
+        expect(table2)
             .to.be.an('object')
             .to.have.property('FkColumnName')
             .to.be.a('string')
             .to.equal('event_code');
 
-        expect(table)
+        expect(table2)
             .to.be.an('object')
             .to.have.property('PkColumnName')
             .to.be.a('string')
             .to.equal('code');
 
-        expect(table)
+        expect(table2)
             .to.be.an('object')
             .to.have.property('UpdateAction')
             .to.be.a('number')
             .to.equal(1);
 
-        expect(table)
+        expect(table2)
             .to.be.an('object')
             .to.have.property('DeleteAction')
             .to.be.a('number')
