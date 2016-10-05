@@ -13,7 +13,7 @@ describe('CUBRIDConnection', function () {
       it('should succeed to execute fetch(queryHandle) after query(sql)', function () {
         let client = testSetup.createDefaultCUBRIDDemodbConnection();
 
-        this.timeout(3000);
+        this.timeout(4000);
 
         return client
             .query('SELECT * FROM game')
@@ -931,7 +931,7 @@ describe('CUBRIDConnection', function () {
 
         client.setEnforceOldQueryProtocol(true);
 
-        this.timeout(3000);
+        this.timeout(4000);
 
         return client
             .query('SELECT * FROM game')

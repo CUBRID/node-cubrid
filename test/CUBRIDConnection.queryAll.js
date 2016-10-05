@@ -117,6 +117,8 @@ describe('CUBRIDConnection', function () {
       });
     }
 
+    this.timeout(4000);
+
     describe('when using the new protocol', function () {
       it('should succeed to execute queryAll(sql)', function () {
         let client = testSetup.createDefaultCUBRIDDemodbConnection();
@@ -139,8 +141,6 @@ describe('CUBRIDConnection', function () {
 
       it('should succeed to execute queryAll(sql, callback)', function () {
         let client = testSetup.createDefaultCUBRIDDemodbConnection();
-
-        this.timeout(3000);
 
         return new Promise((resolve, reject) => {
           client.queryAll('SELECT * FROM game', function (err, result) {
@@ -172,8 +172,6 @@ describe('CUBRIDConnection', function () {
 
         client.setEnforceOldQueryProtocol(true);
 
-        this.timeout(3000);
-
         return client
             .queryAll('SELECT * FROM game')
             .then(result => {
@@ -194,8 +192,6 @@ describe('CUBRIDConnection', function () {
         let client = testSetup.createDefaultCUBRIDDemodbConnection();
 
         client.setEnforceOldQueryProtocol(true);
-
-        this.timeout(3000);
 
         return new Promise((resolve, reject) => {
           client.queryAll('SELECT * FROM game', function (err, result) {

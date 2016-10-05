@@ -1135,6 +1135,56 @@ describe('CUBRIDConnection', function () {
               expect(err.message).to.contain('This socket is closed');
             });
       });
+
+      it('should succeed to query(sql) the schema users', function () {
+        const client = testSetup.createDefaultCUBRIDDemodbConnection();
+
+        return client.query('SELECT [name] FROM db_user')
+            .then(response => {
+              expect(response)
+                  .to.be.an('object')
+                  .to.have.property('queryHandle')
+                  .to.be.a('number')
+                  .to.be.above(0);
+
+              expect(response)
+                  .to.have.property('result')
+                  .to.be.an('object');
+
+              let result = response.result;
+
+              expect(result)
+                  .to.be.an('object')
+                  .to.have.property('RowsCount')
+                  .to.be.a('number')
+                  .to.equal(2);
+
+              expect(client)
+                  .to.be.an('object')
+                  .to.have.property('_queryResultSets')
+                  .to.be.an('object')
+                  .to.have.all.keys(['' + response.queryHandle]);
+
+              expect(result)
+                  .to.have.property('ColumnValues')
+                  .to.be.an('array')
+                  .with.length(2);
+
+              result.ColumnValues.forEach(columns => {
+                expect(columns)
+                    .to.be.an('array')
+                    .with.length(1);
+
+                expect(['PUBLIC', 'DBA'])
+                    .to.include(columns[0]);
+              });
+
+              return client.closeQuery(response.queryHandle);
+            })
+            .then(() => {
+              return client.close();
+            });
+      });
     });
 
     describe('when using the old protocol', function () {
@@ -2019,6 +2069,58 @@ describe('CUBRIDConnection', function () {
                     .to.be.a('string')
                     .to.equal(varChar);
               }
+
+              return client.closeQuery(response.queryHandle);
+            })
+            .then(() => {
+              return client.close();
+            });
+      });
+
+      it('should succeed to query(sql) the schema users', function () {
+        const client = testSetup.createDefaultCUBRIDDemodbConnection();
+
+        client.setEnforceOldQueryProtocol(true);
+
+        return client.query('SELECT [name] FROM db_user')
+            .then(response => {
+              expect(response)
+                  .to.be.an('object')
+                  .to.have.property('queryHandle')
+                  .to.be.a('number')
+                  .to.be.above(0);
+
+              expect(response)
+                  .to.have.property('result')
+                  .to.be.an('object');
+
+              let result = response.result;
+
+              expect(result)
+                  .to.be.an('object')
+                  .to.have.property('RowsCount')
+                  .to.be.a('number')
+                  .to.equal(2);
+
+              expect(client)
+                  .to.be.an('object')
+                  .to.have.property('_queryResultSets')
+                  .to.be.an('object')
+                  .to.have.all.keys(['' + response.queryHandle]);
+
+              expect(result)
+                  .to.have.property('ColumnValues')
+                  .to.be.an('array')
+                  .with.length(2);
+
+              result.ColumnValues.forEach(columns => {
+                expect(columns)
+                    .to.be.an('array')
+                    .with.length(1);
+
+                expect(['PUBLIC', 'DBA'])
+                    .to.include(columns[0]);
+              });
 
               return client.closeQuery(response.queryHandle);
             })

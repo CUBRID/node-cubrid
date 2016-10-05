@@ -165,7 +165,7 @@ describe('CUBRIDConnection', function () {
       const connectionTimeout = 5000;
       const errors = [`User "${username}" is invalid.`, 'Your transaction has been aborted by the system due to server failure or mode change.'];
 
-      this.timeout(connectionTimeout * 2);
+      this.timeout(connectionTimeout * 3);
 
       it('should fail to connect(callback) when a username is invalid', function (done) {
         const client = CUBRID.createConnection(config.hosts, config.port, username, config.password, config.database, connectionTimeout, config.maxConnectionRetryCount, config.logger);

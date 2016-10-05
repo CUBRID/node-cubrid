@@ -326,7 +326,7 @@ exports.CUBRIDSchemaType = {
   CCI_SCH_METHOD_FILE        : 8,
   CCI_SCH_SUPERCLASS         : 9,
   CCI_SCH_SUBCLASS           : 10,
-  CCI_SCH_CONSTRAIT          : 11,
+  CCI_SCH_CONSTRAINT         : 11,
   CCI_SCH_TRIGGER            : 12,
   CCI_SCH_CLASS_PRIVILEGE    : 13,
   CCI_SCH_ATTR_PRIVILEGE     : 14,

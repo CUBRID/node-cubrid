@@ -209,7 +209,7 @@ GetSchemaPacket.prototype.parseFetchSchema = function (parser) {
 
         break;
       }
-      case CAS.CUBRIDSchemaType.CCI_SCH_CONSTRAIT: {
+      case CAS.CUBRIDSchemaType.CCI_SCH_CONSTRAINT: {
         length = parser._parseInt();
         // Constraint type
         const Type = parser._parseShort();
