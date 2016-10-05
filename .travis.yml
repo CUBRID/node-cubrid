@@ -3,11 +3,11 @@ sudo: required
 language: node_js
 
 node_js:
-  - 4.4
-  - 4.5
-  - 4.6
-  - 5
   - 6
+  - 5
+  - 4.6
+  - 4.5
+  - 4.4
 
 services:
   - docker
@@ -23,7 +23,7 @@ env:
 
 before_install:
   - docker pull lighthopper/cubrid:$CUBRID_VERSION
-  - docker run -p 33000:33000 --name cubrid lighthopper/cubrid:$CUBRID_VERSION ./create-start-demodb.sh
+  - docker run -d -p 33000:33000 lighthopper/cubrid:$CUBRID_VERSION ./create-start-demodb.sh
   - docker ps -a
 
 after_success:
