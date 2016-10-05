@@ -4,7 +4,6 @@ exports['test_ExecuteQueryPacket'] = function (test) {
 			PacketWriter = require('../src' + codeCoveragePath + '/packets/PacketWriter'),
 			ExecuteQueryPacket = require('../src' + codeCoveragePath + '/packets/ExecuteQueryPacket'),
 			CAS = require('../src' + codeCoveragePath + '/constants/CASConstants'),
-			assert = require('assert'),
 			packetReader = new PacketReader(),
 			executeQueryPacket = new ExecuteQueryPacket({
 				sql: 'select * from code',

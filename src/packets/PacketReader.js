@@ -1,5 +1,8 @@
-var DATA_TYPES = require('./../constants/DataTypes'),
-  CAS = require('../constants/CASConstants');
+'use strict';
+
+const CAS = require('../constants/CASConstants');
+const DATA_TYPES = require('../constants/DataTypes');
+const ErrorMessages = require('../constants/ErrorMessages');
 
 module.exports = PacketReader;
 
@@ -11,6 +14,23 @@ function PacketReader() {
   this._buffer = null;
   this._offset = 0;
 }
+
+/**
+ * Read an error code and message from the internal buffer.
+ * @param responseLength
+ */
+PacketReader.prototype.readError = function (responseLength) {
+  let error = new Error();
+
+  error.code = this._parseInt();
+  error.message = this._parseNullTerminatedString(responseLength - 2 * DATA_TYPES.INT_SIZEOF);
+
+  if (!error.message.length) {
+    error.message = ErrorMessages.resolveErrorCode(error.code);
+  }
+
+  return error;
+};
 
 /**
  * Write a buffer value to the internal buffer
@@ -26,17 +46,17 @@ PacketReader.prototype.write = function (buffer) {
  * @param newBuffer
  */
 PacketReader.prototype._append = function (newBuffer) {
-  var oldBuffer = this._buffer;
+  let oldBuffer = this._buffer;
 
   if (!oldBuffer) {
     this._buffer = newBuffer;
     return;
   }
 
-  var bytesRemaining = this._bytesRemaining();
-  var newLength = bytesRemaining + newBuffer.length;
+  let bytesRemaining = this._bytesRemaining();
+  let newLength = bytesRemaining + newBuffer.length;
 
-  var combinedBuffer = (this._offset > newLength) ? oldBuffer.slice(0, newLength) : new Buffer(newLength);
+  let combinedBuffer = (this._offset > newLength) ? oldBuffer.slice(0, newLength) : new Buffer(newLength);
 
   oldBuffer.copy(combinedBuffer, 0, this._offset);
   newBuffer.copy(combinedBuffer, bytesRemaining);
@@ -45,22 +65,28 @@ PacketReader.prototype._append = function (newBuffer) {
   this._offset = 0;
 };
 
+function parseNum(length) {
+  let value = 0;
+  let i = this._offset;
+  const b = this._buffer;
+  const endIndex = i + length;
+
+  for (; i < endIndex; ++i) {
+    value <<= 8;
+    value |= (b[i] & 0xff);
+  }
+
+  this._offset = endIndex;
+
+  return value;
+}
+
 /**
  * Returns an short value from the internal buffer
  * @return {Number}
  */
 PacketReader.prototype._parseShort = function () {
-  var value = 0;
-
-  for (var i = DATA_TYPES.SHORT_SIZEOF - 1; i >= 0; i--) {
-    value += this._buffer[this._offset++] * Math.pow(256, i);
-  }
-
-  if (value & 0x8000) {
-    return value - 0xFFFF - 1;
-  } else {
-    return value;
-  }
+  return parseNum.call(this, DATA_TYPES.SHORT_SIZEOF);
 };
 
 /**
@@ -68,17 +94,7 @@ PacketReader.prototype._parseShort = function () {
  * @return {Number}
  */
 PacketReader.prototype._parseInt = function () {
-  var value = 0;
-
-  for (var i = DATA_TYPES.INT_SIZEOF - 1; i >= 0; i--) {
-    value += this._buffer[this._offset++] * Math.pow(256, i);
-  }
-
-  if (value & 0x80000000) {
-    return value - 0xFFFFFFFF - 1;
-  } else {
-    return value;
-  }
+  return parseNum.call(this, DATA_TYPES.INT_SIZEOF);
 };
 
 /**
@@ -95,7 +111,7 @@ PacketReader.prototype._parseByte = function () {
  * @return {Array}
  */
 PacketReader.prototype._parseBytes = function (bytesCount) {
-  var buffer = this._buffer.slice(this._offset, this._offset + bytesCount);
+  const buffer = this._buffer.slice(this._offset, this._offset + bytesCount);
 
   this._offset += bytesCount;
 
@@ -108,35 +124,11 @@ PacketReader.prototype._parseBytes = function (bytesCount) {
  * @return {*}
  */
 PacketReader.prototype._parseBuffer = function (bytesCount) {
-  var buffer = this._buffer.slice(this._offset, this._offset + bytesCount);
+  let buffer = this._buffer.slice(this._offset, this._offset + bytesCount);
 
   this._offset += bytesCount;
 
   return buffer;
-};
-
-/**
- * Returns a string value from the internal buffer
- * @param bytesCount
- * @return {Buffer}
- */
-PacketReader.prototype._parseString = function (bytesCount) {
-  if (bytesCount <= 0) {
-    return '';
-  }
-
-  var start = this._offset;
-  var end = start + bytesCount;
-  var buffer = this._buffer.slice(start, end);
-
-  var value = '';
-  for (var i = 0; i < buffer.length; i++) {
-    value += String.fromCharCode(buffer[i]);
-  }
-
-  this._offset = end;
-
-  return value;
 };
 
 /**
@@ -148,9 +140,9 @@ PacketReader.prototype._parseNullTerminatedString = function (length) {
     return '';
   }
 
-  var valueLen = length - 1; // Get the actual null-terminated string length
-  var buffer = this._buffer.slice(this._offset, this._offset + valueLen);
-  var value = buffer.toString();
+  let valueLen = length - 1; // Get the actual null-terminated string length
+  let buffer = this._buffer.slice(this._offset, this._offset + valueLen);
+  let value = buffer.toString();
 
   this._offset += valueLen;
   this._parseByte(); // Read also the null-terminate
@@ -163,17 +155,20 @@ PacketReader.prototype._parseNullTerminatedString = function (length) {
  * @return {Date}
  */
 PacketReader.prototype._parseDate = function () {
-  var year = this._parseShort();
-  var month = this._parseShort() - 1;
-  var day = this._parseShort();
-  var hour = 0;
-  var min = 0;
-  var sec = 0;
-  var msec = 0;
+  const year = this._parseShort();
+  // `month` in `Date` is zero based where `0` represents January.
+  const month = this._parseShort() - 1;
+  const day = this._parseShort();
+  const hour = 0;
+  const min = 0;
+  const sec = 0;
+  const msec = 0;
 
-  var date = new Date();
+  let date = new Date();
+
   date.setUTCFullYear(year, month, day);
   date.setUTCHours(hour, min, sec, msec);
+
   return date;
 };
 
@@ -182,17 +177,20 @@ PacketReader.prototype._parseDate = function () {
  * @return {Date}
  */
 PacketReader.prototype._parseDateTime = function () {
-  var year = this._parseShort();
-  var month = this._parseShort() - 1;
-  var day = this._parseShort();
-  var hour = this._parseShort();
-  var min = this._parseShort();
-  var sec = this._parseShort();
-  var msec = this._parseShort();
+  const year = this._parseShort();
+  // `month` in `Date` is zero based where `0` represents January.
+  const month = this._parseShort() - 1;
+  const day = this._parseShort();
+  const hour = this._parseShort();
+  const min = this._parseShort();
+  const sec = this._parseShort();
+  const msec = this._parseShort();
 
-  var date = new Date();
+  let date = new Date();
+
   date.setUTCFullYear(year, month, day);
   date.setUTCHours(hour, min, sec, msec);
+
   return date;
 };
 
@@ -201,16 +199,19 @@ PacketReader.prototype._parseDateTime = function () {
  * @return {Date}
  */
 PacketReader.prototype._parseTime = function () {
-  var year = 0;
-  var month = 0;
-  var day = 0;
-  var hour = this._parseShort();
-  var min = this._parseShort();
-  var sec = this._parseShort();
-  var msec = 0;
+  const hour = this._parseShort();
+  const min = this._parseShort();
+  const sec = this._parseShort();
 
-  var date = new Date(year, month, day, hour, min, sec, msec);
-  date.setUTCHours(hour, min, sec, msec);
+  let date = new Date();
+
+  // `January 1, 1970` is the beginning of the Unix Epoch.
+  // When `TIME` data is returned by CUBRID, we receive
+  // only the time part of the date, so, the date is set
+  // to the beginning of the epoch.
+  date.setUTCFullYear(1970, 0, 1);
+  date.setUTCHours(hour, min, sec, 0);
+
   return date;
 };
 
@@ -219,17 +220,19 @@ PacketReader.prototype._parseTime = function () {
  * @return {Date}
  */
 PacketReader.prototype._parseTimeStamp = function () {
-  var year = this._parseShort();
-  var month = this._parseShort() - 1;
-  var day = this._parseShort();
-  var hour = this._parseShort();
-  var min = this._parseShort();
-  var sec = this._parseShort();
-  var msec = 0;
+  const year = this._parseShort();
+  const month = this._parseShort() - 1;
+  const day = this._parseShort();
+  const hour = this._parseShort();
+  const min = this._parseShort();
+  const sec = this._parseShort();
+  const msec = 0;
 
-  var date = new Date();
+  let date = new Date();
+
   date.setUTCFullYear(year, month, day);
   date.setUTCHours(hour, min, sec, msec);
+
   return date;
 };
 
@@ -238,9 +241,7 @@ PacketReader.prototype._parseTimeStamp = function () {
  * @return {String}
  */
 PacketReader.prototype._parseChar = function () {
-  var val = this._parseByte();
-
-  return String.fromCharCode(val);
+  return String.fromCharCode(this._parseByte());
 };
 
 /**
@@ -248,17 +249,7 @@ PacketReader.prototype._parseChar = function () {
  * @return {Number}
  */
 PacketReader.prototype._parseLong = function () {
-  var value = 0;
-
-  for (var i = DATA_TYPES.LONG_SIZEOF - 1; i >= 0; i--) {
-    value += this._buffer[this._offset++] * Math.pow(256, i);
-  }
-
-  if (value & 0x8000000000000000) {
-    return value - 0xFFFFFFFFFFFFFFFF - 1;
-  } else {
-    return value;
-  }
+  return parseNum.call(this, DATA_TYPES.LONG_SIZEOF);
 };
 
 /**
@@ -266,8 +257,10 @@ PacketReader.prototype._parseLong = function () {
  * @return {Number}
  */
 PacketReader.prototype._parseDouble = function () {
-  var value = this._buffer.readDoubleBE(this._offset);
+  let value = this._buffer.readDoubleBE(this._offset);
+
   this._offset += DATA_TYPES.DOUBLE_SIZEOF;
+
   return value;
 };
 
@@ -276,8 +269,10 @@ PacketReader.prototype._parseDouble = function () {
  * @return {Number}
  */
 PacketReader.prototype._parseFloat = function () {
-  var value = this._buffer.readFloatBE(this._offset);
+  let value = this._buffer.readFloatBE(this._offset);
+
   this._offset += DATA_TYPES.FLOAT_SIZEOF;
+
   return value;
 };
 
@@ -298,47 +293,63 @@ PacketReader.prototype._parseObject = function () {
 };
 
 /**
+ * Returns a LOB object from the internal buffer
+ * @return {Object}
+ */
+function readLob(size) {
+  /*
+  * |----4 bytes----|----8 bytes----|----4 bytes----|---------------------locator size bytes-------------------|
+  * |    db_type    |   LOB size   | locator size  | the absolute file path on the server where LOB is stored |
+  * |---------------|---------------|---------------|----------------------------------------------------------|
+  *
+  * */
+  const packedLobHandle = this._parseBytes(size);
+  let lobLength = 0;
+  let locatorSize = 0;
+  // Skip the first 4 bytes which are the `db_type`.
+  let start = DATA_TYPES.INT_SIZEOF;
+  // BLOB size is represented as a long 64bit integer.
+  let end = DATA_TYPES.INT_SIZEOF + DATA_TYPES.LONG_SIZEOF;
+
+  for (; start < end; ++start) {
+    lobLength <<= 8;
+    lobLength |= (packedLobHandle[start] & 0xff);
+  }
+
+  for (end += DATA_TYPES.INT_SIZEOF; start < end; ++start) {
+    locatorSize <<= 8;
+    locatorSize |= (packedLobHandle[start] & 0xff);
+  }
+
+  let fileLocator = packedLobHandle.toString('utf8', start, start + locatorSize - 1);
+
+  return {
+    fileLocator,
+    lobLength,
+    packedLobHandle,
+  };
+}
+
+/**
  * Returns a BLOB object from the internal buffer
  * @return {Object}
  */
-PacketReader.prototype._parseBlob = function (size) {
-  var packedLobHandle = this._parseBytes(size);
-  var lobSizeBuffer = packedLobHandle.slice(DATA_TYPES.INT_SIZEOF, DATA_TYPES.INT_SIZEOF + DATA_TYPES.LONG_SIZEOF);
-  var lobSize = 0;
+PacketReader.prototype.readBlob = function (size) {
+  let lob = readLob.call(this, size);
+  lob.lobType = CAS.CUBRIDDataType.CCI_U_TYPE_BLOB;
 
-  for (var i = DATA_TYPES.LONG_SIZEOF - 1; i >= 0; i--) {
-    lobSize += lobSizeBuffer[DATA_TYPES.LONG_SIZEOF - i - 1] * Math.pow(256, i);
-  }
-  var fileLocator = packedLobHandle.slice(16, packedLobHandle.length - 1).toString();
-
-  return {
-    lobType         : CAS.CUBRIDDataType.CCI_U_TYPE_BLOB, // BLOB type
-    packedLobHandle : packedLobHandle,
-    fileLocator     : fileLocator,
-    lobLength       : lobSize
-  };
+  return lob;
 };
 
 /**
  * Returns a CLOB object from the internal buffer
  * @return {Object}
  */
-PacketReader.prototype._parseClob = function (size) {
-  var packedLobHandle = this._parseBytes(size);
-  var lobSizeBuffer = packedLobHandle.slice(DATA_TYPES.INT_SIZEOF, DATA_TYPES.INT_SIZEOF + DATA_TYPES.LONG_SIZEOF);
-  var lobSize = 0;
+PacketReader.prototype.readClob = function (size) {
+  let lob = readLob.call(this, size);
+  lob.lobType = CAS.CUBRIDDataType.CCI_U_TYPE_CLOB;
 
-  for (var i = DATA_TYPES.LONG_SIZEOF - 1; i >= 0; i--) {
-    lobSize += lobSizeBuffer[DATA_TYPES.LONG_SIZEOF - i - 1] * Math.pow(256, i);
-  }
-  var fileLocator = packedLobHandle.slice(16, packedLobHandle.length - 1).toString();
-
-  return {
-    lobType         : CAS.CUBRIDDataType.CCI_U_TYPE_CLOB, // CLOB type
-    packedLobHandle : packedLobHandle,
-    fileLocator     : fileLocator,
-    lobLength       : lobSize
-  };
+  return lob;
 };
 
 /**
@@ -346,8 +357,8 @@ PacketReader.prototype._parseClob = function (size) {
  * @return {Array}
  */
 PacketReader.prototype._parseSequence = function () {
-  var count = this._parseInt();
-  var size = this._parseInt();
+  let count = this._parseInt();
+  let size = this._parseInt();
   this._offset += count * size;
 
   return null; // Not supported

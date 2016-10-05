@@ -1,9 +1,5 @@
-var DATA_TYPES = require('../constants/DataTypes'),
-  Helpers = require('../utils/Helpers'),
-  ErrorMessages = require('../constants/ErrorMessages'),
-  CAS = require('../constants/CASConstants');
-
-module.exports = FetchPacket;
+const CAS = require('../constants/CASConstants');
+const DATA_TYPES = require('../constants/DataTypes');
 
 /**
  * Constructor
@@ -11,15 +7,10 @@ module.exports = FetchPacket;
  * @constructor
  */
 function FetchPacket(options) {
-  options = options || {};
-
-  this.casInfo = options.casInfo;
-  this.dbVersion = options.dbVersion;
-
-  this.responseCode = 0;
-  this.errorCode = 0;
-  this.errorMsg = '';
-  this.resultSet = ''; // ResultSet of the fetch
+  this.options = options;
+  
+  // Fetch size; 0 = default; recommended = 100
+  typeof options.size === 'undefined' && (options.size = 100);
 }
 
 /**
@@ -28,8 +19,10 @@ function FetchPacket(options) {
  * @param queryPacket
  */
 FetchPacket.prototype.write = function (writer, queryPacket) {
+  const options = this.options;
+
   writer._writeInt(this.getBufferLength() - DATA_TYPES.DATA_LENGTH_SIZEOF - DATA_TYPES.CAS_INFO_SIZE);
-  writer._writeBytes(DATA_TYPES.CAS_INFO_SIZE, this.casInfo);
+  writer._writeBytes(options.casInfo);
 
   writer._writeByte(CAS.CASFunctionCode.CAS_FC_FETCH);
   writer._writeInt(DATA_TYPES.INT_SIZEOF);
@@ -37,7 +30,7 @@ FetchPacket.prototype.write = function (writer, queryPacket) {
   writer._writeInt(DATA_TYPES.INT_SIZEOF);
   writer._writeInt(queryPacket.currentTupleCount + 1); // Start position (= current cursor position + 1)
   writer._writeInt(DATA_TYPES.INT_SIZEOF);
-  writer._writeInt(100); // Fetch size; 0 = default; recommended = 100
+  writer._writeInt(options.size);
   writer._writeInt(DATA_TYPES.BYTE_SIZEOF);
   writer._writeByte(0); // Is case sensitive
   writer._writeInt(DATA_TYPES.INT_SIZEOF);
@@ -52,29 +45,32 @@ FetchPacket.prototype.write = function (writer, queryPacket) {
  * @param queryPacket
  */
 FetchPacket.prototype.parse = function (parser, queryPacket) {
-  var responseLength = parser._parseInt();
+  const responseLength = parser._parseInt();
+
   this.casInfo = parser._parseBytes(DATA_TYPES.CAS_INFO_SIZE);
 
   this.responseCode = parser._parseInt();
+
   if (this.responseCode !== 0) {
-    this.errorCode = parser._parseInt();
-    this.errorMsg = parser._parseNullTerminatedString(responseLength - 2 * DATA_TYPES.INT_SIZEOF);
-    if (this.errorMsg.length === 0) {
-      this.errorMsg = Helpers._resolveErrorCode(this.errorCode);
-    }
-  } else {
-    this.tupleCount = parser._parseInt();
-    this.resultSet = JSON.stringify({ColumnValues : queryPacket._getData(parser, this.tupleCount)});
+    return parser.readError(responseLength);
   }
 
-  return this;
+  this.tupleCount = parser._parseInt();
+
+  this.options.logger.debug(`fetch tupleCount = ${this.tupleCount}`);
+
+  this.resultSet = {
+    ColumnValues: queryPacket.getValues(parser, this.tupleCount)
+  };
 };
 
 FetchPacket.prototype.getBufferLength = function () {
-	var bufferLength = DATA_TYPES.DATA_LENGTH_SIZEOF + DATA_TYPES.CAS_INFO_SIZE +
-			DATA_TYPES.BYTE_SIZEOF + DATA_TYPES.INT_SIZEOF + DATA_TYPES.INT_SIZEOF +
-			DATA_TYPES.INT_SIZEOF + DATA_TYPES.INT_SIZEOF + DATA_TYPES.INT_SIZEOF + DATA_TYPES.INT_SIZEOF +
-			DATA_TYPES.INT_SIZEOF + DATA_TYPES.BYTE_SIZEOF + DATA_TYPES.INT_SIZEOF + DATA_TYPES.INT_SIZEOF;
+  const bufferLength = DATA_TYPES.DATA_LENGTH_SIZEOF + DATA_TYPES.CAS_INFO_SIZE +
+      DATA_TYPES.BYTE_SIZEOF + DATA_TYPES.INT_SIZEOF + DATA_TYPES.INT_SIZEOF +
+      DATA_TYPES.INT_SIZEOF + DATA_TYPES.INT_SIZEOF + DATA_TYPES.INT_SIZEOF + DATA_TYPES.INT_SIZEOF +
+      DATA_TYPES.INT_SIZEOF + DATA_TYPES.BYTE_SIZEOF + DATA_TYPES.INT_SIZEOF + DATA_TYPES.INT_SIZEOF;
 
-	return bufferLength;
+  return bufferLength;
 };
+
+module.exports = FetchPacket;

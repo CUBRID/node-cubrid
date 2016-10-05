@@ -1,6 +1,4 @@
-var CAS = require('../constants/CASConstants');
-
-module.exports = ColumnMetaData;
+const CAS = require('../constants/CASConstants');
 
 /**
  * Column meta data
@@ -26,3 +24,4 @@ function ColumnMetaData() {
   this.IsShared = false;
 }
 
+module.exports = ColumnMetaData;

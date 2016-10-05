@@ -1,10 +1,10 @@
 exports['test_SchemaImportedKeys'] = function (test) {
-	var CUBRID = require('../'),
-			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-			Helpers = CUBRID.Helpers,
-			ActionQueue = CUBRID.ActionQueue;
+  var CUBRID = require('../'),
+      client = require('./testSetup').createDefaultCUBRIDDemodbConnection(),
+      Helpers = CUBRID.Helpers,
+      ActionQueue = CUBRID.ActionQueue;
 
-	test.expect(17);
+  test.expect(17);
   Helpers.logInfo(module.filename.toString() + ' started...');
 
   ActionQueue.enqueue([
@@ -19,9 +19,9 @@ exports['test_SchemaImportedKeys'] = function (test) {
         Helpers.logInfo(result[i]);
       }
 
-	    test.ok(result.length === 2);
+      test.ok(result.length === 2);
 
-	    // CUBRID 8.4.x
+      // CUBRID 8.4.x
       if (client.getEngineVersion().startsWith('8.4')) {
         test.ok(result[0].FkName === 'fk_game_athlete_code');
         test.ok(result[0].PkName === 'pk_athlete_code');
@@ -40,7 +40,7 @@ exports['test_SchemaImportedKeys'] = function (test) {
         test.ok(result[1].UpdateAction === 1);
         test.ok(result[1].DeleteAction === 1);
       } else {
-	      // CUBRID 9.0+
+        // CUBRID 9.0+
         test.ok(result[0].FkName === 'fk_game_event_code');
         test.ok(result[0].PkName === 'pk_event_code');
         test.ok(result[0].FkTableName === 'game');

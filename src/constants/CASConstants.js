@@ -1,3 +1,4 @@
+'use strict';
 /**
  * Define CUBRID Function codes constants
  */
@@ -454,4 +455,43 @@ exports.CCISchemaPatternMatchFlag = {
 exports.CCILOBType = {
   CCI_LOB_TYPE_BLOB : 33,
   CCI_LOB_TYPE_CLOB  : 34
+};
+
+
+/* CAS Protocol constants */
+/**
+ * Define the supported protocol version
+ * The protocol version is validated by the CUBRID broker,
+ * to assess the compatibility level with the CUBRID engine.
+ */
+const CAS_PROTO_INDICATOR = 0x40;
+
+exports.CAS_PROTOCOL_VERSION = (function getProtocolVersion() {
+  // const CAS_PROTOCOL_VERSION_1 = /* since 8.4.1 */1;
+  // const CAS_PROTOCOL_VERSION_2 = /* since 9.0.0 */2;
+  // const CAS_PROTOCOL_VERSION_3 = /* since 8.4.3 */3;
+  // const CAS_PROTOCOL_VERSION_4 = /* since 9.1.0 */4;
+  // const CAS_PROTOCOL_VERSION_5 = /* since 9.2.0 */5;
+  const CAS_PROTOCOL_VERSION_6 = /* since 9.2.26 */6;
+
+  return CAS_PROTOCOL_VERSION_6;
+})();
+
+exports.CAS_VERSION = CAS_PROTO_INDICATOR | exports.CAS_PROTOCOL_VERSION;
+
+// JDBC client type
+exports.CAS_CLIENT_JDBC = 3;
+// This value is defined in `broker/cas_protocol.h`.
+exports.CAS_MAGIC_STRING = 'CUBRK';
+
+exports.getProtocolVersion = function (version) {
+  // At this moment `node-cubrid` supports at most protocol version 6.
+  for (let protocolVersion = 0; protocolVersion < 7; ++protocolVersion) {
+    if ((CAS_PROTO_INDICATOR | protocolVersion) === version) {
+      return protocolVersion;
+    }
+  }
+
+  // By default fall back to the latest version we support.
+  return exports.CAS_PROTOCOL_VERSION;
 };

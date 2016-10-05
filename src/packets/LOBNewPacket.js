@@ -1,7 +1,5 @@
-var DATA_TYPES = require('../constants/DataTypes'),
-  Helpers = require('../utils/Helpers'),
-  ErrorMessages = require('../constants/ErrorMessages'),
-  CAS = require('../constants/CASConstants');
+const CAS = require('../constants/CASConstants');
+const DATA_TYPES = require('../constants/DataTypes');
 
 module.exports = LOBNewPacket;
 
@@ -11,18 +9,7 @@ module.exports = LOBNewPacket;
  * @constructor
  */
 function LOBNewPacket(options) {
-  options = options || {};
-
-  this.casInfo = options.casInfo;
-  this.lobType = options.lobType;
-  this.dbVersion = options.dbVersion;
-
-  this.responseCode = 0;
-  this.errorCode = 0;
-  this.errorMsg = '';
-  this.packedLobHandle = '';
-  this.fileLocator = '';
-  this.result = null;
+  this.options = options;
 }
 
 /**
@@ -30,14 +17,13 @@ function LOBNewPacket(options) {
  * @param writer
  */
 LOBNewPacket.prototype.write = function (writer) {
+  const options = this.options;
+
   writer._writeInt(this.getBufferLength() - DATA_TYPES.DATA_LENGTH_SIZEOF - DATA_TYPES.CAS_INFO_SIZE);
-  writer._writeBytes(DATA_TYPES.CAS_INFO_SIZE, this.casInfo);
+  writer._writeBytes(options.casInfo);
 
   writer._writeByte(CAS.CASFunctionCode.CAS_FC_LOB_NEW);
-  writer._writeInt(DATA_TYPES.INT_SIZEOF);
-  writer._writeInt(this.lobType); // LOB type
-
-  return writer;
+  writer.addInt(options.lobType);
 };
 
 /**
@@ -45,32 +31,29 @@ LOBNewPacket.prototype.write = function (writer) {
  * @param parser
  */
 LOBNewPacket.prototype.parse = function (parser) {
-  var responseLength = parser._parseInt();
-  this.casInfo = parser._parseBytes(DATA_TYPES.CAS_INFO_SIZE);
+  const responseLength = parser._parseInt();
 
-  this.responseCode = parser._parseInt();
-  if (this.responseCode < 0) {
-    this.errorCode = parser._parseInt();
-    this.errorMsg = parser._parseNullTerminatedString(responseLength - 2 * DATA_TYPES.INT_SIZEOF);
-    if (this.errorMsg.length === 0) {
-      this.errorMsg = Helpers._resolveErrorCode(this.errorCode);
-    }
-  } else {
-    this.packedLobHandle = parser._parseBytes(responseLength - DATA_TYPES.INT_SIZEOF); // LOB handle
-    this.fileLocator = this.packedLobHandle.slice(16, this.packedLobHandle.length - 1).toString();
+  // CAS Info.
+  parser._parseBytes(DATA_TYPES.CAS_INFO_SIZE);
+  const responseCode = parser._parseInt();
+
+  if (responseCode < 0) {
+    return parser.readError(responseLength);
   }
-  this.result =  {
-    lobType         : this.lobType,
-    packedLobHandle : this.packedLobHandle,
-    fileLocator     : this.fileLocator,
-    lobLength       : 0
-  };
 
-  return this;
+  const packedLobHandle = parser._parseBytes(responseLength - DATA_TYPES.INT_SIZEOF);
+  const fileLocator = packedLobHandle.slice(16, packedLobHandle.length - 1).toString();
+
+  this.result = {
+    lobType: this.options.lobType,
+    packedLobHandle,
+    fileLocator,
+    lobLength: 0
+  };
 };
 
 LOBNewPacket.prototype.getBufferLength = function () {
-	var bufferLength = DATA_TYPES.DATA_LENGTH_SIZEOF + DATA_TYPES.CAS_INFO_SIZE +
+	const bufferLength = DATA_TYPES.DATA_LENGTH_SIZEOF + DATA_TYPES.CAS_INFO_SIZE +
 			DATA_TYPES.BYTE_SIZEOF + DATA_TYPES.INT_SIZEOF + DATA_TYPES.INT_SIZEOF;
 
 	return bufferLength;

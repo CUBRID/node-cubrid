@@ -1,10 +1,10 @@
 exports['test_SchemaClassPrivilege'] = function (test) {
-	var CUBRID = require('../'),
-			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-			Helpers = CUBRID.Helpers,
-			ActionQueue = CUBRID.ActionQueue;
+  var CUBRID = require('../'),
+      client = require('./testSetup').createDefaultCUBRIDDemodbConnection(),
+      Helpers = CUBRID.Helpers,
+      ActionQueue = CUBRID.ActionQueue;
 
-	test.expect(4);
+  test.expect(4);
   Helpers.logInfo(module.filename.toString() + ' started...');
 
   ActionQueue.enqueue([
@@ -19,11 +19,11 @@ exports['test_SchemaClassPrivilege'] = function (test) {
         Helpers.logInfo(result[i]);
       }
 
-	    // CUBRID 8.4.x
+      // CUBRID 8.4.x
       if (client.getEngineVersion().startsWith('8.4')) {
         test.ok(result.length === 96);
       } else {
-	      // CUBRID 9.0+
+        // CUBRID 9.0+
         test.ok(result.length === 97);
       }
 

@@ -2,7 +2,7 @@ exports['test_PrepareExecuteOldProtocolPacket'] = function (test) {
 	var codeCoveragePath = process.env.CODE_COV ? '-cov' : '',
 			PacketReader = require('../src' + codeCoveragePath + '/packets/PacketReader'),
 			PacketWriter = require('../src' + codeCoveragePath + '/packets/PacketWriter'),
-			PrepareExecuteOldProtocolPacket = require('../src' + codeCoveragePath + '/packets/PrepareExecuteOldProtocolPacket'),
+			PrepareExecutePacket = require('../src' + codeCoveragePath + '/packets/PrepareExecutePacket'),
 			CAS = require('../src' + codeCoveragePath + '/constants/CASConstants');
 
 	test.expect(48);
@@ -14,11 +14,11 @@ exports['test_PrepareExecuteOldProtocolPacket'] = function (test) {
 		paramValues      : {},
 		paramTypes       : {}
 	},
-			prepareExecuteOldProtocolPacket = new PrepareExecuteOldProtocolPacket(options),
+			prepareExecutePacket = new PrepareExecutePacket(options),
 			packetReader = new PacketReader(),
-			packetWriter = new PacketWriter(prepareExecuteOldProtocolPacket.getPrepareBufferLength());
+			packetWriter = new PacketWriter(prepareExecutePacket.getPrepareBufferLength());
 
-	prepareExecuteOldProtocolPacket.writePrepare(packetWriter);
+	prepareExecutePacket.writePrepare(packetWriter);
 	test.equal(packetWriter._toBuffer()[3], 34); // Total length
 
 	test.equal(packetWriter._toBuffer()[4], 0); // Casinfo
@@ -40,30 +40,30 @@ exports['test_PrepareExecuteOldProtocolPacket'] = function (test) {
 		6, 0, 0, 0, 7, 102, 95, 110, 97, 109, 101, 0, 0, 0, 0, 1, 0, 0, 0, 0, 5, 99, 111, 100,
 		101, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]));
 
-	prepareExecuteOldProtocolPacket.parsePrepare(packetReader);
-	test.equal(prepareExecuteOldProtocolPacket.queryHandle, 1);
-	test.equal(prepareExecuteOldProtocolPacket.resultCacheLifetime, -1);
-	test.equal(prepareExecuteOldProtocolPacket.statementType, 21);
-	test.equal(prepareExecuteOldProtocolPacket.bindCount, 0);
-	test.equal(prepareExecuteOldProtocolPacket.isUpdatable, false);
-	test.equal(prepareExecuteOldProtocolPacket.infoArray[0].ColumnType, 1);
-	test.equal(prepareExecuteOldProtocolPacket.infoArray[0].Scale, -1);
-	test.equal(prepareExecuteOldProtocolPacket.infoArray[0].Name, "s_name");
-	test.equal(prepareExecuteOldProtocolPacket.infoArray[0].RealName, "");
-	test.equal(prepareExecuteOldProtocolPacket.infoArray[0].TableName, "code");
-	test.equal(prepareExecuteOldProtocolPacket.infoArray[0].IsNullable, false);
-	test.equal(prepareExecuteOldProtocolPacket.infoArray[0].DafaultValue, "");
-	test.equal(prepareExecuteOldProtocolPacket.infoArray[0].IsAutoIncrement, false);
-	test.equal(prepareExecuteOldProtocolPacket.infoArray[0].IsUniqueKey, false);
-	test.equal(prepareExecuteOldProtocolPacket.infoArray[0].IsPrimaryKey, false);
-	test.equal(prepareExecuteOldProtocolPacket.infoArray[0].IsReverseIndex, false);
-	test.equal(prepareExecuteOldProtocolPacket.infoArray[0].IsReverseUnique, false);
-	test.equal(prepareExecuteOldProtocolPacket.infoArray[0].IsForeignKey, false);
-	test.equal(prepareExecuteOldProtocolPacket.infoArray[0].IsShared, false);
+	prepareExecutePacket.parsePrepare(packetReader);
+	test.equal(prepareExecutePacket.queryHandle, 1);
+	test.equal(prepareExecutePacket.resultCacheLifetime, -1);
+	test.equal(prepareExecutePacket.statementType, 21);
+	test.equal(prepareExecutePacket.bindCount, 0);
+	test.equal(prepareExecutePacket.isUpdatable, false);
+	test.equal(prepareExecutePacket.infoArray[0].ColumnType, 1);
+	test.equal(prepareExecutePacket.infoArray[0].Scale, -1);
+	test.equal(prepareExecutePacket.infoArray[0].Name, "s_name");
+	test.equal(prepareExecutePacket.infoArray[0].RealName, "");
+	test.equal(prepareExecutePacket.infoArray[0].TableName, "code");
+	test.equal(prepareExecutePacket.infoArray[0].IsNullable, false);
+	test.equal(prepareExecutePacket.infoArray[0].DafaultValue, "");
+	test.equal(prepareExecutePacket.infoArray[0].IsAutoIncrement, false);
+	test.equal(prepareExecutePacket.infoArray[0].IsUniqueKey, false);
+	test.equal(prepareExecutePacket.infoArray[0].IsPrimaryKey, false);
+	test.equal(prepareExecutePacket.infoArray[0].IsReverseIndex, false);
+	test.equal(prepareExecutePacket.infoArray[0].IsReverseUnique, false);
+	test.equal(prepareExecutePacket.infoArray[0].IsForeignKey, false);
+	test.equal(prepareExecutePacket.infoArray[0].IsShared, false);
 
 	packetReader = new PacketReader();
-	packetWriter = new PacketWriter(prepareExecuteOldProtocolPacket.getExecuteBufferLength());
-	prepareExecuteOldProtocolPacket.writeExecute(packetWriter);
+	packetWriter = new PacketWriter(prepareExecutePacket.getExecuteBufferLength());
+	prepareExecutePacket.writeExecute(packetWriter);
 	test.equal(packetWriter._toBuffer()[3], 69); // Total length
 
 	test.equal(packetWriter._toBuffer()[4], 1); // Casinfo
@@ -92,7 +92,7 @@ exports['test_PrepareExecuteOldProtocolPacket'] = function (test) {
 		5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 83, 0, 0, 0, 0, 7, 83, 105, 108, 118, 101, 114,
 		0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 71, 0, 0, 0, 0, 5, 71, 111, 108, 100, 0]));
 
-	var resultSet = prepareExecuteOldProtocolPacket.parseExecute(packetReader).resultSet;
+	var resultSet = prepareExecutePacket.parseExecute(packetReader).resultSet;
 
 	test.equal(resultSet, '{"ColumnNames":["s_name","f_name"],"ColumnDataTypes":["Char","String"],"RowsCount":6,"ColumnValues":[["X","Mixed"],["W","Woman"],["M","Man"],["B","Bronze"],["S","Silver"],["G","Gold"]]}');
 	test.done();

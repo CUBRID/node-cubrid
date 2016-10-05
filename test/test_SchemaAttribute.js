@@ -1,10 +1,10 @@
 exports['test_SchemaAttribute'] = function (test) {
-	var CUBRID = require('../'),
-			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-			Helpers = CUBRID.Helpers,
-			ActionQueue = CUBRID.ActionQueue;
+  var CUBRID = require('../'),
+      client = require('./testSetup').createDefaultCUBRIDDemodbConnection(),
+      Helpers = CUBRID.Helpers,
+      ActionQueue = CUBRID.ActionQueue;
 
-	test.expect(9);
+  test.expect(9);
   Helpers.logInfo(module.filename.toString() + ' started...');
 
   ActionQueue.enqueue([
@@ -19,22 +19,22 @@ exports['test_SchemaAttribute'] = function (test) {
         Helpers.logInfo(result[i]);
       }
 
-	    // CUBRID 8.4.x
+      // CUBRID 8.4.x
       if (client.getEngineVersion().startsWith('8.4')) {
         test.ok(result.length === 191);
       } else {
-	      // CUBRID 9.0+
+        // CUBRID 9.0+
         test.ok(result.length === 212);
       }
 
       test.ok(result[0].Name === 'code');
       test.ok(result[0].Scale === 0);
 
-	    // CUBRID 8.4.x
+      // CUBRID 8.4.x
       if (client.getEngineVersion().startsWith('8.4')) {
         test.ok(result[0].Precision === 0);
       } else {
-	      // CUBRID 9.0+
+        // CUBRID 9.0+
         test.ok(result[0].Precision === 10);
       }
 

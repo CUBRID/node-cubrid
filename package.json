@@ -1,18 +1,13 @@
 {
   "name": "node-cubrid",
-  "version": "2.2.5",
+  "version": "3.0.0",
   "description": "This is a Node.js driver for CUBRID RDBMS. It is developed in 100% JavaScript and does not require specific platform compilation.",
   "author": "CUBRID <contact@cubrid.org> (http://www.cubrid.org/)",
   "repository": {
     "type": "git",
     "url": "git://github.com/cubrid/node-cubrid.git"
   },
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "http://github.com/cubrid/node-cubrid/raw/master/LICENSE"
-    }
-  ],
+  "license": "MIT",
   "main": "index.js",
   "keywords": [
     "native",
@@ -25,18 +20,18 @@
     "module"
   ],
   "engines": {
-    "node": "*"
+    "node": ">=4"
   },
   "scripts": {
-    "clean": "rm -rf src-cov",
-    "instrument": "npm run clean && jscoverage src src-cov",
-    "cover": "npm run instrument && CODE_COV=1 NODE_ENV=test ./node_modules/.bin/nodeunit --reporter=lcov test | node test/testSetup/fix_lcov.js | ./node_modules/.bin/coveralls",
-    "test": "./node_modules/.bin/nodeunit test"
+    "clean": "rm -rf coverage",
+    "coverage": "./node_modules/istanbul/lib/cli.js cover node_modules/mocha/bin/_mocha -- -R spec test",
+    "lint": "./node_modules/eslint/bin/eslint.js .",
+    "test": "npm run lint && ./node_modules/mocha/bin/mocha test"
   },
   "devDependencies": {
-    "async": "~0.8.0",
-    "coveralls": "~2.10.0",
-    "generic-pool": "~2.0.4",
-    "nodeunit": "~0.9.0"
+    "chai": "3.5.0",
+    "eslint": "3.6.1",
+    "istanbul": "0.4.5",
+    "mocha": "3.0.2"
   }
 }

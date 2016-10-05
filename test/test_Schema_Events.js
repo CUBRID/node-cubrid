@@ -1,10 +1,10 @@
 exports['test_Schema_Events'] = function (test) {
-	var CUBRID = require('../'),
-			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
-			Helpers = CUBRID.Helpers,
-			currentSchemaToReceive = 0;
+  var CUBRID = require('../'),
+      client = require('./testSetup').createDefaultCUBRIDDemodbConnection(),
+      Helpers = CUBRID.Helpers,
+      currentSchemaToReceive = 0;
 
-	test.expect(2);
+  test.expect(2);
   Helpers.logInfo(module.filename.toString() + ' started...');
 
   client.connect();
@@ -23,11 +23,11 @@ exports['test_Schema_Events'] = function (test) {
   client.on(client.EVENT_SCHEMA_DATA_AVAILABLE, function (result) {
     Helpers.logInfo('Schema data received.');
 
-	  for (var i = 0; i < result.length; ++i) {
+    for (var i = 0; i < result.length; ++i) {
       Helpers.logInfo(result[i]);
     }
 
-	  if (client.getEngineVersion().startsWith('8.4')) {
+    if (client.getEngineVersion().startsWith('8.4')) {
       if (currentSchemaToReceive === client.SCHEMA_TABLE) {
         test.ok(result.length === 32);
       } else {

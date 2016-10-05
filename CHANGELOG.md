@@ -1,9 +1,5 @@
 # node-cubrid change log
 
-## Version Next (Unreleased)
-
-- Ref #14: Indent using spaces instead of tabs.
-
 ## Version 2.2.5 (June 5, 2015)
 
 - Fix #45: Imply the connection before beginning the transaction.

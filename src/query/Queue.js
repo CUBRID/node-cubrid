@@ -19,15 +19,29 @@ Queue.prototype.process = function () {
     // Get the front item.
     this.currentItem = this.items.shift();
 
-    var self = this;
+    /*
+    * From http://stackoverflow.com/a/15349865/556678.
+    * Use `setImmediate` if you want to queue the function
+    * behind whatever I/O event callbacks that are already
+    * in the event queue. Use `process.nextTick` to effectively
+    * queue the function at the head of the event queue so
+    * that it executes immediately after the current function
+    * completes.
+    * So in a case where you're trying to break up a long
+    * running, CPU-bound job using recursion, you would now
+    * want to use `setImmediate` rather than `process.nextTick`
+    * to queue the next iteration as otherwise any I/O event
+    * callbacks wouldn't get the chance to run between iterations.
+    * */
+		setImmediate(() => {
+      // Every item is a function which calls the callback
+      // we pass when done.
+      this.currentItem(() => {
+        this.currentItem = null;
 
-    // Every item is a function which calls the callback
-    // we pass when done.
-    this.currentItem(function () {
-      self.currentItem = null;
-
-      self.process();
-    });
+        this.process();
+      });
+    })
   }
 };
 

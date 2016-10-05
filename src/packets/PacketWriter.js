@@ -1,5 +1,6 @@
-var DATA_TYPES = require('./../constants/DataTypes'),
-  CAS = require('../constants/CASConstants');
+'use strict';
+const DATA_TYPES = require('./../constants/DataTypes');
+const CAS = require('../constants/CASConstants');
 
 module.exports = PacketWriter;
 
@@ -8,7 +9,7 @@ module.exports = PacketWriter;
  * @constructor
  */
 function PacketWriter(length) {
-	this._buffer = new Buffer(length || 0);
+  this._buffer = new Buffer(length || 0);
   this._offset = 0;
 }
 
@@ -18,6 +19,223 @@ function PacketWriter(length) {
  */
 PacketWriter.prototype._toBuffer = function () {
   return this._buffer.slice(0, this._offset);
+};
+
+/**
+ * Write a byte value to the internal buffer
+ * @param value
+ */
+PacketWriter.prototype.addByte = function (value) {
+  this._allocate(
+      /* size of any data is represented as an integer */DATA_TYPES.INT_SIZEOF +
+      /* the value itself */DATA_TYPES.BYTE_SIZEOF
+  );
+
+  // The length of the value.
+  this._writeInt(DATA_TYPES.BYTE_SIZEOF);
+  // The actual value.
+  this._buffer[this._offset++] = value & 0xFF;
+};
+
+/**
+ * Write a bytes array to the internal buffer
+ * @param bytesCount
+ * @param value
+ */
+PacketWriter.prototype.addBytes = function (value) {
+  const bytesCount = value.length;
+  
+  this._allocate(
+      /* size of any data is represented as an integer */DATA_TYPES.INT_SIZEOF +
+      /* the value itself */bytesCount
+  );
+
+  // The length of the value.
+  this._writeInt(bytesCount);
+  // The actual value.
+  this._writeBytes(value);
+};
+
+/**
+ * Write a date value to the internal buffer
+ * @param value
+ */
+PacketWriter.prototype.addDate = function (year, month, day) {
+  this._allocate(
+      /* size of any data is represented as an integer */DATA_TYPES.INT_SIZEOF +
+      /* the value itself */DATA_TYPES.DATE_SIZEOF
+  );
+
+  // The length of the value.
+  this._writeInt(DATA_TYPES.DATE_SIZEOF);
+  // The actual value.
+  this._writeDate(year, month, day);
+};
+
+/**
+ * Write a datetime value to the internal buffer
+ * @param value
+ */
+PacketWriter.prototype.addDateTime = function (year, month, day, hour, minute, second, millisecond) {
+  this._allocate(
+      /* size of any data is represented as an integer */DATA_TYPES.INT_SIZEOF +
+      /* the value itself */DATA_TYPES.DATETIME_SIZEOF
+  );
+
+  // The length of the value.
+  this._writeInt(DATA_TYPES.DATETIME_SIZEOF);
+  // The actual value.
+  this._writeDateTime(year, month, day, hour, minute, second, millisecond);
+};
+
+/**
+ * Write a datetime value to the internal buffer
+ * @param value
+ */
+PacketWriter.prototype.addDateTime = function (year, month, day, hour, minute, second, millisecond) {
+  this._allocate(
+      /* size of any data is represented as an integer */DATA_TYPES.INT_SIZEOF +
+      /* the value itself */DATA_TYPES.DATETIME_SIZEOF
+  );
+
+  // The length of the value.
+  this._writeInt(DATA_TYPES.DATETIME_SIZEOF);
+  // The actual value.
+  this._writeDateTime(year, month, day, hour, minute, second, millisecond);
+};
+
+/**
+ * Write a datetime value to the internal buffer
+ * @param value
+ */
+PacketWriter.prototype.addTimestamp = function (year, month, day, hour, minute, second) {
+  this._allocate(
+      /* size of any data is represented as an integer */DATA_TYPES.INT_SIZEOF +
+      /* the value itself */DATA_TYPES.TIMESTAMP_SIZEOF
+  );
+
+  // The length of the value.
+  this._writeInt(DATA_TYPES.TIMESTAMP_SIZEOF);
+  // The actual value.
+  this._writeTimestamp(year, month, day, hour, minute, second);
+};
+
+/**
+ * Write a double value to the internal buffer
+ * @param value
+ */
+PacketWriter.prototype.addDouble = function (value) {
+  this._allocate(
+      /* size of any data is represented as an integer */DATA_TYPES.INT_SIZEOF +
+      /* the value itself */DATA_TYPES.DOUBLE_SIZEOF
+  );
+
+  // The length of the value.
+  this._writeInt(DATA_TYPES.DOUBLE_SIZEOF);
+  // The actual value.
+  this._writeDouble(value);
+};
+
+/**
+ * Write a float value to the internal buffer
+ * @param value
+ */
+PacketWriter.prototype.addFloat = function (value) {
+  this._allocate(
+      /* size of any data is represented as an integer */DATA_TYPES.INT_SIZEOF +
+      /* the value itself */DATA_TYPES.FLOAT_SIZEOF
+  );
+
+  // The length of the value.
+  this._writeInt(DATA_TYPES.FLOAT_SIZEOF);
+  // The actual value.
+  this._writeFloat(value);
+};
+
+/**
+ * Write a integer value to the internal buffer
+ * @param value
+ */
+PacketWriter.prototype.addInt = function (value) {
+  this._allocate(
+      /* size of any data is represented as an integer */DATA_TYPES.INT_SIZEOF * 2
+  );
+
+  // The length of the value.
+  this._writeInt(DATA_TYPES.INT_SIZEOF);
+  // The actual value.
+  this._writeInt(value);
+};
+
+/**
+ * Write a short value to the internal buffer
+ * @param value
+ */
+PacketWriter.prototype.addShort = function (value) {
+  this._allocate(
+      /* size of any data is represented as an integer */DATA_TYPES.INT_SIZEOF + DATA_TYPES.SHORT_SIZEOF
+  );
+
+  // The length of the value.
+  this._writeInt(DATA_TYPES.SHORT_SIZEOF);
+  // The actual value.
+  this._writeShort(value);
+};
+
+/**
+ * Write a time value to the internal buffer
+ * @param value
+ */
+PacketWriter.prototype.addTime = function (hour, minute, second) {
+  this._allocate(
+      /* size of any data is represented as an integer */DATA_TYPES.INT_SIZEOF +
+      /* the value itself */DATA_TYPES.TIME_SIZEOF
+  );
+
+  // The length of the value.
+  this._writeInt(DATA_TYPES.TIME_SIZEOF);
+  // The actual value.
+  this._writeTime(hour, minute, second);
+};
+
+/**
+ * Write a long value to the internal buffer
+ * @param value
+ */
+PacketWriter.prototype.addLong = function (value) {
+  this._allocate(
+      /* size of any data is represented as an integer */DATA_TYPES.INT_SIZEOF + DATA_TYPES.LONG_SIZEOF
+  );
+
+  // The length of the value.
+  this._writeInt(DATA_TYPES.LONG_SIZEOF);
+  // The actual value.
+  this._writeLong(value);
+};
+
+/**
+ * Write a NULL value to the internal buffer
+ */
+PacketWriter.prototype.addNull = function () {
+  this._allocate(
+      /* size of any data is represented as an integer */DATA_TYPES.INT_SIZEOF
+  );
+
+  // The actual value.
+  this._writeInt(0);
+};
+/**
+ * Write a integer value to the internal buffer
+ * @param value
+ */
+PacketWriter.prototype.addCacheTime = function () {
+  const length = /* size of any data is represented as an integer */DATA_TYPES.INT_SIZEOF * 2;
+  this._allocate(length);
+
+  // The actual value.
+  this._writeInt(length); /* length */
+  this._writeInt(0); /* second */
+  this._writeInt(0); /* millisecond */
 };
 
 /**
@@ -45,12 +263,14 @@ PacketWriter.prototype._writeChar = function (value) {
  * @param bytesCount
  * @param value
  */
-PacketWriter.prototype._writeBytes = function (bytesCount, value) {
+PacketWriter.prototype._writeBytes = function (value) {
+  const bytesCount = value.length;
+
   this._allocate(bytesCount);
 
-  for (var i = 0; i < bytesCount; i++) {
-    this._buffer[this._offset++] = value[i] & 0xFF;
-  }
+  value.copy(this._buffer, this._offset, 0, bytesCount);
+
+  this._offset += bytesCount;
 };
 
 /**
@@ -82,8 +302,8 @@ PacketWriter.prototype._writeInt = function (value) {
  * @param value
  */
 PacketWriter.prototype._writeLong = function (value) {
-  var reminder = value % Math.pow(2, 32);
-  var quotient = (value - reminder) / Math.pow(2, 32);
+  const reminder = value % Math.pow(2, 32);
+  const quotient = (value - reminder) / Math.pow(2, 32);
   this._writeInt(quotient);
   this._writeInt(reminder);
 };
@@ -122,7 +342,8 @@ PacketWriter.prototype._writeNumeric = function (value) {
  * @param fillerValue
  */
 PacketWriter.prototype._writeFiller = function (bytesCount, fillerValue) {
-  var fillerVal;
+  let fillerVal;
+
   this._allocate(bytesCount);
 
   fillerValue = typeof fillerValue !== 'undefined' ? fillerValue : 0x00;
@@ -133,7 +354,7 @@ PacketWriter.prototype._writeFiller = function (bytesCount, fillerValue) {
     fillerVal = fillerValue & 0xFF;
   }
 
-  for (var i = 0; i < bytesCount; i++) {
+  for (let i = 0; i < bytesCount; i++) {
     this._buffer[this._offset++] = fillerVal;
   }
 };
@@ -143,16 +364,18 @@ PacketWriter.prototype._writeFiller = function (bytesCount, fillerValue) {
  * @param value
  */
 PacketWriter.prototype._writeNullTerminatedString = function (value) {
-  // Typecast undefined into '' and numbers into strings
-  value = value || '';
-  value = value + '';
+  // Typecast undefined into '' and numbers into strings.
+  value = value ? '' + value : '';
 
-  var stringLengthInBytes = Buffer.byteLength(value);
-  var count = DATA_TYPES.INT_SIZEOF + stringLengthInBytes + DATA_TYPES.BYTE_SIZEOF;
-  this._allocate(count);
+  const stringLengthInBytes = Buffer.byteLength(value);
+  this._allocate(
+      /* the length of the string */ DATA_TYPES.INT_SIZEOF +
+      /* the actual string */stringLengthInBytes +
+      /* the terminating null of 1 byte length */ DATA_TYPES.BYTE_SIZEOF
+  );
 
-  //Write length
-  this._writeInt(stringLengthInBytes + 1);
+  // Write length in bytes.
+  this._writeInt(stringLengthInBytes + /* `null` */ 1);
 
   this._buffer.write(value, this._offset, stringLengthInBytes);
   this._offset += stringLengthInBytes;
@@ -168,19 +391,19 @@ PacketWriter.prototype._writeNullTerminatedString = function (value) {
  * @param fixedLength
  */
 PacketWriter.prototype._writeFixedLengthString = function (value, fillerValue, fixedLength) {
-  var fillerVal;
+  let fillerVal;
   // Typecast undefined into '' and numbers into strings
   value = value || '';
   value = value + '';
 
-  var count = value.length;
+  let count = value.length;
   if (count >= fixedLength) {
     count = fixedLength;
   }
 
   this._allocate(fixedLength);
 
-  for (var i = 0; i < value.length; i++) {
+  for (let i = 0; i < value.length; i++) {
     this._buffer[this._offset++] = value[i].charCodeAt(0);
   }
 
@@ -190,7 +413,7 @@ PacketWriter.prototype._writeFixedLengthString = function (value, fillerValue, f
     fillerVal = fillerValue & 0xFF;
   }
 
-  for (var j = 1; j <= fixedLength - count; j++) {
+  for (let j = 1; j <= fixedLength - count; j++) {
     this._buffer[this._offset++] = fillerVal;
   }
 };
@@ -202,15 +425,7 @@ PacketWriter.prototype._writeFixedLengthString = function (value, fillerValue, f
  * @param day
  */
 PacketWriter.prototype._writeDate = function (year, month, day) {
-  this._allocate(DATA_TYPES.DATETIME_SIZEOF);
-
-  this._writeShort(year);
-  this._writeShort(month);
-  this._writeShort(day);
-  this._writeShort(0);
-  this._writeShort(0);
-  this._writeShort(0);
-  this._writeShort(0);
+  this._writeDateTime(year, month, day, 0, 0, 0, 0);
 };
 
 /**
@@ -227,7 +442,9 @@ PacketWriter.prototype._writeDateTime = function (year, month, day, hour, min, s
   this._allocate(DATA_TYPES.DATETIME_SIZEOF);
 
   this._writeShort(year);
-  this._writeShort(month);
+  // `month` in JS is `0` based; `9` is for October.
+  // But in CUBRID we need to store the actual value.
+  this._writeShort(month + 1);
   this._writeShort(day);
   this._writeShort(hour);
   this._writeShort(min);
@@ -238,19 +455,11 @@ PacketWriter.prototype._writeDateTime = function (year, month, day, hour, min, s
 /**
  * Write a Time value to the internal buffer
  * @param hour
- * @param min
- * @param sec
+ * @param minute
+ * @param second
  */
-PacketWriter.prototype._writeTime = function (hour, min, sec) {
-  this._allocate(DATA_TYPES.DATETIME_SIZEOF);
-
-  this._writeShort(0);
-  this._writeShort(0);
-  this._writeShort(0);
-  this._writeShort(hour);
-  this._writeShort(min);
-  this._writeShort(sec);
-  this._writeShort(0);
+PacketWriter.prototype._writeTime = function (hour, minute, second) {
+  this._writeDateTime(0, /* month: `_writeDateTime` will do `+1` */-1, 0, hour, minute, second, 0);
 };
 
 /**
@@ -263,22 +472,14 @@ PacketWriter.prototype._writeTime = function (hour, min, sec) {
  * @param sec
  */
 PacketWriter.prototype._writeTimestamp = function (year, month, day, hour, min, sec) {
-  this._allocate(DATA_TYPES.DATETIME_SIZEOF);
-
-  this._writeShort(year);
-  this._writeShort(month);
-  this._writeShort(day);
-  this._writeShort(hour);
-  this._writeShort(min);
-  this._writeShort(sec);
-  this._writeShort(0);
+  this._writeDateTime(year, month, day, hour, min, sec, 0);
 };
 
 /**
  * Write a Object value to the internal buffer
  * @param value
  */
-PacketWriter.prototype._writeObject = function (value) {
+PacketWriter.prototype._writeObject = function () {
   this._writeByte(0); // Not supported
 };
 
@@ -286,7 +487,7 @@ PacketWriter.prototype._writeObject = function (value) {
  * Write a Sequence value to the internal buffer
  * @param value
  */
-PacketWriter.prototype._writeSequence = function (value) {
+PacketWriter.prototype._writeSequence = function () {
   this._writeByte(0); // Not supported
 };
 
@@ -294,7 +495,7 @@ PacketWriter.prototype._writeSequence = function (value) {
  * Write a ResultSet value to the internal buffer
  * @param value
  */
-PacketWriter.prototype._writeResultSet = function (value) {
+PacketWriter.prototype._writeResultSet = function () {
   this._writeByte(0); // Not supported
 };
 
@@ -327,7 +528,7 @@ PacketWriter.prototype._writeClob = function (value) {
  * @param value
  */
 PacketWriter.prototype._writeBuffer = function (value) {
-  var count = value.length;
+  const count = value.length;
 
   this._allocate(count);
   value.copy(this._buffer, this._offset);
@@ -342,13 +543,13 @@ PacketWriter.prototype._writeBuffer = function (value) {
  */
 PacketWriter.prototype._allocate = function (count) {
   // Verify if we need to allocate more space
-  var bytesRemaining = this._buffer.length - this._offset;
+  const bytesRemaining = this._buffer.length - this._offset;
 
   if (bytesRemaining < count) {
-		var oldBuffer = this._buffer;
+    let oldBuffer = this._buffer;
 
-	  this._buffer = new Buffer(oldBuffer.length + (count - bytesRemaining));
+    this._buffer = new Buffer(oldBuffer.length + (count - bytesRemaining));
 
-	  oldBuffer.copy(this._buffer);
+    oldBuffer.copy(this._buffer);
   }
 };
