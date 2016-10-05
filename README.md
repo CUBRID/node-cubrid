@@ -45,7 +45,7 @@ parametrize SQL statements, etc.
 - Support for [LOB](http://www.cubrid.org/manual/93/en/sql/datatype.html#blob-clob-data-types) (Binary and Character) objects.
 - Support for [ENUM](http://www.cubrid.org/manual/93/en/sql/datatype.html#enum-data-type) data types since CUBRID 9+.
 - Fully implements the event emitter.
-- Extensive tests suite (87% code coverage).
+- Extensive tests suite (90% code coverage).
 - Full `Promise` support since `v3.0.0`.
 
 ## CHANGELOG
