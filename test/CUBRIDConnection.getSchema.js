@@ -339,7 +339,7 @@ describe('CUBRIDConnection', function () {
             let table1 = schema[0];
             let table2 = schema[1];
 
-            if ([/* 8.4.1 */1, /* 8.4.3 */3].indexOf(client.brokerInfo.protocolVersion) === -1) {
+            if ([/* 9.0.0 */2, /* 9.1.0 */4].indexOf(client.brokerInfo.protocolVersion) > -1) {
               let t = table1;
               table1 = table2;
               table2 = t;
@@ -460,7 +460,7 @@ describe('CUBRIDConnection', function () {
         let table1 = schema[0];
         let table2 = schema[1];
 
-        if ([/* 8.4.1 */1, /* 8.4.3 */3].indexOf(client.brokerInfo.protocolVersion) === -1) {
+        if ([/* 9.0.0 */2, /* 9.1.0 */4].indexOf(client.brokerInfo.protocolVersion) > -1) {
           let t = table1;
           table1 = table2;
           table2 = t;
