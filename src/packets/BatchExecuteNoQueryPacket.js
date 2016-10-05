@@ -1,27 +1,16 @@
-var DATA_TYPES = require('../constants/DataTypes'),
-  Helpers = require('../utils/Helpers'),
-  CAS = require('../constants/CASConstants');
+'use strict';
 
-module.exports = BatchExecuteNoQueryPacket;
+const CAS = require('../constants/CASConstants');
+const DATA_TYPES = require('../constants/DataTypes');
 
 /**
  * Constructor
  * @constructor
  */
 function BatchExecuteNoQueryPacket(options) {
-  options = options || {};
+  this.options = options;
 
-  this.SQLs = options.SQLs;
-  this.casInfo = options.casInfo;
-  this.autoCommit = options.autoCommitMode;
-  this.dbVersion = options.dbVersion;
-
-  this.responseCode = 0;
-  this.errorCode = 0;
-  this.errorMsg = '';
-
-  this.arrResultsCode = [];
-  this.arrResultsMsg = [];
+  typeof options.timeout === 'undefined' && (options.timeout = 0);
 }
 
 /**
@@ -29,15 +18,23 @@ function BatchExecuteNoQueryPacket(options) {
  * @param writer
  */
 BatchExecuteNoQueryPacket.prototype.write = function (writer) {
-	writer._writeInt(this.getBufferLength() - DATA_TYPES.DATA_LENGTH_SIZEOF - DATA_TYPES.CAS_INFO_SIZE);
-  writer._writeBytes(DATA_TYPES.CAS_INFO_SIZE, this.casInfo);
-  writer._writeByte(CAS.CASFunctionCode.CAS_FC_EXECUTE_BATCH);
-  writer._writeInt(DATA_TYPES.BYTE_SIZEOF);
-  writer._writeByte(this.autoCommit ? 1 : 0); // Auto-commit mode value
+  const options = this.options;
+  const logger = options.logger;
 
-  // For every sql statement in the batch
-  for (var j = 0; j < this.SQLs.length; j++) {
-    writer._writeNullTerminatedString(this.SQLs[j]); // SQL strings to be executed
+  writer._writeInt(this.getBufferLength() - DATA_TYPES.DATA_LENGTH_SIZEOF - DATA_TYPES.CAS_INFO_SIZE);
+  writer._writeBytes(options.casInfo);
+  writer._writeByte(CAS.CASFunctionCode.CAS_FC_EXECUTE_BATCH);
+  writer.addByte(options.autoCommit ? 1 : 0);
+
+  logger.debug(`BatchExecuteNoQueryPacket.parse: autoCommit = ${options.autoCommit}.`);
+
+  if (options.protocolVersion > 3) {
+    writer.addInt(options.timeout);
+  }
+
+  // Write every sql statement in the batch.
+  for (let i = 0, sqls = options.sqls, len = sqls.length; i < len; ++i) {
+    writer._writeNullTerminatedString(sqls[i]);
   }
 
   return writer;
@@ -48,69 +45,84 @@ BatchExecuteNoQueryPacket.prototype.write = function (writer) {
  * @param parser
  */
 BatchExecuteNoQueryPacket.prototype.parse = function (parser) {
-  var responseLength = parser._parseInt(),
-      errCode = 0;
+  const options = this.options;
+  const logger = options.logger;
+  const responseLength = parser._parseInt();
+
+  logger.debug(`BatchExecuteNoQueryPacket.parse: responseLength = ${responseLength}.`);
 
   this.casInfo = parser._parseBytes(DATA_TYPES.CAS_INFO_SIZE);
 
   this.responseCode = parser._parseInt();
 
   if (this.responseCode < 0) {
-    this.errorCode = parser._parseInt();
-    this.errorMsg = parser._parseNullTerminatedString(responseLength - 2 * DATA_TYPES.INT_SIZEOF);
+    // CUBRID Broker/CAS error has occurred, not an SQL error.
+    // In such a case, CAS returns only the error code.
+    // We have a mapping to the actual error message here.
 
-    if (this.errorMsg.length === 0) {
-      this.errorMsg = Helpers._resolveErrorCode(this.errorCode);
-    }
-  } else {
-    this.executedCount = parser._parseInt();
+    return parser.readError(responseLength);
+  }
 
-    for (var i = 0; i < this.executedCount; i++) {
-      parser._parseByte(); //not used
+  this.executedCount = parser._parseInt();
+  this.errors = [];
+  this.results = [];
 
-      var result = parser._parseInt();
+  for (let i = 0; i < this.executedCount; ++i) {
+    // Statement Type: one of `CUBRIDStatementType`. Not used.
+    parser._parseByte();
+    let result = parser._parseInt();
 
-      if (result < 0) {
-        if (this.dbVersion.startsWith('8.4.3')) {
-          errCode = parser._parseInt();
-          this.arrResultsCode.push(errCode);
-        } else {
-          this.arrResultsCode.push(result);
-        }
+    if (result < 0) {
+      // An SQL error has occurred. CAS sends the actual
+      // error message.
+      let error = new Error();
 
-        var errMsgLength = parser._parseInt(),
-            errMsg = parser._parseNullTerminatedString(errMsgLength);
-
-        this.arrResultsMsg.push(errMsg);
+      if (options.protocolVersion > 2) {
+        error.code = parser._parseInt();
       } else {
-        this.arrResultsCode.push(result);
-        this.arrResultsMsg.push('');
-
-        parser._parseInt(); // Not used
-        parser._parseShort(); // Not used
-        parser._parseShort(); // Not used
+        error.code = result;
       }
+
+      error.message = parser._parseNullTerminatedString(/* error message length */ parser._parseInt());
+
+      this.errors.push(error);
+    } else {
+      // The number of changes.
+      this.results.push(result);
+
+      parser._parseInt(); // Not used
+      parser._parseShort(); // Not used
+      parser._parseShort(); // Not used
     }
   }
 
-  return this;
+  if (options.protocolVersion > 4) {
+    this.lastShardId = parser._parseInt();
+  }
 };
 
 BatchExecuteNoQueryPacket.prototype.getBufferLength = function () {
-	var bufferLength =
-			DATA_TYPES.DATA_LENGTH_SIZEOF +
-			DATA_TYPES.CAS_INFO_SIZE +
-			DATA_TYPES.BYTE_SIZEOF +
-			DATA_TYPES.INT_SIZEOF +
-			DATA_TYPES.BYTE_SIZEOF +
-			// The length of all queries.
-			DATA_TYPES.INT_SIZEOF * this.SQLs.length +
-			// The number of NULL terminating characters: one for each query.
-			this.SQLs.length;
+  const options = this.options;
+  const sqls = options.sqls;
+  const len = sqls.length;
 
-	for (var i = 0; i < this.SQLs.length; ++i) {
-		bufferLength += Buffer.byteLength(this.SQLs[i]);
-	}
+  let bufferLength =
+      DATA_TYPES.DATA_LENGTH_SIZEOF +
+      DATA_TYPES.CAS_INFO_SIZE +
+      DATA_TYPES.BYTE_SIZEOF +
+      DATA_TYPES.INT_SIZEOF +
+      DATA_TYPES.BYTE_SIZEOF +
+      (options.protocolVersion > 3 ? DATA_TYPES.INT_SIZEOF * 2 : 0) +
+      // The length of all queries.
+      DATA_TYPES.INT_SIZEOF * len +
+      // The number of NULL terminating characters: one for each query.
+      len;
 
-	return bufferLength;
+  for (let i = 0; i < len; ++i) {
+    bufferLength += Buffer.byteLength(sqls[i]);
+  }
+
+  return bufferLength;
 };
+
+module.exports = BatchExecuteNoQueryPacket;

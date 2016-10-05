@@ -1,9 +1,10 @@
-var DATA_TYPES = require('../constants/DataTypes'),
-		Helpers = require('../utils/Helpers'),
-		CAS = require('../constants/CASConstants'),
-		ErrorMessages = require('../constants/ErrorMessages'),
-		ColumnMetaData = require('../resultset/ColumnMetaData'),
-		ResultInfo = require('../resultset/ResultInfo');
+'use strict';
+
+const CAS = require('../constants/CASConstants');
+const ColumnMetaData = require('../resultset/ColumnMetaData');
+const DATA_TYPES = require('../constants/DataTypes');
+const ErrorMessages = require('../constants/ErrorMessages');
+const ResultInfo = require('../resultset/ResultInfo');
 
 module.exports = ExecuteQueryPacket;
 
@@ -13,31 +14,7 @@ module.exports = ExecuteQueryPacket;
  * @constructor
  */
 function ExecuteQueryPacket(options) {
-	options = options || {};
-
-	this.casInfo = options.casInfo;
-	this.sql = options.sql;
-	this.autoCommit = options.autoCommitMode;
-	this.dbVersion = options.dbVersion;
-
-	this.resultSet = ''; // Resultset of the query
-	this.resultCacheLifetime = 0; // Cache lifetime
-	this.statementType = null; // Statement type
-	this.bindCount = 0; // Bind count
-	this.isUpdatable = false; // Is updatable
-	this.totalTupleCount = 0; // Total nomber of tuples
-	this.cache_reusable = 0; // Cache reusable
-	this.resultCount = 0; // Number of results
-	this.columnCount = 0; // Number of columns
-	this.infoArray = new ColumnMetaData(); // Column meta data
-	this.resultInfos = new ResultInfo(); // Result info
-	this.queryHandle = 0; // Query handle
-	this.currentTupleCount = 0; // Current number of returned tuples
-	this.tupleCount = 0; // Number of tuples
-
-	this.responseCode = 0; // Response code
-	this.errorCode = 0; // Error code
-	this.errorMsg = ''; // Error message
+  this.options = options;
 }
 
 /**
@@ -45,75 +22,59 @@ function ExecuteQueryPacket(options) {
  * @param writer
  */
 ExecuteQueryPacket.prototype.write = function (writer) {
-	// Set the length of this request. Don't include the first eight bytes
-	// (`DATA_LENGTH_SIZEOF` and `CAS_INFO_SIZE`) because they are not
-	// part of the query data.
-	writer._writeInt(this.getBufferLength() - DATA_TYPES.DATA_LENGTH_SIZEOF - DATA_TYPES.CAS_INFO_SIZE);
-	// `this.casInfo` is already a buffer. Just write them as bytes.
-	writer._writeBytes(DATA_TYPES.CAS_INFO_SIZE, this.casInfo);
+  const options = this.options;
+  // Set the length of this request. Don't include the first eight bytes
+  // (`DATA_LENGTH_SIZEOF` and `CAS_INFO_SIZE`) because they are not
+  // part of the query data.
+  writer._writeInt(this.getBufferLength() - DATA_TYPES.DATA_LENGTH_SIZEOF - DATA_TYPES.CAS_INFO_SIZE);
+  // `this.casInfo` is already a buffer. Just write them as bytes.
+  writer._writeBytes(options.casInfo);
 
-	// Then tell which CAS function should CAS execute.
-	// TODO: Shouldn't CAS function by an integer of four bytes?
-	// Why write only one byte?
-	writer._writeByte(this.dbVersion.startsWith('9.0.0') ? CAS.CASFunctionCode900.CAS_FC_PREPARE_AND_EXECUTE : CAS.CASFunctionCode.CAS_FC_PREPARE_AND_EXECUTE);
+  // Then tell which CAS function should CAS execute.
+  // TODO: Shouldn't CAS function by an integer of four bytes?
+  // Why write only one byte?
+  writer._writeByte(options.protocolVersion === /* CUBRID v9.0.0 */2 ? CAS.CASFunctionCode900.CAS_FC_PREPARE_AND_EXECUTE : CAS.CASFunctionCode.CAS_FC_PREPARE_AND_EXECUTE);
 
-	// The length of the next piece of data, i.e. CAS function.
-	// The length of any piece of data should be represented by an
-	// integer value.
-	writer._writeInt(DATA_TYPES.INT_SIZEOF);
+  // Next, write how many arguments should the CAS
+  // function accept. `CAS_FC_PREPARE_AND_EXECUTE`
+  // accepts `3` arguments.
+  writer.addInt(3);
 
-	// Next, write how many arguments (integer value, thus 4 bytes)
-	// should the CAS function accept. `CAS_FC_PREPARE_AND_EXECUTE`
-	// accepts `3` arguments.
-	writer._writeInt(3);
+  // Now goes the SQL query.
+  writer._writeNullTerminatedString(options.sql);
 
-	// Now goes the SQL query.
-	writer._writeNullTerminatedString(this.sql);
+  // The type of prepare CAS has to execute.
+  writer.addByte(CAS.CCIPrepareOption.CCI_PREPARE_NORMAL);
 
-	// The size of the next piece, also in 4-byte integer.
-	writer._writeInt(DATA_TYPES.BYTE_SIZEOF);
-	// The type of prepare CAS has to execute.
-	writer._writeByte(CAS.CCIPrepareOption.CCI_PREPARE_NORMAL);
+  // Autocommit mode.
+  writer.addByte(options.autoCommit ? 1 : 0);
 
-	// The size of the next piece.
-	writer._writeInt(DATA_TYPES.BYTE_SIZEOF);
-	// Autocommit mode.
-	writer._writeByte(this.autoCommit ? 1 : 0);
+  // Execute info.
 
-	// Execute info.
+  // Execute flag.
+  writer.addByte(CAS.CCIExecutionOption.CCI_EXEC_QUERY_ALL);
 
-	// The size of the next piece.
-	writer._writeInt(DATA_TYPES.BYTE_SIZEOF);
-	// Execute flag.
-	writer._writeByte(CAS.CCIExecutionOption.CCI_EXEC_QUERY_ALL);
+  // `max_col_size`: The maximum length of a column in bytes to be fetched
+  // when it is a string data type. If this value is 0, full length is fetched.
+  writer.addInt(0);
 
-	// The size of the next piece.
-	writer._writeInt(DATA_TYPES.INT_SIZEOF);
-	// `max_col_size`: The maximum length of a column in bytes to be fetched
-	// when it is a string data type. If this value is 0, full length is fetched.
-	writer._writeInt(0);
+  // Max row size.
+  writer.addInt(0);
 
-	// The size of the next piece.
-	writer._writeInt(DATA_TYPES.INT_SIZEOF);
-	// Max row size.
-	writer._writeInt(0);
+  // NULL.
+  writer._writeInt(0);
 
-	// NULL.
-	writer._writeInt(0);
+  // Write cache time
+  writer._writeInt(2 * DATA_TYPES.INT_SIZEOF);
+  // Seconds.
+  writer._writeInt(0);
+  // Milliseconds.
+  writer._writeInt(0);
 
-	// Write cache time
-	writer._writeInt(2 * DATA_TYPES.INT_SIZEOF);
-	// Seconds.
-	writer._writeInt(0);
-	// Milliseconds.
-	writer._writeInt(0);
+  // Query timeout.
+  writer.addInt(0);
 
-	// The size of the next piece.
-	writer._writeInt(DATA_TYPES.INT_SIZEOF);
-	// Query timeout.
-	writer._writeInt(0);
-
-	return writer;
+  return writer;
 };
 
 /**
@@ -121,89 +82,130 @@ ExecuteQueryPacket.prototype.write = function (writer) {
  * @param parser
  */
 ExecuteQueryPacket.prototype.parse = function (parser) {
-	var responseLength = parser._parseInt();
+  const options = this.options;
+  const responseLength = parser._parseInt();
+  const logger = options.logger;
 
-	this.casInfo = parser._parseBytes(DATA_TYPES.CAS_INFO_SIZE);
+  logger.debug(`ExecuteQueryPacket.parse: responseLength = ${responseLength}.`);
 
-	this.responseCode = parser._parseInt();
+  this.casInfo = parser._parseBytes(DATA_TYPES.CAS_INFO_SIZE);
 
-	if (this.responseCode < 0) {
-		this.errorCode = parser._parseInt();
-		this.errorMsg = parser._parseNullTerminatedString(responseLength - 2 * DATA_TYPES.INT_SIZEOF);
+  this.responseCode = parser._parseInt();
 
-		if (this.errorMsg.length === 0) {
-			this.errorMsg = Helpers._resolveErrorCode(this.errorCode);
-		}
-	} else {
-		this.queryHandle = this.responseCode;
-		this.resultCacheLifetime = parser._parseInt(); // Cache lifetime
-		this.statementType = parser._parseByte(); // Statement type
-		this.bindCount = parser._parseInt(); // Bind count
-		this.isUpdatable = (parser._parseByte() === 0); // Is updatable?
-		this.columnCount = parser._parseInt(); // Query result columns count
-		this.infoArray = [];
+  if (this.responseCode < 0) {
+    return parser.readError(responseLength);
+  }
 
-		for (i = 0; i < this.columnCount; i++) {
-			var info = new ColumnMetaData();
-			info.ColumnType = parser._parseByte(); // Column type
-			info.scale = parser._parseShort(); // Scale
-			info.precision = parser._parseInt(); // Precision
-			var len = parser._parseInt();
-			info.Name = parser._parseNullTerminatedString(len); // Column name
-			len = parser._parseInt();
-			info.RealName = parser._parseNullTerminatedString(len); // Column real name
-			len = parser._parseInt();
-			info.TableName = parser._parseNullTerminatedString(len); // Table name
-			info.IsNullable = (parser._parseByte() === 1); // Is nullable?
-			len = parser._parseInt();
-			info.DafaultValue = parser._parseNullTerminatedString(len); // Default value
-			info.IsAutoIncrement = (parser._parseByte() === 1); // Is auto increment?
-			info.IsUniqueKey = (parser._parseByte() === 1); // Is unuque key?
-			info.IsPrimaryKey = (parser._parseByte() === 1); // Is primary key?
-			info.IsReverseIndex = (parser._parseByte() === 1); // Reserve index?
-			info.IsReverseUnique = (parser._parseByte() === 1); // Reserve unique?
-			info.IsForeignKey = (parser._parseByte() === 1); // Is foreign key?
-			info.IsShared = (parser._parseByte() === 1); // Shared?
-			this.infoArray[i] = info;
-		}
+  this.queryHandle = this.responseCode;
+  this.resultCacheLifetime = parser._parseInt(); // Cache lifetime
+  this.statementType = parser._parseByte(); // Statement type
 
-		this.totalTupleCount = parser._parseInt(); // Tuples count
-		this.cache_reusable = parser._parseByte(); // Cache reusable
-		this.resultCount = parser._parseInt(); // Result count
-		// Read result info
-		for (i = 0; i < this.resultCount; i++) {
-			var resultInfo = new ResultInfo();
-			resultInfo.StmtType = parser._parseByte(); // Statement type
-			resultInfo.ResultCount = parser._parseInt(); // Result count
-			resultInfo.Oid = parser._parseBytes(DATA_TYPES.OID_SIZEOF); // OID
-			resultInfo.CacheTimeSec = parser._parseInt(); // Cache time seconds
-			resultInfo.CacheTimeUsec = parser._parseInt(); // Cache time milliseconds
-			this.resultInfos[i] = resultInfo;
-		}
-	}
+  logger.debug(`ExecuteQueryPacket.parse: statementType = ${this.statementType}`);
 
-	if (this.statementType === CAS.CUBRIDStatementType.CUBRID_STMT_SELECT) {
-		var fetchCode = parser._parseInt(); // Fetch code
-		this.tupleCount = parser._parseInt(); // Tuple count
-		var columnNames = new Array(this.columnCount);
-		var columnDataTypes = new Array(this.columnCount);
+  this.bindCount = parser._parseInt(); // Bind count
+  this.isUpdatable = (parser._parseByte() === 0); // Is updatable?
+  this.columnCount = parser._parseInt(); // Query result columns count
+  this.infoArray = [];
 
-		for (var i = 0; i < this.columnCount; i++) {
-			columnNames[i] = this.infoArray[i].Name;
-			columnDataTypes[i] = CAS.getCUBRIDDataTypeName(this.infoArray[i].ColumnType);
-		}
+  let i;
+  let info;
+  let len;
 
-		var columnValues = this._getData(parser, this.tupleCount);
+  for (i = 0; i < this.columnCount; i++) {
+    info = new ColumnMetaData();
+    info.ColumnType = parser._parseByte(); // Column type
+    info.scale = parser._parseShort(); // Scale
+    info.precision = parser._parseInt(); // Precision
+    len = parser._parseInt();
+    info.Name = parser._parseNullTerminatedString(len); // Column name
+    len = parser._parseInt();
+    info.RealName = parser._parseNullTerminatedString(len); // Column real name
+    len = parser._parseInt();
+    info.TableName = parser._parseNullTerminatedString(len); // Table name
+    info.IsNullable = (parser._parseByte() === 1); // Is nullable?
+    len = parser._parseInt();
+    info.DafaultValue = parser._parseNullTerminatedString(len); // Default value
+    info.IsAutoIncrement = (parser._parseByte() === 1); // Is auto increment?
+    info.IsUniqueKey = (parser._parseByte() === 1); // Is unuque key?
+    info.IsPrimaryKey = (parser._parseByte() === 1); // Is primary key?
+    info.IsReverseIndex = (parser._parseByte() === 1); // Reserve index?
+    info.IsReverseUnique = (parser._parseByte() === 1); // Reserve unique?
+    info.IsForeignKey = (parser._parseByte() === 1); // Is foreign key?
+    info.IsShared = (parser._parseByte() === 1); // Shared?
+    this.infoArray[i] = info;
+  }
 
-		this.resultSet = JSON.stringify({
-			ColumnNames     : columnNames,
-			ColumnDataTypes : columnDataTypes,
-			RowsCount       : this.totalTupleCount,
-			ColumnValues    : columnValues
-		});
-	}
+  logger.debug('ExecuteQueryPacket.parse: infoArray =', this.infoArray);
 
-	return this;
+  // Tuples count.
+  this.totalTupleCount = parser._parseInt();
+  // Is cache reusable.
+  parser._parseByte();
+  // Results count.
+  this.resultCount = parser._parseInt();
+
+  logger.debug('ExecuteQueryPacket.parse: totalTupleCount =', this.totalTupleCount);
+  logger.debug('ExecuteQueryPacket.parse: resultCount =', this.resultCount);
+
+  // Read result info.
+  let resultInfo;
+
+  this.resultInfos = [];
+
+  for (i = 0; i < this.resultCount; ++i) {
+    resultInfo = new ResultInfo();
+    resultInfo.StmtType = parser._parseByte(); // Statement type
+    resultInfo.ResultCount = parser._parseInt(); // Result count
+    resultInfo.Oid = parser._parseBytes(DATA_TYPES.OID_SIZEOF); // OID
+    resultInfo.CacheTimeSec = parser._parseInt(); // Cache time seconds
+    resultInfo.CacheTimeUsec = parser._parseInt(); // Cache time milliseconds
+
+    logger.debug(`ExecuteQueryPacket.parse: resultInfo (${i}) =`, resultInfo);
+
+    this.resultInfos.push(resultInfo);
+  }
+
+  if (options.protocolVersion > 1) {
+    let includesColumnInfo = parser._parseByte();
+
+    logger.debug(`ExecuteQueryPacket.parse: include_column_info = ${includesColumnInfo}`);
+
+    if (options.protocolVersion > 4) {
+      let shardID = parser._parseInt();
+
+      logger.debug(`ExecuteQueryPacket.parse: shardID = ${shardID}`);
+    }
+  }
+
+  if (this.statementType === CAS.CUBRIDStatementType.CUBRID_STMT_SELECT) {
+    const fetchCode = parser._parseInt(); // Fetch code
+    this.tupleCount = parser._parseInt(); // Tuple count
+    this.currentTupleCount = 0;
+
+    logger.debug(`ExecuteQueryPacket.parse: fetchCode = ${fetchCode}; tupleCount = ${this.tupleCount}`);
+
+    let columnNames = new Array(this.columnCount);
+    let columnDataTypes = new Array(this.columnCount);
+
+    for (let i = 0; i < this.columnCount; i++) {
+      columnNames[i] = this.infoArray[i].Name;
+      columnDataTypes[i] = CAS.getCUBRIDDataTypeName(this.infoArray[i].ColumnType);
+    }
+
+    logger.debug('ExecuteQueryPacket.parse: columnNames =', columnNames);
+    logger.debug('ExecuteQueryPacket.parse: columnDataTypes =', columnDataTypes);
+
+    let columnValues = this.getValues(parser, this.tupleCount);
+
+    logger.debug('ExecuteQueryPacket.parse: columnValues =', columnValues);
+
+    this.resultSet = {
+      ColumnDataTypes: columnDataTypes,
+      ColumnNames: columnNames,
+      ColumnValues: columnValues,
+      RowsCount: this.totalTupleCount,
+    };
+  }
 };
 
 /**
@@ -211,154 +213,169 @@ ExecuteQueryPacket.prototype.parse = function (parser) {
  * @param parser
  * @param tupleCount
  */
-ExecuteQueryPacket.prototype._getData = function (parser, tupleCount) {
-	var columnValues = new Array(tupleCount);
+ExecuteQueryPacket.prototype.getValues = function (parser, tupleCount) {
+  let columnValues = new Array(tupleCount);
 
-	// Loop through rows.
-	for (var i = 0; i < tupleCount; ++i) {
-		var index = parser._parseInt(); // Column index
-		var Oid = parser._parseBytes(DATA_TYPES.OID_SIZEOF); // OID
+  const columns = this.infoArray;
+  const columnCount = this.columnCount;
+  const statementType = this.statementType;
 
-		columnValues[i] = new Array(this.columnCount);
+  const CUBRID_STMT_CALL = CAS.CUBRIDStatementType.CUBRID_STMT_CALL;
+  const CUBRID_STMT_EVALUATE = CAS.CUBRIDStatementType.CUBRID_STMT_EVALUATE;
+  const CUBRID_STMT_CALL_SP = CAS.CUBRIDStatementType.CUBRID_STMT_CALL_SP;
 
-		for (var j = 0; j < this.columnCount; ++j) {
-			var size = parser._parseInt(); // Value size
-			var val;
+  // Loop through rows.
+  for (let i = 0; i < tupleCount; ++i) {
+    // Column index. We don't need it at this moment.
+    parser._parseInt();
 
-			if (size <= 0) {
-				val = null;
-			} else {
-				var type = CAS.CUBRIDDataType.CCI_U_TYPE_NULL;
+    // OID. We don't need it now.
+    parser._parseBytes(DATA_TYPES.OID_SIZEOF);
 
-				if (this.statementType === CAS.CUBRIDStatementType.CUBRID_STMT_CALL ||
-						this.statementType === CAS.CUBRIDStatementType.CUBRID_STMT_EVALUATE ||
-						this.statementType === CAS.CUBRIDStatementType.CUBRID_STMT_CALL_SP ||
-						this.infoArray[j].ColumnType === CAS.CUBRIDDataType.CCI_U_TYPE_NULL) {
-					type = parser._parseByte(); // Column data type
-					--size;
-				} else {
-					type = this.infoArray[j].ColumnType;
-				}
+    let column = columnValues[i] = new Array(columnCount);
 
-				val = this._readValue(j, type, size, parser); // Read value
+    // Loop through columns in this row.
+    for (let j = 0; j < columnCount; ++j) {
+      // Value size.
+      let size = parser._parseInt();
 
-				columnValues[i][j] = val;
-			}
-		}
-	}
-	this.currentTupleCount += tupleCount;
+      if (size > 0) {
+        let type;
 
-	return columnValues;
+        if (statementType === CUBRID_STMT_CALL ||
+            statementType === CUBRID_STMT_EVALUATE ||
+            statementType === CUBRID_STMT_CALL_SP ||
+            columns[j].ColumnType === CAS.CUBRIDDataType.CCI_U_TYPE_NULL) {
+          // Column data type
+          type = parser._parseByte();
+          --size;
+        } else {
+          type = columns[j].ColumnType;
+        }
+
+        // Read the actual value depending on its type and size.
+        column[j] = _readValue.call(this, parser, type, size);
+      } else {
+        column[j] = null;
+      }
+    }
+  }
+
+  this.currentTupleCount += tupleCount;
+
+  return columnValues;
 };
 
 /**
  * Read column value from stream
- * @param index
+ * @param parser
  * @param type
  * @param size
- * @param parser
  */
-ExecuteQueryPacket.prototype._readValue = function (index, type, size, parser) {
-	switch (type) {
-		case CAS.CUBRIDDataType.CCI_U_TYPE_CHAR:
-		case CAS.CUBRIDDataType.CCI_U_TYPE_NCHAR:
-		case CAS.CUBRIDDataType.CCI_U_TYPE_STRING:
-		case CAS.CUBRIDDataType.CCI_U_TYPE_VARNCHAR:
-		case CAS.CUBRIDDataType.CCI_U_TYPE_ENUM:
-			return parser._parseNullTerminatedString(size);
+function _readValue(parser, type, size) {
+  switch (type) {
+    case CAS.CUBRIDDataType.CCI_U_TYPE_CHAR:
+    case CAS.CUBRIDDataType.CCI_U_TYPE_NCHAR:
+    case CAS.CUBRIDDataType.CCI_U_TYPE_STRING:
+    case CAS.CUBRIDDataType.CCI_U_TYPE_VARNCHAR:
+    case CAS.CUBRIDDataType.CCI_U_TYPE_ENUM:
+      return parser._parseNullTerminatedString(size);
 
-		case CAS.CUBRIDDataType.CCI_U_TYPE_SHORT:
-			return parser._parseShort();
+    case CAS.CUBRIDDataType.CCI_U_TYPE_SHORT:
+      return parser._parseShort();
 
-		case CAS.CUBRIDDataType.CCI_U_TYPE_INT:
-			return parser._parseInt();
+    case CAS.CUBRIDDataType.CCI_U_TYPE_INT:
+      return parser._parseInt();
 
-		case CAS.CUBRIDDataType.CCI_U_TYPE_BIGINT:
-			return parser._parseLong();
+    case CAS.CUBRIDDataType.CCI_U_TYPE_BIGINT:
+      return parser._parseLong();
 
-		case CAS.CUBRIDDataType.CCI_U_TYPE_FLOAT:
-			return parser._parseFloat();
+    case CAS.CUBRIDDataType.CCI_U_TYPE_FLOAT:
+      return parser._parseFloat();
 
-		case CAS.CUBRIDDataType.CCI_U_TYPE_DOUBLE:
-		case CAS.CUBRIDDataType.CCI_U_TYPE_MONETARY:
-			return parser._parseDouble();
+    case CAS.CUBRIDDataType.CCI_U_TYPE_DOUBLE:
+    case CAS.CUBRIDDataType.CCI_U_TYPE_MONETARY:
+      return parser._parseDouble();
 
-		case CAS.CUBRIDDataType.CCI_U_TYPE_NUMERIC:
-			return parser._parseNumeric(size);
+    case CAS.CUBRIDDataType.CCI_U_TYPE_NUMERIC:
+      return parser._parseNumeric(size);
 
-		case CAS.CUBRIDDataType.CCI_U_TYPE_DATE:
-			return parser._parseDate();
+    case CAS.CUBRIDDataType.CCI_U_TYPE_DATE:
+      return parser._parseDate();
 
-		case CAS.CUBRIDDataType.CCI_U_TYPE_TIME:
-			return parser._parseTime();
+    case CAS.CUBRIDDataType.CCI_U_TYPE_TIME:
+      return parser._parseTime();
 
-		case CAS.CUBRIDDataType.CCI_U_TYPE_DATETIME:
-			return parser._parseDateTime();
+    case CAS.CUBRIDDataType.CCI_U_TYPE_DATETIME:
+      return parser._parseDateTime();
 
-		case CAS.CUBRIDDataType.CCI_U_TYPE_TIMESTAMP:
-			return parser._parseTimeStamp();
+    case CAS.CUBRIDDataType.CCI_U_TYPE_TIMESTAMP:
+      return parser._parseTimeStamp();
 
-		case CAS.CUBRIDDataType.CCI_U_TYPE_OBJECT:
-			return parser._parseObject();
+    case CAS.CUBRIDDataType.CCI_U_TYPE_OBJECT:
+      return parser._parseObject();
 
-		case CAS.CUBRIDDataType.CCI_U_TYPE_BIT:
-		case CAS.CUBRIDDataType.CCI_U_TYPE_VARBIT:
-			return parser._parseBytes(size);
+    case CAS.CUBRIDDataType.CCI_U_TYPE_BIT:
+    case CAS.CUBRIDDataType.CCI_U_TYPE_VARBIT:
+      return parser._parseBytes(size);
 
-		case CAS.CUBRIDDataType.CCI_U_TYPE_SET:
-		case CAS.CUBRIDDataType.CCI_U_TYPE_MULTISET:
-		case CAS.CUBRIDDataType.CCI_U_TYPE_SEQUENCE:
-			return parser._parseSequence();
+    case CAS.CUBRIDDataType.CCI_U_TYPE_SET:
+    case CAS.CUBRIDDataType.CCI_U_TYPE_MULTISET:
+    case CAS.CUBRIDDataType.CCI_U_TYPE_SEQUENCE:
+      return parser._parseSequence();
 
-		case CAS.CUBRIDDataType.CCI_U_TYPE_BLOB:
-			return parser._parseBlob(size);
+    case CAS.CUBRIDDataType.CCI_U_TYPE_BLOB:
+      return parser.readBlob(size);
 
-		case CAS.CUBRIDDataType.CCI_U_TYPE_CLOB:
-			return parser._parseClob(size);
+    case CAS.CUBRIDDataType.CCI_U_TYPE_CLOB:
+      return parser.readClob(size);
 
-		case CAS.CUBRIDDataType.CCI_U_TYPE_RESULTSET:
-			return parser._parseResultSet();
+    case CAS.CUBRIDDataType.CCI_U_TYPE_RESULTSET:
+      return parser._parseResultSet();
 
-		default:
-			return new Error(ErrorMessages.ERROR_INVALID_DATA_TYPE);
-	}
-};
+    case CAS.CUBRIDDataType.CCI_U_TYPE_NULL:
+      return null;
+
+    default:
+      return new Error(`${type}: ${ErrorMessages.ERROR_INVALID_DATA_TYPE}`);
+  }
+}
 
 ExecuteQueryPacket.prototype.getBufferLength = function () {
-	var bufferLength = // Total length of the request without itself and CAS info.
-			DATA_TYPES.DATA_LENGTH_SIZEOF +
-			// CAS info.
-			DATA_TYPES.CAS_INFO_SIZE +
-			// CAS function.
-			DATA_TYPES.BYTE_SIZEOF +
-			// TODO: what are these four bytes for?
-			DATA_TYPES.INT_SIZEOF +
-			// CAS arguments.
-			DATA_TYPES.INT_SIZEOF +
-			// TODO: These four bytes are absent below. Why?
-			DATA_TYPES.INT_SIZEOF +
-			// A NULL terminated SQL query string.
-			Buffer.byteLength(this.sql) + 1 +
-			// The length of the next part.
-			DATA_TYPES.INT_SIZEOF +
-			// The type of CCI prepare.
-			DATA_TYPES.BYTE_SIZEOF +
-			// The length of the next part.
-			DATA_TYPES.INT_SIZEOF +
-			// Autocommit mode
-			DATA_TYPES.BYTE_SIZEOF +
-			DATA_TYPES.INT_SIZEOF +
-			DATA_TYPES.BYTE_SIZEOF +
-			DATA_TYPES.INT_SIZEOF +
-			DATA_TYPES.INT_SIZEOF +
-			DATA_TYPES.INT_SIZEOF +
-			DATA_TYPES.INT_SIZEOF +
-			DATA_TYPES.INT_SIZEOF +
-			DATA_TYPES.INT_SIZEOF +
-			DATA_TYPES.INT_SIZEOF +
-			DATA_TYPES.INT_SIZEOF +
-			DATA_TYPES.INT_SIZEOF +
-			DATA_TYPES.INT_SIZEOF;
+  let bufferLength = // Total length of the request without itself and CAS info.
+      DATA_TYPES.DATA_LENGTH_SIZEOF +
+      // CAS info.
+      DATA_TYPES.CAS_INFO_SIZE +
+      // CAS function.
+      DATA_TYPES.BYTE_SIZEOF +
+      // The length of the next part.
+      DATA_TYPES.INT_SIZEOF +
+      // CAS arguments.
+      DATA_TYPES.INT_SIZEOF +
+      // The length of the next part.
+      DATA_TYPES.INT_SIZEOF +
+      // A NULL terminated SQL query string.
+      Buffer.byteLength(this.options.sql) + 1 +
+      // The length of the next part.
+      DATA_TYPES.INT_SIZEOF +
+      // The type of CCI prepare.
+      DATA_TYPES.BYTE_SIZEOF +
+      // The length of the next part.
+      DATA_TYPES.INT_SIZEOF +
+      // Autocommit mode
+      DATA_TYPES.BYTE_SIZEOF +
+      DATA_TYPES.INT_SIZEOF +
+      DATA_TYPES.BYTE_SIZEOF +
+      DATA_TYPES.INT_SIZEOF +
+      DATA_TYPES.INT_SIZEOF +
+      DATA_TYPES.INT_SIZEOF +
+      DATA_TYPES.INT_SIZEOF +
+      DATA_TYPES.INT_SIZEOF +
+      DATA_TYPES.INT_SIZEOF +
+      DATA_TYPES.INT_SIZEOF +
+      DATA_TYPES.INT_SIZEOF +
+      DATA_TYPES.INT_SIZEOF +
+      DATA_TYPES.INT_SIZEOF;
 
-	return bufferLength;
+  return bufferLength;
 };

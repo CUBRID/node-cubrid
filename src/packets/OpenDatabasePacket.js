@@ -1,9 +1,7 @@
-var DATA_TYPES = require('../constants/DataTypes'),
-  Helpers = require('../utils/Helpers'),
-  ErrorMessages = require('../constants/ErrorMessages'),
-  CAS = require('../constants/CASConstants');
+'use strict';
 
-module.exports = OpenDatabasePacket;
+const CAS = require('../constants/CASConstants');
+const DATA_TYPES = require('../constants/DataTypes');
 
 /**
  * Constructor
@@ -11,16 +9,7 @@ module.exports = OpenDatabasePacket;
  * @constructor
  */
 function OpenDatabasePacket(options) {
-  options = options || {};
-
-  this.database = options.database;
-  this.user = options.user;
-  this.password = options.password;
-  this.casInfo = options.casInfo;
-
-  this.responseCode = 0;
-  this.errorCode = 0;
-  this.errorMsg = '';
+  this.options = options;
 }
 
 /**
@@ -28,9 +17,11 @@ function OpenDatabasePacket(options) {
  * @param writer
  */
 OpenDatabasePacket.prototype.write = function (writer) {
-  writer._writeFixedLengthString(this.database, 0, 32); // Database name
-  writer._writeFixedLengthString(this.user, 0, 32); // User login ID
-  writer._writeFixedLengthString(this.password, 0, 32); // User login password
+  const options = this.options;
+  
+  writer._writeFixedLengthString(options.database, 0, 32); // Database name
+  writer._writeFixedLengthString(options.user, 0, 32); // User login ID
+  writer._writeFixedLengthString(options.password, 0, 32); // User login password
   writer._writeFiller(512, 0); // Used for extended connection info
   writer._writeFiller(20, 0); // Reserved
 
@@ -42,26 +33,50 @@ OpenDatabasePacket.prototype.write = function (writer) {
  * @param parser
  */
 OpenDatabasePacket.prototype.parse = function (parser) {
-  var responseLength = parser._parseInt();
+  const logger = this.options.logger;
+  const responseLength = parser._parseInt();
+
   this.casInfo = parser._parseBytes(DATA_TYPES.CAS_INFO_SIZE);
 
+  logger.debug('OpenDatabasePacket: casInfo', this.casInfo);
+
   this.responseCode = parser._parseInt();
+  
   if (this.responseCode < 0) {
-    this.errorCode = parser._parseInt();
-    this.errorMsg = parser._parseNullTerminatedString(responseLength - DATA_TYPES.INT_SIZEOF * 2);
-    if (this.errorMsg.length === 0) {
-      this.errorMsg = Helpers._resolveErrorCode(this.errorCode);
-    }
-  } else {
-    this.brokerInfo = parser._parseBytes(DATA_TYPES.BROKER_INFO_SIZEOF); // Broker information
-    this.sessionId = parser._parseInt(); // Unique session ID
+    return parser.readError(responseLength);
   }
 
-  return this;
+  /*
+  * Broker information: 8 bytes.
+  * Byte 1: DBMS Type. 1 = CUBRID.
+  * Byte 2: Reserved. 1.
+  * Byte 3: Statement Polling. 1.
+  * Byte 4: CCI_PCONNECT. 0.
+  * Byte 5: Protocol Version.
+  * Byte 6: Function Flag.
+  * Byte 7: Reserved. 0.
+  * Byte 8: Reserved. 0.
+  * */
+  const brokerInfo = parser._parseBytes(DATA_TYPES.BROKER_INFO_SIZEOF);
+
+  logger.debug('OpenDatabasePacket: brokerInfo', brokerInfo);
+
+  const protocolVersion = CAS.getProtocolVersion(brokerInfo[4]);
+  logger.debug('OpenDatabasePacket: protocolVersion', protocolVersion);
+
+  // Freeze the object, i.e. make it immutable.
+  this.brokerInfo = Object.freeze({
+    dbType: brokerInfo[0],
+    protocolVersion,
+    statementPolling: brokerInfo[2],
+  });
+
+  // Unique session ID.
+  this.sessionId = parser._parseInt();
 };
 
 OpenDatabasePacket.prototype.getBufferLength = function () {
-	var bufferLength =
+	const bufferLength =
 			// Fixed database length +
 			// User login ID +
 			// User login password.
@@ -74,3 +89,5 @@ OpenDatabasePacket.prototype.getBufferLength = function () {
 
 	return bufferLength;
 };
+
+module.exports = OpenDatabasePacket;

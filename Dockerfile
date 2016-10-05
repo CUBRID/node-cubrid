@@ -1,7 +1,7 @@
 # This is a Dockerfile to build an image for running
 # node-cubrid tests.
 
-FROM node:0.10
+FROM node:4.5.0
 
 MAINTAINER Esen Sagynov <kadishmal@gmail.com>
 
@@ -12,7 +12,7 @@ WORKDIR /node-cubrid
 # Update the OS before installing prerequisites.
 RUN apt-get update
 
-# Install Ruby prerequisites.
+# Install Ruby prerequisites. Necessary to run Chef.
 RUN apt-get install -y build-essential zlib1g-dev libssl-dev libreadline6-dev libyaml-dev wget ssl-cert libffi6 libffi-dev
 
 # Install Chef Solo prerequisites.

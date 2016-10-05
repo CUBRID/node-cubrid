@@ -1,417 +1,470 @@
-var Net = require('net'),
-		EventEmitter = require('events').EventEmitter,
-		Util = require('util'),
+'use strict';
 
-		ErrorMessages = require('./constants/ErrorMessages'),
-		DATA_TYPES = require('./constants/DataTypes'),
-		CASConstants = require('./constants/CASConstants'),
+const Net = require('net');
+const EventEmitter = require('events').EventEmitter;
+const Util = require('util');
 
-		ActionQueue = require('./utils/ActionQueue'),
-		Helpers = require('./utils/Helpers'),
-		Cache = require('./utils/Cache'),
+const ErrorMessages = require('./constants/ErrorMessages');
+const DATA_TYPES = require('./constants/DataTypes');
+const CASConstants = require('./constants/CASConstants');
 
-		Query = require('./query/Query'),
-		Queue = require('./query/Queue'),
-
-		PacketReader = require('./packets/PacketReader'),
-		PacketWriter = require('./packets/PacketWriter'),
-		ClientInfoExchangePacket = require('./packets/ClientInfoExchangePacket'),
-		OpenDatabasePacket = require('./packets/OpenDatabasePacket'),
-		GetEngineVersionPacket = require('./packets/GetEngineVersionPacket'),
-		ExecuteQueryPacket = require('./packets/ExecuteQueryPacket'),
-		GetSchemaPacket = require('./packets/GetSchemaPacket.js'),
-		CloseQueryPacket = require('./packets/CloseQueryPacket'),
-		BatchExecuteNoQueryPacket = require('./packets/BatchExecuteNoQueryPacket'),
-		CloseDatabasePacket = require('./packets/CloseDatabasePacket'),
-		FetchPacket = require('./packets/FetchPacket'),
-		SetAutoCommitModePacket = require('./packets/SetAutoCommitModePacket'),
-		RollbackPacket = require('./packets/RollbackPacket'),
-		CommitPacket = require('./packets/CommitPacket'),
-		LOBReadPacket = require('./packets/LOBReadPacket'),
-		LOBNewPacket = require('./packets/LOBNewPacket'),
-		LOBWritePacket = require('./packets/LOBWritePacket'),
-		SetDbParameterPacket = require('./packets/SetDbParameterPacket'),
-		GetDbParameterPacket = require('./packets/GetDbParameterPacket'),
-		PrepareExecuteOldProtocolPacket = require('./packets/PrepareExecuteOldProtocolPacket');
-
-if (typeof Buffer.concat !== 'function') {
-	// `Buffer.concat` is available since node 0.8.x.
-	// If it's not available, define it. This source code is taken
-	// from node's core source.
-	Buffer.concat = function(list, length) {
-		if (!Array.isArray(list)) {
-			throw new TypeError('Usage: Buffer.concat(list, [length])');
-		}
-
-		if (list.length === 0) {
-			return new Buffer(0);
-		} else if (list.length === 1) {
-			return list[0];
-		}
-
-		if (typeof length !== 'number') {
-			length = 0;
-			for (var i = 0; i < list.length; i++) {
-				var buf = list[i];
-				length += buf.length;
-			}
-		}
-
-		var buffer = new Buffer(length);
-		var pos = 0;
-		for (var i = 0; i < list.length; i++) {
-			var buf = list[i];
-			buf.copy(buffer, pos);
-			pos += buf.length;
-		}
-		return buffer;
-	};
-}
-
-module.exports = CUBRIDConnection;
-
-// Support custom events
-Util.inherits(CUBRIDConnection, EventEmitter);
+const Helpers = require('./utils/Helpers');
+const NoopLogger = require('./NoopLogger');
+const Query = require('./query/Query');
+const Queue = require('./query/Queue');
+const PacketReader = require('./packets/PacketReader');
+const PacketWriter = require('./packets/PacketWriter');
+const ClientInfoExchangePacket = require('./packets/ClientInfoExchangePacket');
+const OpenDatabasePacket = require('./packets/OpenDatabasePacket');
+const GetEngineVersionPacket = require('./packets/GetEngineVersionPacket');
+const ExecuteQueryPacket = require('./packets/ExecuteQueryPacket');
+const GetSchemaPacket = require('./packets/GetSchemaPacket.js');
+const CloseQueryPacket = require('./packets/CloseQueryPacket');
+const BatchExecuteNoQueryPacket = require('./packets/BatchExecuteNoQueryPacket');
+const CloseDatabasePacket = require('./packets/CloseDatabasePacket');
+const FetchPacket = require('./packets/FetchPacket');
+const RollbackPacket = require('./packets/RollbackPacket');
+const CommitPacket = require('./packets/CommitPacket');
+const LOBReadPacket = require('./packets/LOBReadPacket');
+const LOBNewPacket = require('./packets/LOBNewPacket');
+const LOBWritePacket = require('./packets/LOBWritePacket');
+const SetDbParameterPacket = require('./packets/SetDbParameterPacket');
+const GetDbParameterPacket = require('./packets/GetDbParameterPacket');
+const PrepareExecutePacket = require('./packets/PrepareExecutePacket');
 
 /**
  * Create a new CUBRID connection instance
- * @param brokerServer
- * @param brokerPort
+ * @param hosts
+ * @param port
  * @param user
  * @param password
  * @param database
- * @param cacheTimeout
  * @param connectionTimeout
+ * @param maxConnectionRetryCount
+ * @param logger
  * @constructor
  */
-function CUBRIDConnection(brokerServer, brokerPort, user, password, database, cacheTimeout, connectionTimeout) {
+function CUBRIDConnection(hosts, port, user, password, database, connectionTimeout, maxConnectionRetryCount, logger) {
   // Using EventEmitter.call on an object will do the setup of instance methods / properties
   // (not inherited) of an EventEmitter.
   // It is similar in purpose to super(...) in Java or base(...) in C#, but it is not implicit in Javascript.
   // Because of this, we must manually call it ourselves:
   EventEmitter.call(this);
 
-	// Allow to pass connection parameters as an object.
-	if (typeof brokerServer === 'object') {
-		brokerPort = brokerServer.port;
-		user = brokerServer.user;
-		password = brokerServer.password;
-		database = brokerServer.database;
-		cacheTimeout = brokerServer.cacheTimeout;
-		connectionTimeout = brokerServer.connectionTimeout;
-		brokerServer = brokerServer.host;
-	}
+  // Allow to pass the connection parameters as an object.
+  if (typeof hosts === 'object' && !Array.isArray(hosts)) {
+    port = hosts.port;
+    user = hosts.user;
+    password = hosts.password;
+    database = hosts.database;
+    connectionTimeout = hosts.connectionTimeout;
+    maxConnectionRetryCount = hosts.maxConnectionRetryCount;
+    logger = hosts.logger;
+    // Allow users to specify a single host via `host`
+    // or multiple hosts as `hosts` array.
+    hosts = hosts.host || hosts.hosts;
+  }
 
-	// `cacheTimeout` is provided in milliseconds, but the `Cache` class requires seconds.
-  this._queryCache = cacheTimeout && cacheTimeout > 0 ? new Cache(cacheTimeout / 1000) : null;
+  if (!Array.isArray(hosts)) {
+    hosts = [hosts];
+  }
 
   // Connection parameters
-  this.brokerServer = brokerServer || 'localhost';
-  this.initialBrokerPort = brokerPort || 33000;
   this.connectionBrokerPort = -1;
+  this.connectionRetryCount = 0;
+  this.maxConnectionRetryCount = maxConnectionRetryCount || 1;
+  this.currentHostIndex = 0;
+  const defaultPort = port || 33000;
+
+  this.hosts = hosts.map(hostPort => {
+    !hostPort && (hostPort = 'localhost');
+
+    // Allow to provide custom ports for each host.
+    let ix = hostPort.indexOf(':');
+    let host;
+    let port;
+
+    if (ix > -1) {
+      host = hostPort.substr(0, ix);
+      port = hostPort.substr(ix);
+    } else {
+      // If port is not specified with the hostname,
+      // use the default port.
+      host = hostPort;
+      port = defaultPort;
+    }
+
+    return {
+      host,
+      port,
+    };
+  });
+
   this.user = user || 'public';
   this.password = password || '';
   this.database = database || 'demodb';
-	// Connection timeout in milliseconds.
-	this._CONNECTION_TIMEOUT = connectionTimeout || 0;
+  // Connection timeout in milliseconds.
+  this.connectionTimeout = connectionTimeout || 0;
+  this.logger = typeof logger === 'object' ? logger : new NoopLogger();
 
   // Session public variables
-  this.autoCommitMode = null; // Will be initialized on connect
+  this.autoCommitMode = true;
   this.sessionId = 0;
 
   // Execution semaphore variables; prevent double-connect-attempts, overlapping-queries etc.
   this.connectionOpened = false;
   this.connectionPending = false;
 
-  // Driver events
-  this.EVENT_ERROR = 'error';
-  this.EVENT_CONNECTED = 'connect';
-  this.EVENT_ENGINE_VERSION_AVAILABLE = 'engine version';
-  this.EVENT_BATCH_COMMANDS_COMPLETED = 'batch execute done';
-  this.EVENT_QUERY_DATA_AVAILABLE = 'query data';
-  this.EVENT_SCHEMA_DATA_AVAILABLE = 'schema data';
-  this.EVENT_FETCH_DATA_AVAILABLE = 'fetch';
-  this.EVENT_FETCH_NO_MORE_DATA_AVAILABLE = 'fetch done';
-  this.EVENT_BEGIN_TRANSACTION = 'begin transaction';
-  this.EVENT_SET_AUTOCOMMIT_MODE_COMPLETED = 'set autocommit mode';
-  this.EVENT_COMMIT_COMPLETED = 'commit';
-  this.EVENT_ROLLBACK_COMPLETED = 'rollback';
-  this.EVENT_QUERY_CLOSED = 'close query';
-  this.EVENT_CONNECTION_CLOSED = 'close';
-  this.EVENT_CONNECTION_DISCONNECTED = 'disconnect';
-  this.EVENT_LOB_READ_COMPLETED = 'LOB read completed';
-  this.EVENT_LOB_NEW_COMPLETED = 'LOB new completed';
-  this.EVENT_LOB_WRITE_COMPLETED = 'LOB write completed';
-  this.EVENT_SET_DB_PARAMETER_COMPLETED = 'set db parameter completed';
-  this.EVENT_GET_DB_PARAMETER_COMPLETED = 'get db parameter completed';
-
   // Auto-commit constants
   this.AUTOCOMMIT_ON = true;
   this.AUTOCOMMIT_OFF = !this.AUTOCOMMIT_ON;
 
-  // Database schema variables
-  this.SCHEMA_TABLE = CASConstants.CUBRIDSchemaType.CCI_SCH_CLASS;
-  this.SCHEMA_VIEW = CASConstants.CUBRIDSchemaType.CCI_SCH_VCLASS;
-  this.SCHEMA_ATTRIBUTE = CASConstants.CUBRIDSchemaType.CCI_SCH_ATTRIBUTE;
-  this.SCHEMA_CONSTRAINT = CASConstants.CUBRIDSchemaType.CCI_SCH_CONSTRAIT;
-  this.SCHEMA_PRIMARY_KEY = CASConstants.CUBRIDSchemaType.CCI_SCH_PRIMARY_KEY;
-  this.SCHEMA_IMPORTED_KEYS = CASConstants.CUBRIDSchemaType.CCI_SCH_IMPORTED_KEYS;
-  this.SCHEMA_EXPORTED_KEYS = CASConstants.CUBRIDSchemaType.CCI_SCH_EXPORTED_KEYS;
-  this.SCHEMA_CLASS_PRIVILEGE = CASConstants.CUBRIDSchemaType.CCI_SCH_CLASS_PRIVILEGE;
-
-  // LOB types variables
-  this.LOB_TYPE_BLOB = CASConstants.CUBRIDDataType.CCI_U_TYPE_BLOB;
-  this.LOB_TYPE_CLOB = CASConstants.CUBRIDDataType.CCI_U_TYPE_CLOB;
-
   this._CASInfo = [0, 0xFF, 0xFF, 0xFF];
-  this._queriesPacketList = [];
+  this._queryResultSets = {};
   this._INVALID_RESPONSE_LENGTH = -1;
   this._LOB_MAX_IO_LENGTH = 128 * 1024;
 
-  // Database engine version
-  this._DB_ENGINE_VER = '';
-
   // Enforce query execution using the old protocol.
-	// One would enforce the old protocol when trying to connect
-	// to CUBRID SHARD Broker version 8.4.3 and 9.1.0.
-	// On later versions of CUBRID SHARD Broker (8.4.4+, 9.2.0+)
-	// users can use the default newer protocol.
+  // One would enforce the old protocol when trying to connect
+  // to CUBRID SHARD Broker version 8.4.3 and 9.1.0.
+  // On later versions of CUBRID SHARD Broker (8.4.4+, 9.2.0+)
+  // users can use the default newer protocol.
   this._ENFORCE_OLD_QUERY_PROTOCOL = false;
 
-	this._queue = new Queue();
-
-  // Used for standard callbacks 'err' parameter
-  this._NO_ERROR = null;
+  // SQL queries queue.
+  this._queue = new Queue();
 }
+
+// Support custom events
+Util.inherits(CUBRIDConnection, EventEmitter);
 
 /**
  * Get broker connection port
- * @param callback
  * @private
  */
-CUBRIDConnection.prototype._doGetBrokerPort = function (callback) {
-  var clientInfoExchangePacket = new ClientInfoExchangePacket(),
-		  packetWriter = new PacketWriter(clientInfoExchangePacket.getBufferLength()),
-		  self = this,
-		  socket = this._socket = Net.createConnection(this.initialBrokerPort, this.brokerServer);
+function _doGetBrokerPort() {
+  this.logger.debug(`_doGetBrokerPort: connectionRetryCount = ${this.connectionRetryCount}.`);
 
-  socket.setNoDelay(true);
-  socket.setTimeout(this._CONNECTION_TIMEOUT);
+  return new Promise((resolve, reject) => {
+    const clientInfoExchangePacket = new ClientInfoExchangePacket();
+    const packetWriter = new PacketWriter(clientInfoExchangePacket.getBufferLength());
 
-  clientInfoExchangePacket.write(packetWriter);
+    const hostInfo = this.hosts[this.currentHostIndex];
 
-	this._setSocketTimeoutErrorListeners(callback);
+    const socket = this._socket = Net.createConnection(hostInfo.port, hostInfo.host);
 
-  socket.once('data', function (data) {
-	  // Clear connection timeout
-	  this.setTimeout(0);
-	  this.removeAllListeners('timeout')
-			  .removeAllListeners('data');
+    socket.setNoDelay(true);
+    socket.setTimeout(this.getConnectionTimeout());
 
-    var packetReader = new PacketReader();
-    packetReader.write(data);
-    clientInfoExchangePacket.parse(packetReader);
+    clientInfoExchangePacket.write(packetWriter);
 
-	  var newPort = clientInfoExchangePacket.newConnectionPort;
+    let callback = (err) => {
+      if (err) {
+        this.logger.debug(`_doGetBrokerPort error`, err.message);
 
-    self.connectionBrokerPort = newPort;
+        // If connection has failed, we need to try to connect to the next
+        // broker.
+        if (err.message.indexOf(ErrorMessages.ERROR_CONNECTION_TIMEOUT) > -1 ||
+            err.message.indexOf('ECONNREFUSED') > -1) {
+          // Check if we have any more hosts left to try connecting.
+          if (++this.currentHostIndex < this.hosts.length) {
+            // Try the next host.
+            return resolve(_doGetBrokerPort.call(this));
+          }
 
-	  if (newPort != 0) {
-      socket.end();
-    }
+          // We have already tried all hosts.
+          // Try again from the beginning `maxConnectionRetryCount` times.
+          if (++this.connectionRetryCount <= this.maxConnectionRetryCount) {
+            this.currentHostIndex = 0;
 
-	  if (newPort > -1) {
-      callback();
-    } else {
+            return resolve(_doGetBrokerPort.call(this));
+          }
+        }
+
+        return reject(err);
+      }
+
+      // Reset the retry counter on successful connection.
+      this.connectionRetryCount = 0;
+      this.logger.debug(`_doGetBrokerPort: connected to ${hostInfo.host}:${hostInfo.port}.`);
+
+      resolve();
+    };
+
+    _setSocketTimeoutErrorListeners.call(this, callback);
+
+    socket.once('data', (data) => {
+      // Clear connection timeout
+      socket.setTimeout(0);
+      socket
+          .removeAllListeners('timeout')
+          .removeAllListeners('data');
+
+      const packetReader = new PacketReader();
+
+      packetReader.write(data);
+
+      clientInfoExchangePacket.parse(packetReader);
+
+      const newPort = clientInfoExchangePacket.newConnectionPort;
+
+      this.logger.debug(`_doGetBrokerPort: newPort = ${newPort}`);
+
+      this.connectionBrokerPort = newPort;
+
+      if (newPort !== 0) {
+        // If the new port is not `0`, i.e. it has changed, we need
+        // to close the current socket. The new socket will be open
+        // in `_doDatabaseLogin()`.
+        // If it is `0`, we will keep using this same socket.
+        socket.end();
+      }
+
+      if (newPort > -1) {
+        return callback();
+      }
+
+      // If the `newPort` value is negative, it means
+      // an error has occurred.
       callback(new Error(ErrorMessages.ERROR_NEW_BROKER_PORT));
+    });
+
+    socket.write(packetWriter._buffer);
+  });
+}
+
+function _setSocketTimeoutErrorListeners(callback) {
+  const socket = this._socket;
+
+  this.logger.debug('_setSocketTimeoutErrorListeners');
+
+  socket.on('timeout', () => {
+    // The `timeout` event listener is a one time only event.
+    // Refer to http://nodejs.org/api/net.html#net_socket_settimeout_timeout_callback.
+
+    // `timeout` is emitted (without an error message), if the socket
+    // times out from inactivity. This is only to notify that the
+    // socket has been idle. That's why we must manually close the
+    // connection.
+    // We need to force disconnection using `destroy()` function
+    // which will ensure that no more I/O activity happens on this
+    // socket. In contrast, `end()` function doesn't close the
+    // connection immediately; the server may still send some data,
+    // which we don't want.
+    socket.destroy();
+
+    this.connectionOpened = false;
+
+    callback(new Error(ErrorMessages.ERROR_CONNECTION_TIMEOUT));
+  });
+
+  this._socketCurrentEventCallback = callback;
+
+  socket.on('error', (err) => {
+    this.logger.debug('socket error', err);
+    // As of node 0.10.15 there is a known open bug in Node.js
+    // (https://github.com/joyent/node/issues/5851)
+    // which escalates the stream write error to the network socket,
+    // thus the same error is triggered twice. To handle this case,
+    // we need to catch only the first of the two events and ignore
+    // the second one. Since the same error object is escalated, we
+    // can set a boolean flag whether or not this error has been
+    // handled by node-cubrid.
+    if (!err.isHandledByNodeCubrid) {
+      err.isHandledByNodeCubrid = true;
+      socket.setTimeout(0);
+      socket.removeAllListeners('timeout')
+          .removeAllListeners('data');
+
+      // When `error` event is emitted, the socket client gets automatically
+      // closed. So, no need to close it manually.
+      this.connectionOpened = false;
+
+      const callback = this._socketCurrentEventCallback;
+      this._socketCurrentEventCallback = undefined;
+
+      if (typeof callback === 'function') {
+        callback(err);
+      } else {
+        throw err;
+      }
     }
   });
 
-	socket.write(packetWriter._buffer);
-};
+  socket.on('close', () => {
+    this.logger.debug('socket close');
+    this.connectionOpened = false;
 
-CUBRIDConnection.prototype._setSocketTimeoutErrorListeners = function (callback) {
-	var self = this,
-			socket = this._socket;
-
-	socket.on('timeout', function () {
-		// The `timeout` event listener is a one time only event.
-		// Refer to http://nodejs.org/api/net.html#net_socket_settimeout_timeout_callback.
-
-		// `timeout` is emitted (without an error message), if the socket
-		// times out from inactivity. This is only to notify that the
-		// socket has been idle. That's why we must manually close the
-		// connection.
-		// We need to force disconnection using `destroy()` function
-		// which will ensure that no more I/O activity happens on this
-		// socket. In contrast, `end()` function doesn't close the
-		// connection immediately; the server may still send some data,
-		// which we don't want.
-		socket.destroy();
-
-		self.connectionOpened = false;
-
-		callback(new Error(ErrorMessages.ERROR_CONNECTION_TIMEOUT));
-	});
-
-	this._socketCurrentEventCallback = callback;
-
-	socket.on('error', function (err) {
-		// As of node 0.10.15 there is a known open bug in Node.js
-		// (https://github.com/joyent/node/issues/5851)
-		// which escalates the stream write error to the network socket,
-		// thus the same error is triggered twice. To handle this case,
-		// we need to catch only the first of the two events and ignore
-		// the second one. Since the same error object is escalated, we
-		// can set a boolean flag whether or not this error has been
-		// handled by node-cubrid.
-		if (!err.isHandledByNodeCubrid) {
-			err.isHandledByNodeCubrid = true;
-			this.setTimeout(0);
-			this.removeAllListeners('timeout')
-					.removeAllListeners('data');
-
-			// When `error` event is emitted, the socket client gets automatically
-			// closed. So, no need to close it manually.
-			self.connectionOpened = false;
-
-			if (typeof self._socketCurrentEventCallback === 'function') {
-				self._socketCurrentEventCallback(err);
-				self._socketCurrentEventCallback = null;
-			} else {
-				throw err;
-			}
-		}
-	});
-
-	socket.on('end', function () {
-		self.connectionOpened = false;
-
-		// Since node-cubrid supports reconnecting to the disconnected
-		// server, we do not consider socket disconnection by server
-		// as a fatal error. However, if anybody is listening for the
-		// disconnect event, we are eager to notify them.
-		if (self.listeners(self.EVENT_CONNECTION_DISCONNECTED).length > 0) {
-			self.emit(self.EVENT_CONNECTION_DISCONNECTED);
-		}
-	});
-};
+    // Since node-cubrid supports reconnecting to the disconnected
+    // server, we do not consider socket disconnection by server
+    // as a fatal error. However, if anybody is listening for the
+    // disconnect event, we are eager to notify them.
+    this.emit('disconnect');
+  });
+}
 
 /**
  * Login to a database
- * @param callback
  * @private
  */
-CUBRIDConnection.prototype._doDatabaseLogin = function (callback) {
-	var socket;
+function _doDatabaseLogin() {
+  this.logger.debug(`_doDatabaseLogin: connectionBrokerPort = ${this.connectionBrokerPort}`);
 
-	if (this.connectionBrokerPort) {
-		socket = this._socket = Net.createConnection(this.connectionBrokerPort, this.brokerServer);
+  return new Promise((resolve, reject) => {
+    let socket;
 
-		socket.setNoDelay(true);
-		socket.setTimeout(this._CONNECTION_TIMEOUT);
+    let callback = (err) => {
+      // Clear connection timeout
+      socket.setTimeout(0);
+      socket.removeAllListeners('timeout');
 
-		this._setSocketTimeoutErrorListeners(callback);
-	} else {
-		socket = this._socket;
-	}
+      if (err) {
+        return reject(err);
+      }
 
-  var openDatabasePacket = new OpenDatabasePacket({
-		    database : this.database,
-		    user     : this.user,
-		    password : this.password,
-		    casInfo  : this._CASInfo
-		  }),
-		  packetWriter = new PacketWriter(openDatabasePacket.getBufferLength());
+      resolve();
+    };
 
-  openDatabasePacket.write(packetWriter);
+    if (this.connectionBrokerPort) {
+      // The broker port has changed, so we need to create
+      // a new socket connection.
+      socket = this._socket = Net.createConnection(this.connectionBrokerPort, this.host);
 
-	socket.on('data', this._receiveBytes({
-	  parserFunction: this._parseDatabaseLoginBuffer,
-	  dataPacket: openDatabasePacket
-  }, callback));
+      socket.setNoDelay(true);
+      socket.setTimeout(this.getConnectionTimeout());
 
-	socket.write(packetWriter._buffer);
-};
+      _setSocketTimeoutErrorListeners.call(this, callback);
+    } else {
+      // The broker port has not been changed. We can reuse the socket.
+      socket = this._socket;
+    }
+
+    let openDatabasePacket = new OpenDatabasePacket({
+      database: this.database,
+      user: this.user,
+      password: this.password,
+      logger: this.logger
+    });
+    const packetWriter = new PacketWriter(openDatabasePacket.getBufferLength());
+
+    openDatabasePacket.write(packetWriter);
+
+    socket.on('data', _receiveBytes.call(this, {
+      parserFunction: _parseDatabaseLoginBuffer.bind(this),
+      dataPacket: openDatabasePacket
+    }, callback));
+
+    socket.write(packetWriter._buffer);
+  });
+}
 
 /**
  * Get the server database engine version
- * @param callback
  */
-CUBRIDConnection.prototype._getEngineVersion = function (callback) {
-  var getEngineVersionPacket = new GetEngineVersionPacket({
-	      casInfo : this._CASInfo
-	    }),
-		  packetWriter = new PacketWriter(getEngineVersionPacket.getBufferLength()),
-		  socket = this._socket;
+function _getEngineVersion() {
+  this.logger.debug('_getEngineVersion');
 
-  getEngineVersionPacket.write(packetWriter);
+  return new Promise((resolve, reject) => {
+    let getEngineVersionPacket = new GetEngineVersionPacket({
+      casInfo : this._CASInfo
+    });
+    const packetWriter = new PacketWriter(getEngineVersionPacket.getBufferLength());
+    const socket = this._socket;
 
-	this._socketCurrentEventCallback = callback;
+    getEngineVersionPacket.write(packetWriter);
 
-  socket.on('data', this._receiveBytes({
-	  parserFunction: this._parseEngineVersionBuffer,
-	  dataPacket: getEngineVersionPacket
-  }, callback));
+    let callback = (err, engineVersion) => {
+      if (err) {
+        return reject(err);
+      }
 
-	socket.write(packetWriter._buffer);
-};
+      resolve(engineVersion);
+    };
+
+    this._socketCurrentEventCallback = callback;
+
+    socket.on('data', _receiveBytes.call(this, {
+      parserFunction: _parseEngineVersionBuffer.bind(this),
+      dataPacket: getEngineVersionPacket
+    }, callback));
+
+    socket.write(packetWriter._buffer);
+  });
+}
 
 /**
  * Connect to database
  * @param callback
  */
-CUBRIDConnection.prototype.connect = function (callback) {
-  var self = this,
-		  err = this._NO_ERROR;
+CUBRIDConnection.prototype.getActiveHost = function (callback) {
+  return this
+      .connect()
+      .then(() => {
+        const host = Object.freeze(this.hosts[this.currentHostIndex]);
 
-  if (this.connectionOpened === true) {
-    err = new Error(ErrorMessages.ERROR_CONNECTION_ALREADY_OPENED);
-    Helpers._emitEvent(this, err, this.EVENT_ERROR);
+        if (typeof callback === 'function') {
+          return callback(undefined, host);
+        }
 
-	  if (typeof(callback) === 'function') {
-      callback(err);
-    }
+        return Promise.resolve(host);
+      })
+      .catch(err => {
+        if (typeof callback === 'function') {
+          return callback(err);
+        }
 
-    return;
-  }
-
-  if (this.connectionPending === true) {
-    err = new Error(ErrorMessages.ERROR_CONNECTION_ALREADY_PENDING);
-    Helpers._emitEvent(this, err, this.EVENT_ERROR, null);
-
-	  if (typeof(callback) === 'function') {
-      callback(err);
-    }
-
-	  return;
-  }
-
-  this.connectionPending = true;
-
-  ActionQueue.enqueue([
-    this._doGetBrokerPort.bind(this),
-    this._doDatabaseLogin.bind(this),
-	  this._getEngineVersion.bind(this)
-  ], function (err) {
-	    // Reset query execution status
-      self.connectionPending = false;
-      self.connectionOpened = !(typeof err !== 'undefined' && err !== null);
-      Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_CONNECTED);
-
-		  if (typeof(callback) === 'function') {
-        callback(err);
-      }
-    }
-  );
+        throw err;
+      });
 };
+/**
+ * Connect to database
+ * @param callback
+ */
+CUBRIDConnection.prototype.connect = function (callback) {
+  this.logger.debug(`connect with timeout = ${this.connectionTimeout} ms.`);
+  
+  return new Promise((resolve, reject) => {
+    if (this.connectionOpened) {
+      if (typeof callback === 'function') {
+        return callback();
+      }
 
-CUBRIDConnection.prototype._implyConnect = function(cb) {
-	if (this.connectionOpened) {
-		process.nextTick(cb);
-	} else {
-		this.connect(cb);
-	}
+      return resolve();
+    }
+
+    if (this.connectionPending) {
+      let err = new Error(ErrorMessages.ERROR_CONNECTION_ALREADY_PENDING);
+
+      if (typeof callback === 'function') {
+        return callback(err);
+      }
+
+      return reject(err);
+    }
+
+    this.connectionPending = true;
+
+    let cb = (err) => {
+      // Reset query execution status
+      this.connectionPending = false;
+      this.connectionOpened = typeof err === 'undefined';
+
+      if (typeof callback === 'function') {
+        return callback(err);
+      }
+
+      if (err) {
+        return reject(err);
+      }
+
+      resolve();
+    };
+
+    _doGetBrokerPort.call(this)
+        .then(_doDatabaseLogin.bind(this))
+        .then(cb)
+        .catch(cb);
+  });
 };
 
 /**
@@ -419,19 +472,23 @@ CUBRIDConnection.prototype._implyConnect = function(cb) {
  * @param callback
  */
 CUBRIDConnection.prototype.getEngineVersion = function (callback) {
-	var self = this;
+  return this
+      .connect()
+      .then(_getEngineVersion.bind(this))
+      .then(version => {
+        if (typeof callback === 'function') {
+          return callback(undefined, version);
+        }
 
-	Helpers._emitEvent(this, this._NO_ERROR, this.EVENT_ERROR, this.EVENT_ENGINE_VERSION_AVAILABLE, this._DB_ENGINE_VER);
+        return Promise.resolve(version);
+      })
+      .catch(err => {
+        if (typeof callback === 'function') {
+          return callback(err);
+        }
 
-	if (typeof(callback) === 'function') {
-		// Support asynchronous call for backward compatibility.
-		process.nextTick(function () {
-			callback(self._NO_ERROR, self._DB_ENGINE_VER);
-		});
-	}
-
-	// Support synchronous call.
-	return this._DB_ENGINE_VER;
+        throw err;
+      });
 };
 
 /**
@@ -440,809 +497,856 @@ CUBRIDConnection.prototype.getEngineVersion = function (callback) {
  * @param callback
  */
 CUBRIDConnection.prototype.batchExecuteNoQuery = function (sqls, callback) {
-	var self = this,
-			query = new Query(null, callback);
+  return new Promise((resolve, reject) => {
+    this._queue.push(done => {
+      this.logger.debug('batchExecuteNoQuery', sqls);
 
-	this._queue.push(function (done) {
-		self._batchExecuteNoQuery(sqls, function (err) {
-			query.callback(err);
-			done();
-		});
-	});
-};
+      this.connect()
+          .then(() => {
+            return _batchExecuteNoQuery.call(this, sqls);
+          })
+          .then(() => {
+            done();
 
-CUBRIDConnection.prototype._batchExecuteNoQuery = function (sqls, callback) {
-  var err = this._NO_ERROR,
-		  self = this;
+            if (typeof callback === 'function') {
+              return callback();
+            }
 
-  if (Array.isArray(sqls)) {
-    if (!sqls.length) {
-      // No commands to execute
-      Helpers._emitEvent(this, err, this.EVENT_ERROR, this.EVENT_BATCH_COMMANDS_COMPLETED);
+            resolve();
+          })
+          .catch(err => {
+            done();
 
-      if (typeof(callback) === 'function') {
-        callback(err);
-      }
+            if (typeof callback === 'function') {
+              return callback(err);
+            }
 
-      return;
-    }
-  } else {
-    sqls = [sqls];
-  }
-
-  ActionQueue.enqueue([
-    this._implyConnect.bind(this),
-    function (cb) {
-      var batchExecuteNoQueryPacket = new BatchExecuteNoQueryPacket({
-	          SQLs           : sqls,
-	          casInfo        : self._CASInfo,
-	          autoCommitMode : self.autoCommitMode,
-	          dbVersion      : self._DB_ENGINE_VER
-	        }),
-		      packetWriter = new PacketWriter(batchExecuteNoQueryPacket.getBufferLength()),
-		      socket = self._socket;
-
-      batchExecuteNoQueryPacket.write(packetWriter);
-
-	    self._socketCurrentEventCallback = cb;
-
-      socket.on('data', self._receiveBytes({
-	      parserFunction: self._parseBatchExecuteBuffer,
-	      dataPacket: batchExecuteNoQueryPacket
-      }, cb));
-
-	    socket.write(packetWriter._buffer);
-    }
-  ], function (err) {
-    Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_BATCH_COMMANDS_COMPLETED);
-
-    if (typeof(callback) === 'function') {
-      callback(err);
-    }
+            return reject(err);
+          });
+    });
   });
 };
 
-// ## client.execute(sql, callback);
+function _batchExecuteNoQuery(sqls) {
+  if (!Array.isArray(sqls)) {
+    sqls = [sqls]
+  }
+
+  if (!sqls.length) {
+    return;
+  }
+
+  return new Promise((resolve, reject) => {
+    const batchExecuteNoQueryPacket = new BatchExecuteNoQueryPacket({
+      autoCommit: this.autoCommitMode,
+      casInfo: this._CASInfo,
+      logger: this.logger,
+      protocolVersion: this.brokerInfo.protocolVersion,
+      sqls,
+    });
+    const packetWriter = new PacketWriter(batchExecuteNoQueryPacket.getBufferLength());
+    const socket = this._socket;
+
+    batchExecuteNoQueryPacket.write(packetWriter);
+
+    let callback = (err) => {
+      // Propagate the error.
+      if (err) {
+        return reject(err);
+      }
+
+      resolve();
+    };
+
+    this._socketCurrentEventCallback = callback;
+
+    socket.on('data', _receiveBytes.call(this, {
+      parserFunction: _parseBatchExecuteBuffer.bind(this),
+      dataPacket: batchExecuteNoQueryPacket
+    }, callback));
+
+    socket.write(packetWriter._buffer);
+  });
+}
+
+// ## client.execute(sql, params, callback);
 // `sql` is a string which represents a WRITE query or an array of strings
 // for batch processing.
 // `callback(err)` function accepts one argument: an error object if any.
-CUBRIDConnection.prototype.execute = function (sql, callback) {
-  if (this._ENFORCE_OLD_QUERY_PROTOCOL === true) {
-    return this.executeWithTypedParams(sql, null, null, callback);
-  } else {
-    return this.batchExecuteNoQuery(sql, callback);
+CUBRIDConnection.prototype.execute = function execute(sql, params, callback) {
+  const query = new Query(sql, params, callback);
+
+  this.logger.info('execute', query.sql);
+
+  if (this.shouldUseOldQueryProtocol()) {
+    return this.executeWithTypedParams(query.sql, undefined, undefined, query.callback);
   }
-};
 
-/**
- * Execute sql statement with parameters
- * @param sql
- * @param arrParamsValues
- * @param arrDelimiters
- * @param callback
- * @return {*}
- */
-CUBRIDConnection.prototype.executeWithParams = function (sql, arrParamsValues, arrDelimiters, callback) {
-  var formattedSQL = Helpers._sqlFormat(sql, arrParamsValues, arrDelimiters);
-  Helpers.logInfo('Formatted sql is: ' + formattedSQL);
-
-  return this.execute(formattedSQL, callback);
+  return this.batchExecuteNoQuery(query.sql, query.callback);
 };
 
 /**
  * Execute sql statement with typed parameters
  * @param sql
- * @param arrParamsValues
- * @param arrParamsDataTypes
+ * @param params
+ * @param dataTypes
  * @param callback
  * @return {*}
  */
-CUBRIDConnection.prototype.executeWithTypedParams = function (sql, arrParamsValues, arrParamsDataTypes, callback) {
-	var self = this,
-			query = new Query(null, callback);
+CUBRIDConnection.prototype.executeWithTypedParams = function (sql, params, dataTypes, callback) {
+  return new Promise((resolve, reject) => {
+    this._queue.push(done => {
+      this.logger.debug('executeWithTypedParams', sql, params, dataTypes);
 
-	this._queue.push(function (done) {
-		self._executeWithTypedParams(sql, arrParamsValues, arrParamsDataTypes, function (err) {
-			query.callback(err);
-			done();
-		});
-	});
-};
+      this.connect()
+          .then(() => {
+            return prepareExecute.call(this, sql, params, dataTypes);
+          })
+          .then(() => {
+            done();
 
-CUBRIDConnection.prototype._executeWithTypedParams = function (sql, arrParamsValues, arrParamsDataTypes, callback) {
-  var self = this;
+            if (typeof callback === 'function') {
+              return callback();
+            }
 
-  ActionQueue.enqueue([
-	  this._implyConnect.bind(this),
-    function (cb) {
-      var prepareExecuteOldProtocolPacket = new PrepareExecuteOldProtocolPacket({
-	          sql            : sql,
-	          casInfo        : self._CASInfo,
-	          autoCommitMode : self.autoCommitMode,
-	          dbVersion      : self._DB_ENGINE_VER,
-	          paramValues    : arrParamsValues,
-	          paramTypes     : arrParamsDataTypes
-	        }),
-		      packetWriter = new PacketWriter(prepareExecuteOldProtocolPacket.getPrepareBufferLength()),
-		      socket = self._socket;
+            resolve();
+          })
+          .catch(err => {
+            done();
 
-      prepareExecuteOldProtocolPacket.writePrepare(packetWriter);
+            if (typeof callback === 'function') {
+              return callback(err);
+            }
 
-	    self._socketCurrentEventCallback = cb;
-
-      socket.on('data', self._receiveBytes({
-	      parserFunction: self._parsePrepareBufferForOldProtocol,
-	      dropDataPacket: true,
-	      dataPacket: prepareExecuteOldProtocolPacket
-      }, cb));
-
-	    socket.write(packetWriter._buffer);
-    }
-  ], function (err) {
-    Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_BATCH_COMMANDS_COMPLETED);
-
-	  if (typeof(callback) === 'function') {
-      callback(err);
-    }
+            return reject(err);
+          });
+    });
   });
 };
 
-CUBRIDConnection.prototype._receiveBytes = function (options, cb) {
-	this._callback = cb;
-	this._parserOptions = options;
-	this._parserFunction = options.parserFunction;
-	this._totalBuffLength = 0;
-	this._buffArr = [];
-	this._expectedResponseLength = this._INVALID_RESPONSE_LENGTH;
+function prepareExecute(sql, paramValues, paramTypes) {
+  this.logger.debug('prepareExecute', sql, paramValues, paramTypes);
 
-	return this._receiveFirstBytes.bind(this);
+  return new Promise((resolve, reject) => {
+    if (Array.isArray(sql)) {
+      return reject(new Error(ErrorMessages.ERROR_MULTIPLE_QUERIES));
+    }
+
+    const prepareExecutePacket = new PrepareExecutePacket({
+      autoCommit: this.autoCommitMode,
+      casInfo: this._CASInfo,
+      logger: this.logger,
+      paramTypes,
+      paramValues,
+      protocolVersion: this.brokerInfo.protocolVersion,
+      sql,
+    });
+    const packetWriter = new PacketWriter(prepareExecutePacket.getPrepareBufferLength());
+    const socket = this._socket;
+
+    prepareExecutePacket.writePrepare(packetWriter);
+
+    let callback = (err, result, queryHandle) => {
+      if (err) {
+        return reject(err);
+      }
+
+      resolve(result ? {
+        queryHandle,
+        result,
+      } : undefined);
+    };
+
+    this._socketCurrentEventCallback = callback;
+
+    socket.on('data', _receiveBytes.call(this, {
+      parserFunction: _parsePrepareBufferForOldProtocol.bind(this),
+      dataPacket: prepareExecutePacket
+    }, callback));
+
+    socket.write(packetWriter._buffer);
+  });
+}
+
+function _receiveBytes(options, cb) {
+  this._callback = cb;
+  this._parserOptions = options;
+  this._parserFunction = options.parserFunction;
+  this._totalBuffLength = 0;
+  this._buffArr = [];
+  this._expectedResponseLength = this._INVALID_RESPONSE_LENGTH;
+
+  return _receiveFirstBytes.bind(this);
+}
+
+function _receiveFirstBytes(data) {
+  const socket = this._socket;
+
+  // Clear timeout if any.
+  socket.setTimeout(0);
+  socket.removeAllListeners('timeout');
+
+  this._totalBuffLength += data.length;
+  this._buffArr.push(data);
+
+  if (this._expectedResponseLength === this._INVALID_RESPONSE_LENGTH &&
+      this._totalBuffLength >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
+    let l = this._buffArr.length,
+        buff;
+
+    socket.pause();
+    socket.removeAllListeners('data');
+
+    if (l > 1) {
+      buff = Buffer.concat(this._buffArr, this._totalBuffLength);
+      // For later, use this already concatenated buffer.
+      // First empty the array: http://stackoverflow.com/a/1234337/556678.
+      this._buffArr.length = 0;
+      // Then push this buffer in.
+      this._buffArr.push(buff);
+    } else {
+      buff = this._buffArr[0];
+    }
+
+    this._expectedResponseLength = Helpers._getExpectedResponseLength(buff);
+
+    if (this._totalBuffLength < this._expectedResponseLength) {
+      socket.on('data', _receiveRemainingBytes.bind(this));
+      socket.resume();
+    } else {
+      socket.resume();
+      _parseBuffer.call(this);
+    }
+  }
+}
+
+function _receiveRemainingBytes(data) {
+  this._totalBuffLength += data.length;
+  this._buffArr.push(data);
+
+  // If we have received all the expected data, start parsing it.
+  if (this._totalBuffLength === this._expectedResponseLength) {
+    _parseBuffer.call(this);
+  }
+}
+
+function _parseBuffer() {
+  this._socket.removeAllListeners('data');
+
+  let packetReader = new PacketReader();
+  packetReader.write(Buffer.concat(this._buffArr, this._totalBuffLength));
+
+  this._parserFunction(packetReader);
+}
+
+function _parseBufferForNewProtocol(packetReader) {
+  const dataPacket = this._parserOptions.dataPacket;
+  const error = dataPacket.parse(packetReader);
+
+  if (error) {
+    return this._callback(error);
+  }
+
+  const queryHandle = dataPacket.queryHandle;
+
+  this._queryResultSets[queryHandle] = dataPacket;
+
+  this._callback(undefined, dataPacket.resultSet, queryHandle);
+}
+
+function _parsePrepareBufferForOldProtocol(packetReader) {
+  const dataPacket = this._parserOptions.dataPacket;
+
+  const error = dataPacket.parsePrepare(packetReader);
+
+  if (error) {
+    return this._callback(error);
+  }
+
+  _parseExecuteForOldProtocol.call(this);
+}
+
+function _parseExecuteForOldProtocol() {
+  const dataPacket = this._parserOptions.dataPacket;
+  const packetWriter = new PacketWriter(dataPacket.getExecuteBufferLength());
+  const socket = this._socket;
+
+  dataPacket.writeExecute(packetWriter);
+
+  this._socketCurrentEventCallback = this._callback;
+
+  socket.on('data', _receiveBytes.call(this, {
+    parserFunction: _parseExecuteBufferForOldProtocol.bind(this),
+    dropDataPacket: this._parserOptions.dropDataPacket,
+    dataPacket: dataPacket
+  }, this._callback));
+
+  socket.write(packetWriter._buffer);
+}
+
+function _parseExecuteBufferForOldProtocol(packetReader) {
+  const dataPacket = this._parserOptions.dataPacket;
+  const error = dataPacket.parseExecute(packetReader);
+
+  if (error) {
+    return this._callback(error);
+  }
+
+  const queryHandle = dataPacket.queryHandle;
+
+  if (dataPacket.resultSet) {
+    this._queryResultSets[queryHandle] = dataPacket;
+  }
+
+  this._callback(undefined, dataPacket.resultSet, queryHandle);
+}
+
+function _parseFetchBuffer(packetReader) {
+  const dataPacket = this._parserOptions.dataPacket;
+  const error = dataPacket.parse(packetReader, this._queryResultSets[this._parserOptions.queryHandle]);
+
+  this._callback(error, dataPacket.resultSet);
+}
+
+function _parseBatchExecuteBuffer(packetReader) {
+  const dataPacket = this._parserOptions.dataPacket;
+  // CAS error.
+  let error = dataPacket.parse(packetReader);
+
+  if (!error) {
+    // Individual SQL errors.
+    if (dataPacket.errors.length) {
+      error = dataPacket.errors;
+    }
+  }
+
+  this._callback(error);
+}
+
+function _parseDatabaseLoginBuffer(packetReader) {
+  const dataPacket = this._parserOptions.dataPacket;
+  const error = dataPacket.parse(packetReader);
+
+  if (!error) {
+    this._CASInfo = dataPacket.casInfo;
+    this.sessionId = dataPacket.sessionId;
+    this.brokerInfo = dataPacket.brokerInfo;
+    this.autoCommitMode = this.AUTOCOMMIT_ON;
+  }
+
+  this._callback(error);
+}
+
+function _parseEngineVersionBuffer(packetReader) {
+  const dataPacket = this._parserOptions.dataPacket;
+  const error = dataPacket.parse(packetReader);
+
+  this._callback(error, dataPacket.engineVersion);
+}
+
+function _parseCloseQueryBuffer(packetReader) {
+  const dataPacket = this._parserOptions.dataPacket;
+  const error = dataPacket.parse(packetReader);
+
+  this._callback(error);
+}
+
+function _parseCloseBuffer(packetReader) {
+  const dataPacket = this._parserOptions.dataPacket;
+  const error = dataPacket.parse(packetReader);
+
+  // Close internal socket connection.
+  this._socket.destroy();
+
+  this._callback(error);
+}
+
+function _parseResponseCodeBuffer(packetReader) {
+  const dataPacket = this._parserOptions.dataPacket;
+  const error = dataPacket.parse(packetReader);
+
+  this._callback(error);
+}
+
+function _parseGetSchemaBuffer(packetReader) {
+  const dataPacket = this._parserOptions.dataPacket;
+  const error = dataPacket.parseRequestSchema(packetReader);
+
+  if (error) {
+    return this._callback(error);
+  }
+  
+  _parseWriteFetchSchema.call(this);
+}
+
+function _parseWriteFetchSchema() {
+  let dataPacket = this._parserOptions.dataPacket,
+      packetWriter = new PacketWriter(dataPacket.getFetchSchemaBufferLength()),
+      socket = this._socket;
+
+  dataPacket.writeFetchSchema(packetWriter);
+
+  this._socketCurrentEventCallback = this._callback;
+
+  socket.on('data', _receiveBytes.call(this, {
+    parserFunction: _parseFetchSchemaBuffer.bind(this),
+    dataPacket: dataPacket
+  }, this._callback));
+
+  socket.write(packetWriter._buffer);
+}
+
+function _parseFetchSchemaBuffer(packetReader) {
+  const dataPacket = this._parserOptions.dataPacket;
+  const error = dataPacket.parseFetchSchema(packetReader);
+
+  this._callback(error, dataPacket.schemaInfo);
+}
+
+function _parseLobNewBuffer(packetReader) {
+  const dataPacket = this._parserOptions.dataPacket;
+  const error = dataPacket.parse(packetReader);
+
+  this._callback(error, dataPacket.result);
+}
+
+CUBRIDConnection.prototype.queryAll = function (sql, params, callback) {
+  const query = new Query(sql, params, callback);
+
+  return this
+      .query(query.sql)
+      .then(response => {
+        const result = response.result;
+
+        return this
+            .fetch(response.queryHandle, /* fetch all */true)
+            .then(res => {
+              const extraValues = res.result && res.result.ColumnValues || undefined;
+
+              if (extraValues) {
+                const len = extraValues.length;
+                let values = result.ColumnValues;
+
+                for (let i = 0; i < len; ++i) {
+                  values.push(extraValues[i]);
+                }
+              }
+
+              // Auto close the query statement because we have already
+              // retrieved all the values.
+              return this.closeQuery(res.queryHandle);
+            })
+            .then(() => {
+              if (typeof query.callback === 'function') {
+                // Return only the result without the query handle.
+                return query.callback(undefined, result);
+              }
+
+              return Promise.resolve(result);
+            });
+      })
+      .catch(err => {
+        if (typeof query.callback === 'function') {
+          return query.callback(err);
+        }
+
+        throw err;
+      });
 };
 
-CUBRIDConnection.prototype._receiveFirstBytes = function (data) {
-	var socket = this._socket;
+CUBRIDConnection.prototype.queryAllAsObjects = function (sql, params, callback) {
+  const query = new Query(sql, params, callback);
 
-	// Clear timeout if any.
-	socket.setTimeout(0);
-	socket.removeAllListeners('timeout');
+  return this
+      .queryAll(query.sql)
+      .then(result => {
+        result = getObjects(result);
 
-	this._totalBuffLength += data.length;
-	this._buffArr.push(data);
+        if (typeof query.callback === 'function') {
+          // Return only the result without the query handle.
+          return query.callback(undefined, result);
+        }
 
-	if (this._expectedResponseLength === this._INVALID_RESPONSE_LENGTH &&
-			this._totalBuffLength >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
-		var l = this._buffArr.length,
-				buff;
+        return Promise.resolve(result);
+      })
+      .catch(err => {
+        if (typeof query.callback === 'function') {
+          return query.callback(err);
+        }
 
-		socket.pause();
-		socket.removeAllListeners('data');
-
-		if (l > 1) {
-			buff = Buffer.concat(this._buffArr, this._totalBuffLength);
-			// For later, use this already concatenated buffer.
-			// First empty the array: http://stackoverflow.com/a/1234337/556678.
-			this._buffArr.length = 0;
-			// Then push this buffer in.
-			this._buffArr.push(buff);
-		} else {
-			buff = this._buffArr[0];
-		}
-
-		this._expectedResponseLength = Helpers._getExpectedResponseLength(buff);
-
-		if (this._totalBuffLength < this._expectedResponseLength) {
-			socket.on('data', this._receiveRemainingBytes.bind(this));
-			socket.resume();
-		} else {
-			socket.resume();
-			this._parseBuffer();
-		}
-	}
+        throw err;
+      });
 };
 
-CUBRIDConnection.prototype._receiveRemainingBytes = function (data) {
-	this._totalBuffLength += data.length;
-	this._buffArr.push(data);
-
-	// If we have received all the expected data, start parsing it.
-	if (this._totalBuffLength === this._expectedResponseLength) {
-		this._parseBuffer();
-	}
-};
-
-CUBRIDConnection.prototype._parseBuffer = function () {
-	this._socket.removeAllListeners('data');
-
-	var packetReader = new PacketReader();
-	packetReader.write(Buffer.concat(this._buffArr, this._totalBuffLength));
-
-	this._parserFunction(packetReader);
-};
-
-CUBRIDConnection.prototype._parseBufferForNewProtocol = function (packetReader) {
-	var dataPacket = this._parserOptions.dataPacket,
-			result = dataPacket.parse(packetReader).resultSet,
-			errorCode = dataPacket.errorCode,
-			err;
-
-	if (errorCode !== 0) {
-		err = new Error(errorCode + ':' + dataPacket.errorMsg);
-	} else {
-		this._queriesPacketList.push(dataPacket);
-
-		if (this._queryCache !== null) {
-			this._queryCache.getSet(this._parserOptions.sql, result);
-		}
-	}
-
-	this._callback(err, result, dataPacket.queryHandle);
-};
-
-CUBRIDConnection.prototype._parsePrepareBufferForOldProtocol = function (packetReader) {
-	var dataPacket = this._parserOptions.dataPacket;
-
-	dataPacket.parsePrepare(packetReader);
-
-	var errorCode = dataPacket.errorCode;
-
-	if (errorCode !== 0) {
-		cb(new Error(errorCode + ':' + dataPacket.errorMsg), dataPacket);
-	} else {
-		this._parseExecuteForOldProtocol();
-	}
-};
-
-CUBRIDConnection.prototype._parseExecuteForOldProtocol = function () {
-	var dataPacket = this._parserOptions.dataPacket,
-			packetWriter = new PacketWriter(dataPacket.getExecuteBufferLength()),
-			socket = this._socket;
-
-	dataPacket.writeExecute(packetWriter);
-
-	this._socketCurrentEventCallback = this._callback;
-
-	socket.on('data', this._receiveBytes({
-		parserFunction: this._parseExecuteBufferForOldProtocol,
-		dropDataPacket: this._parserOptions.dropDataPacket,
-		dataPacket: dataPacket
-	}, this._callback));
-
-	socket.write(packetWriter._buffer);
-};
-
-CUBRIDConnection.prototype._parseExecuteBufferForOldProtocol = function (packetReader) {
-	var dataPacket = this._parserOptions.dataPacket,
-			result = dataPacket.parseExecute(packetReader).resultSet,
-			errorCode = dataPacket.errorCode;
-
-	if (errorCode !== 0) {
-		this._callback(new Error(errorCode + ':' + dataPacket.errorMsg));
-	} else {
-		if (!this._parserOptions.dropDataPacket) {
-			this._queriesPacketList.push(dataPacket);
-		}
-
-		this._callback(null, result, dataPacket.queryHandle);
-	}
-};
-
-CUBRIDConnection.prototype._parseFetchBuffer = function (packetReader) {
-	var dataPacket = this._parserOptions.dataPacket,
-			result = dataPacket.parse(packetReader, this._queriesPacketList[this._parserOptions.i]).resultSet,
-			errorCode = dataPacket.errorCode,
-			err;
-
-	if (errorCode !== 0) {
-		err = new Error(errorCode + ':' + dataPacket.errorMsg);
-	}
-
-	this._callback(err, result);
-};
-
-CUBRIDConnection.prototype._parseBatchExecuteBuffer = function (packetReader) {
-	var dataPacket = this._parserOptions.dataPacket;
-
-	dataPacket.parse(packetReader);
-
-	var errorCode = dataPacket.errorCode,
-			err;
-
-	// If there is a gloal error, get the error message
-	// from dataPacket.errorMsg.
-	if (errorCode !== 0 && dataPacket.errorMsg) {
-		err = new Error(errorCode + ':' + dataPacket.errorMsg);
-	} else {
-		// Otherwise, check the individual responses of each query in the batch
-		// and see if there is an error.
-		err = [];
-
-		for (var i = 0; i < dataPacket.arrResultsCode.length; ++i) {
-			if (dataPacket.arrResultsCode[i] < 0) {
-				err.push(new Error(dataPacket.arrResultsCode[i] + ':' + dataPacket.arrResultsMsg[i]));
-			}
-		}
-
-		if (!err.length) {
-			err = null;
-		}
-	}
-
-	this._callback(err);
-};
-
-CUBRIDConnection.prototype._parseDatabaseLoginBuffer = function (packetReader) {
-	var dataPacket = this._parserOptions.dataPacket;
-
-	dataPacket.parse(packetReader);
-	this._CASInfo = dataPacket.casInfo;
-
-	var errorCode = dataPacket.errorCode,
-			err;
-
-	if (errorCode !== 0) {
-		err = new Error(errorCode + ':' + dataPacket.errorMsg);
-	} else {
-		this.sessionId = dataPacket.sessionId;
-		this.autoCommitMode = this.AUTOCOMMIT_ON;
-	}
-
-	this._callback(err);
-};
-
-CUBRIDConnection.prototype._parseEngineVersionBuffer = function (packetReader) {
-	var dataPacket = this._parserOptions.dataPacket;
-
-	dataPacket.parse(packetReader);
-
-	var errorCode = dataPacket.errorCode,
-			err;
-
-	if (errorCode !== 0) {
-		err = new Error(errorCode + ':' + dataPacket.errorMsg);
-	} else {
-		this._DB_ENGINE_VER = dataPacket.engineVersion;
-	}
-
-	this._callback(err);
-};
-
-CUBRIDConnection.prototype._parseCloseQueryBuffer = function (packetReader) {
-	var dataPacket = this._parserOptions.dataPacket;
-
-	dataPacket.parse(packetReader);
-
-	var errorCode = dataPacket.errorCode,
-			err;
-
-	if (errorCode !== 0) {
-		err = new Error(errorCode + ':' + dataPacket.errorMsg);
-	}
-
-	this._callback(err);
-};
-
-CUBRIDConnection.prototype._parseCloseBuffer = function (packetReader) {
-	var dataPacket = this._parserOptions.dataPacket;
-
-	dataPacket.parse(packetReader);
-	// Close internal socket connection.
-	this._socket.destroy();
-
-	var errorCode = dataPacket.errorCode,
-			err;
-
-	if (errorCode !== 0) {
-		err = new Error(errorCode + ':' + dataPacket.errorMsg);
-	}
-
-	this._callback(err);
-};
-
-CUBRIDConnection.prototype._parseCommitBuffer =
-		CUBRIDConnection.prototype._parseRollbackBuffer =
-				CUBRIDConnection.prototype._parseSetDatabaseParameterBuffer =
-
-CUBRIDConnection.prototype._parseGetDatabaseParameterBuffer = function (packetReader) {
-	var dataPacket = this._parserOptions.dataPacket;
-
-	dataPacket.parse(packetReader);
-
-	var errorCode = dataPacket.errorCode,
-			err;
-
-	if (errorCode !== 0) {
-		err = new Error(errorCode + ':' + dataPacket.errorMsg);
-	}
-
-	this._callback(err);
-};
-
-CUBRIDConnection.prototype._parseGetSchemaBuffer = function (packetReader) {
-	var dataPacket = this._parserOptions.dataPacket;
-
-	dataPacket.parseRequestSchema(packetReader);
-
-	var errorCode = dataPacket.errorCode;
-
-	if (errorCode !== 0) {
-		this._callback(new Error(errorCode + ':' + dataPacket.errorMsg), dataPacket);
-	} else {
-		this._parseWriteFetchSchema();
-	}
-};
-
-CUBRIDConnection.prototype._parseWriteFetchSchema = function () {
-	var dataPacket = this._parserOptions.dataPacket,
-			packetWriter = new PacketWriter(dataPacket.getFetchSchemaBufferLength()),
-			socket = this._socket;
-
-	dataPacket.writeFetchSchema(packetWriter);
-
-	this._socketCurrentEventCallback = this._callback;
-
-	socket.on('data', this._receiveBytes({
-		parserFunction: this._parseFetchSchemaBuffer,
-		dataPacket: dataPacket
-	}, this._callback));
-
-	socket.write(packetWriter._buffer);
-};
-
-CUBRIDConnection.prototype._parseFetchSchemaBuffer = function (packetReader) {
-	var dataPacket = this._parserOptions.dataPacket,
-			result = dataPacket.parseFetchSchema(packetReader).schemaInfo,
-			errorCode = dataPacket.errorCode,
-			err;
-
-	if (errorCode !== 0) {
-		err = new Error(errorCode + ':' + dataPacket.errorMsg);
-	}
-
-	this._callback(err, result);
-};
-
-CUBRIDConnection.prototype._parseLobNewBuffer = function (packetReader) {
-	var dataPacket = this._parserOptions.dataPacket,
-			logObject = dataPacket.parse(packetReader).result,
-			errorCode = dataPacket.errorCode,
-			err;
-
-	if (errorCode !== 0) {
-		err = new Error(errorCode + ':' + dataPacket.errorMsg);
-	}
-
-	this._callback(err, logObject);
+function getObjects(result) {
+  const columnNames = result.ColumnNames;
+  const columnValues = result.ColumnValues;
+  const rowsCount = result.ColumnValues.length;
+  const colCount = columnNames.length;
+
+  let arr = new Array(rowsCount);
+
+  for (let i = 0; i < rowsCount; ++i) {
+    let row = arr[i] = {};
+
+    let columns = columnValues[i];
+
+    for (let j = 0; j < colCount; ++j) {
+      row[columnNames[j]] = columns[j];
+    }
+  }
+
+  return arr;
+}
+
+CUBRIDConnection.prototype.queryAsObjects = function (sql, params, callback) {
+  const query = new Query(sql, params, callback);
+
+  return this
+      .query(query.sql)
+      .then(response => {
+        let result = getObjects(response.result);
+
+        if (typeof query.callback === 'function') {
+          // Return only the result without the query handle.
+          return query.callback(undefined, result, response.queryHandle);
+        }
+
+        return Promise.resolve({
+          queryHandle: response.queryHandle,
+          result,
+        });
+      })
+      .catch(err => {
+        if (typeof query.callback === 'function') {
+          return query.callback(err);
+        }
+
+        throw err;
+      });
 };
 
 CUBRIDConnection.prototype.query = function (sql, params, callback) {
-	var self = this,
-			query = new Query(sql, params, callback);
+  return new Promise((resolve, reject) => {
+    this._queue.push(done => {
+      const query = new Query(sql, params, callback);
 
-	this._queue.push(function (done) {
-		self._query(query.sql, function (err, result, queryHandle) {
-			query.callback(err, result, queryHandle);
-			done();
-		});
-	});
-};
+      this.logger.info('query', query.sql);
 
-/**
- * Execute query and retrieve rows results
- * @param sql
- * @param callback
- */
-CUBRIDConnection.prototype._query = function (sql, callback) {
-  if (this._ENFORCE_OLD_QUERY_PROTOCOL) {
-    return this._queryOldProtocol(sql, null, null, callback);
-  } else {
-    return this._queryNewProtocol(sql, callback);
-  }
-};
+      this.connect()
+          .then(() => {
+            if (this.shouldUseOldQueryProtocol()) {
+              return prepareExecute.call(this, query.sql);
+            }
 
-CUBRIDConnection.prototype._queryNewProtocol = function (sql, callback) {
-  var self = this;
+            return _queryNewProtocol.call(this, query.sql);
+          })
+          .then(response => {
+            done();
 
-  ActionQueue.enqueue([
-    function (cb) {
-	    self._implyConnect(cb);
-    },
-    function (cb) {
-      // Check if data is already in cache
-      if (self._queryCache !== null && self._queryCache.contains(sql)) {
-	      cb(null, self._queryCache.get(sql));
-      } else {
-	      var executeQueryPacket = new ExecuteQueryPacket({
-				      sql            : sql,
-				      casInfo        : self._CASInfo,
-				      autoCommitMode : self.autoCommitMode,
-				      dbVersion      : self._DB_ENGINE_VER
-			      }),
-			      packetWriter = new PacketWriter(executeQueryPacket.getBufferLength()),
-			      socket = self._socket;
+            if (typeof query.callback === 'function') {
+              return query.callback(undefined, response.result, response.queryHandle);
+            }
 
-	      executeQueryPacket.write(packetWriter);
+            resolve(response);
+          })
+          .catch(err => {
+            done();
 
-	      self._socketCurrentEventCallback = cb;
+            if (typeof query.callback === 'function') {
+              return query.callback(err);
+            }
 
-	      // `_receiveBytes()` will return a function which will process the
-	      // incoming data.
-				socket.on('data', self._receiveBytes({
-					sql: sql,
-					parserFunction: self._parseBufferForNewProtocol,
-					dataPacket: executeQueryPacket
-				}, cb));
-
-	      socket.write(packetWriter._buffer);
-	    }
-    }
-  ], function (err, result, handle) {
-    Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_QUERY_DATA_AVAILABLE, result, handle, sql);
-
-	  if (typeof(callback) === 'function') {
-      callback(err, result, handle);
-    }
+            return reject(err);
+          });
+    });
   });
 };
 
-/**
- * Execute query and retrieve rows results, using the older 8.4.x query protocol
- * @param sql
- * @param arrParamsValues
- * @param arrParamsDataTypes
- * @param callback
- */
-CUBRIDConnection.prototype._queryOldProtocol = function (sql, arrParamsValues, arrParamsDataTypes, callback) {
-  var self = this;
+function _queryNewProtocol(sql) {
+  this.logger.debug('_queryNewProtocol');
 
-  ActionQueue.enqueue([
-    function (cb) {
-      self._implyConnect(cb);
-    },
-    function (cb) {
-      var prepareExecuteOldProtocolPacket = new PrepareExecuteOldProtocolPacket({
-            sql            : sql,
-            casInfo        : self._CASInfo,
-            autoCommitMode : self.autoCommitMode,
-            dbVersion      : self._DB_ENGINE_VER,
-            paramValues    : arrParamsValues,
-            paramTypes     : arrParamsDataTypes
-          }),
-		      packetWriter = new PacketWriter(prepareExecuteOldProtocolPacket.getPrepareBufferLength()),
-		      socket = self._socket;
+  return new Promise((resolve, reject) => {
+    const executeQueryPacket = new ExecuteQueryPacket({
+      autoCommit: this.autoCommitMode,
+      casInfo: this._CASInfo,
+      logger: this.logger,
+      protocolVersion: this.brokerInfo.protocolVersion,
+      sql,
+    });
+    const packetWriter = new PacketWriter(executeQueryPacket.getBufferLength());
+    const socket = this._socket;
 
-      prepareExecuteOldProtocolPacket.writePrepare(packetWriter);
+    executeQueryPacket.write(packetWriter);
 
-	    self._socketCurrentEventCallback = cb;
+    let callback = (err, result, queryHandle) => {
+      if (err) {
+        return reject(err);
+      }
 
-      socket.on('data', self._receiveBytes({
-	      parserFunction: self._parsePrepareBufferForOldProtocol,
-	      dataPacket: prepareExecuteOldProtocolPacket
-      }, cb));
+      resolve({
+        queryHandle,
+        result,
+      });
+    };
 
-	    socket.write(packetWriter._buffer);
-    }
-  ], function (err, result, handle) {
-    Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_QUERY_DATA_AVAILABLE, result, handle, sql);
+    this._socketCurrentEventCallback = callback;
 
-	  if (typeof(callback) === 'function') {
-      callback(err, result, handle);
-    }
+    // `_receiveBytes()` will return a function which will process the
+    // incoming data.
+    socket.on('data', _receiveBytes.call(this, {
+      sql: sql,
+      parserFunction: _parseBufferForNewProtocol.bind(this),
+      dataPacket: executeQueryPacket
+    }, callback));
+
+    socket.write(packetWriter._buffer);
   });
-};
-
-/**
- * Execute query with parameters
- * @param sql
- * @param arrParamsValues
- * @param arrDelimiters
- * @param callback
- * @return {*}
- */
-CUBRIDConnection.prototype.queryWithParams = function (sql, arrParamsValues, arrDelimiters, callback) {
-  var formattedSQL = Helpers._sqlFormat(sql, arrParamsValues, arrDelimiters);
-  Helpers.logInfo('Formatted sql is: ' + formattedSQL);
-
-  return this.query(formattedSQL, callback);
-};
-
-/**
- * Execute query with typed parameters
- * @param sql
- * @param arrParamsValues
- * @param arrParamsDataTypes
- * @param callback
- * @return {*}
- */
-CUBRIDConnection.prototype.queryWithTypedParams = function (sql, arrParamsValues, arrParamsDataTypes, callback) {
-  return this._queryOldProtocol(sql, arrParamsValues, arrParamsDataTypes, callback);
-};
+}
 
 /**
  * Fetch query next rows results
  * @param queryHandle
  * @param callback
  */
-CUBRIDConnection.prototype.fetch = function (queryHandle, callback) {
-	var self = this,
-			query = new Query(null, callback);
-
-	this._queue.unshift(function (done) {
-		self._fetch(queryHandle, function (err, result, queryHandle) {
-			query.callback(err, result, queryHandle);
-			done();
-		});
-	});
-};
-
-CUBRIDConnection.prototype._fetch = function (queryHandle, callback) {
-  var self = this,
-		  err = this._NO_ERROR,
-		  foundQueryHandle = false;
-
-  for (var i = 0; i < this._queriesPacketList.length; i++) {
-    if (this._queriesPacketList[i].queryHandle === queryHandle) {
-      foundQueryHandle = true;
-      break;
-    }
-  }
-
-  if (!foundQueryHandle) {
-    err = new Error(ErrorMessages.ERROR_NO_ACTIVE_QUERY);
-
-    Helpers._emitEvent(this, err, this.EVENT_ERROR, null);
-
-	  if (typeof(callback) === 'function') {
-      callback(err, null, null);
-    }
-  } else {
-    if (this._queriesPacketList[i].currentTupleCount === this._queriesPacketList[i].totalTupleCount) {
-      Helpers._emitEvent(this, err, this.EVENT_ERROR, this.EVENT_FETCH_NO_MORE_DATA_AVAILABLE, queryHandle);
-
-      if (typeof(callback) === 'function') {
-        callback(err, null, queryHandle);
+CUBRIDConnection.prototype.fetch = function (queryHandle, all, callback) {
+  return new Promise((resolve, reject) => {
+    this._queue.unshift(done => {
+      if (typeof all === 'function') {
+        callback = all;
+        all = false;
       }
-    } else {
-      var fetchPacket = new FetchPacket({
-		        casInfo    : this._CASInfo,
-		        db_version : this._DB_ENGINE_VER
-		      }),
-		      packetWriter = new PacketWriter(fetchPacket.getBufferLength()),
-		      socket = this._socket;
 
-      fetchPacket.write(packetWriter, this._queriesPacketList[i]);
+      const query = new Query(callback);
 
-	    this._socketCurrentEventCallback = callback;
+      this.logger.info(`fetch: queryHandle = ${queryHandle}`);
 
-	    socket.on('data', this._receiveBytes({
-		    i: i,
-		    parserFunction: this._parseFetchBuffer,
-		    dataPacket: fetchPacket
-	    }, function (err, result) {
-		    Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_FETCH_DATA_AVAILABLE, result, queryHandle);
+      this.connect()
+          .then(() => {
+            return _fetch.call(this, queryHandle, all);
+          })
+          .then(response => {
+            done();
 
-		    if (typeof(callback) === 'function') {
-			    callback(err, result, queryHandle);
-		    }
-	    }));
+            if (typeof query.callback === 'function') {
+              return query.callback(undefined, response.result, response.queryHandle);
+            }
 
-	    socket.write(packetWriter._buffer);
-    }
-  }
+            resolve(response);
+          })
+          .catch(err => {
+            done();
+
+            if (typeof query.callback === 'function') {
+              return query.callback(err);
+            }
+
+            return reject(err);
+          });
+    });
+  });
 };
+
+function _fetch(queryHandle, all) {
+  return new Promise((resolve, reject) => {
+    const packet = this._queryResultSets[queryHandle];
+    let results = null;
+
+    if (!packet) {
+      return reject(new Error(ErrorMessages.ERROR_NO_ACTIVE_QUERY));
+    }
+
+    let fetchSome = (err, result) => {
+      if (err) {
+        return reject(err);
+      }
+
+      if (result) {
+        // If we could fetch some data, add them to the existing list.
+        if (results) {
+          let values = results.ColumnValues;
+          const extraValues = result.ColumnValues;
+
+          for (let i = 0, len = extraValues.length; i < len; ++i) {
+            values.push(extraValues[i]);
+          }
+        } else {
+          results = result;
+        }
+      }
+
+      // If there is no more data left to fetch, return what we could retrieve.
+      // Or we have received the first batch of results and the user
+      // has not requested to retrieve all values, then return what
+      // we have.
+      if (packet.currentTupleCount === packet.totalTupleCount || results && !all) {
+        return resolve({
+          queryHandle,
+          result: results,
+        });
+      }
+
+      const fetchPacket = new FetchPacket({
+        casInfo: this._CASInfo,
+        logger: this.logger,
+      });
+      const packetWriter = new PacketWriter(fetchPacket.getBufferLength());
+      const socket = this._socket;
+
+      fetchPacket.write(packetWriter, packet);
+
+      socket.on('data', _receiveBytes.call(this, {
+        queryHandle,
+        parserFunction: _parseFetchBuffer.bind(this),
+        dataPacket: fetchPacket
+      }, fetchSome));
+
+      socket.write(packetWriter._buffer);
+    };
+
+    this._socketCurrentEventCallback = fetchSome;
+
+    fetchSome(undefined, null);
+  });
+}
 
 /**
- * Close query
+ * Close query. It is important to close every query because CUBRID Broker
+ * (CAS actually that was assigned to this connection by the Broker) will
+ * keep the memory occupied by the query. The query statement resources
+ * will get closed automatically only on disconnection. Until then the
+ * query resources will be kept in memory. If not released on time, OOM
+ * (Out Of Memory) issue can be caused on the server side.
  * @param queryHandle
  * @param callback
  */
 CUBRIDConnection.prototype.closeQuery = function (queryHandle, callback) {
-	var self = this,
-			query = new Query(queryHandle, callback);
+  return new Promise((resolve, reject) => {
+    this._queue.unshift(done => {
+      this.logger.debug('closeQuery', queryHandle);
 
-	this._queue.unshift(function (done) {
-		self._closeQuery(queryHandle, function (err) {
-			query.callback(err, queryHandle);
-			done();
-		});
-	});
+      this.connect()
+          .then(() => {
+            return _closeQuery.call(this, queryHandle);
+          })
+          .then(() => {
+            done();
+
+            if (typeof callback === 'function') {
+              return callback();
+            } 
+            
+            resolve();
+          })
+          .catch(err => {
+            done();
+
+            if (typeof callback === 'function') {
+              return callback(err);
+            }
+
+            return reject(err);
+          });
+    });
+  });
 };
 
-CUBRIDConnection.prototype._closeQuery = function (queryHandle, callback) {
-  var self = this,
-		  err = this._NO_ERROR,
-		  foundQueryHandle = false;
+function _closeQuery(queryHandle) {
+  return new Promise((resolve, reject) => {
+    let queryResultSets = this._queryResultSets;
 
-  for (var i = 0; i < this._queriesPacketList.length; ++i) {
-    if (this._queriesPacketList[i].queryHandle === queryHandle) {
-      foundQueryHandle = i;
-      break;
-    }
-  }
-
-  if (foundQueryHandle === false) {
-	  err = new Error(ErrorMessages.ERROR_NO_ACTIVE_QUERY + ": " + queryHandle);
-
-    if (typeof(callback) === 'function') {
-      callback(err);
+    if (!queryResultSets[queryHandle]) {
+      return reject(new Error(`${ErrorMessages.ERROR_NO_ACTIVE_QUERY}: ${queryHandle}`));
     }
 
-	  Helpers._emitEvent(this, err, this.EVENT_ERROR, null);
-  } else {
-	  ActionQueue.enqueue([
-		  this._implyConnect.bind(this),
-		  function (cb) {
-			  var closeQueryPacket = new CloseQueryPacket({
-						  casInfo    : self._CASInfo,
-						  reqHandle  : queryHandle,
-						  db_version : self._DB_ENGINE_VER
-					  }),
-					  packetWriter = new PacketWriter(closeQueryPacket.getBufferLength()),
-					  socket = self._socket;
+    let closeQueryPacket = new CloseQueryPacket({
+      casInfo: this._CASInfo,
+      reqHandle: queryHandle,
+    });
+    const packetWriter = new PacketWriter(closeQueryPacket.getBufferLength());
+    const socket = this._socket;
 
-			  closeQueryPacket.write(packetWriter);
+    closeQueryPacket.write(packetWriter);
 
-			  function onResponse(err) {
-				  // Remove the event we've previously bound to.
-				  socket.removeListener('end', onConnectionReset);
+    function onResponse(err) {
+      // Remove the event we've previously bound to.
+      socket.removeListener('end', onConnectionReset);
 
-				  if (!err) {
-					  // Remove the referenced query packet from the hash.
-					  self._queriesPacketList.splice(foundQueryHandle, 1);
-				  }
+      if (err) {
+        return reject(err);
+      }
 
-				  cb(err);
-			  }
+      // Remove the referenced query packet from the hash.
+      delete queryResultSets[queryHandle];
 
-			  function onConnectionReset() {
-				  // CUBRID Broker may occasionally reset the connection between the client and the
-				  // CAS that the Broker has assigned to this client. Refer to
-				  // https://github.com/CUBRID/node-cubrid/issues/15 for details. According to
-				  // CUBRID CCI native driver implementation function qe_send_close_handle_msg(),
-				  // we can consider the connection closed operation as a successful request.
-				  // This is true because internally CUBRID Broker manages a pool of CAS
-				  // (CUBRID Application Server) processes. When a client connects, the Broker
-				  // assigns/connect it to one of the CAS. Then the client sends some query requests
-				  // to this CAS. After the client receives a response, it may decide to do some
-				  // other application logic before it closes the query handle. Once the client is
-				  // done with the response, it may try to close the query handle.
-				  // In between these receive response and close query, CUBRID Broker may reassign
-				  // the CAS to another client. Notice the client-Broker connection is not broken.
-				  // When the actual close query request arrives to the Broker, it finds out that
-				  // the CAS referred by the client is reassigned, it sends CONNECTION RESET to the
-				  // client. node-cubrid should listen it and consider such event as if the close
-				  // query request was successful.
-				  socket.removeAllListeners('data');
-				  // Execute `onResponse` without an error.
-				  onResponse();
-			  }
+      resolve();
+    }
 
-			  function onError(err) {
-				  socket.removeAllListeners('data');
+    function onConnectionReset() {
+      // CUBRID Broker may occasionally reset the connection between the client and the
+      // CAS that the Broker has assigned to this client. Refer to
+      // https://github.com/CUBRID/node-cubrid/issues/15 for details. According to
+      // CUBRID CCI native driver implementation function qe_send_close_handle_msg(),
+      // we can consider the connection closed operation as a successful request.
+      // This is true because internally CUBRID Broker manages a pool of CAS
+      // (CUBRID Application Server) processes. When a client connects, the Broker
+      // assigns/connect it to one of the CAS. Then the client sends some query requests
+      // to this CAS. After the client receives a response, it may decide to do some
+      // other application logic before it closes the query handle. Once the client is
+      // done with the response, it may try to close the query handle.
+      // In between these receive response and close query, CUBRID Broker may reassign
+      // the CAS to another client. Notice the client-Broker connection is not broken.
+      // When the actual close query request arrives to the Broker, it finds out that
+      // the CAS referred by the client is reassigned, it sends CONNECTION RESET to the
+      // client. node-cubrid should listen it and consider such event as if the close
+      // query request was successful.
+      socket.removeAllListeners('data');
+      // Execute `onResponse` without an error.
+      onResponse();
+    }
 
-				  // `ECONNRESET` should also be considered as a connection
-				  // reset.
-				  onResponse(err.code == 'ECONNRESET' ? null : err);
-			  }
+    function onError(err) {
+      socket.removeAllListeners('data');
 
-			  self._socketCurrentEventCallback = onError;
+      // `ECONNRESET` should also be considered as a connection
+      // reset.
+      onResponse(err.code == 'ECONNRESET' ? undefined : err);
+    }
 
-			  socket.on('data', self._receiveBytes({
-				  queryHandle: queryHandle,
-				  parserFunction: self._parseCloseQueryBuffer,
-				  dataPacket: closeQueryPacket
-			  }, onResponse));
+    this._socketCurrentEventCallback = onError;
 
-			  socket.on('end', onConnectionReset);
+    socket.on('data', _receiveBytes.call(this, {
+      queryHandle: queryHandle,
+      parserFunction: _parseCloseQueryBuffer.bind(this),
+      dataPacket: closeQueryPacket
+    }, onResponse));
 
-			  socket.write(packetWriter._buffer);
-		  }
-	  ], function (err) {
-		  if (typeof(callback) === 'function') {
-			  callback(err, queryHandle);
-		  }
+    socket.on('end', onConnectionReset);
 
-		  Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_QUERY_CLOSED, queryHandle);
-	  });
-  }
+    socket.write(packetWriter._buffer);
+  });
+}
+
+CUBRIDConnection.prototype.getMetaData = function (queryHandle, callback) {
+  return new Promise((resolve, reject) => {
+    const queryResultSet = this._queryResultSets[queryHandle];
+
+    if (!queryResultSet) {
+      let err = new Error(ErrorMessages.ERROR_NO_ACTIVE_QUERY);
+
+      if (typeof callback === 'function') {
+        return callback(err);
+      }
+
+      return reject(err);
+    }
+
+    if (typeof callback === 'function') {
+      return callback(undefined, queryResultSet.resultSet);
+    }
+
+    resolve(queryResultSet.resultSet);
+  });
 };
 
 /**
@@ -1254,91 +1358,103 @@ CUBRIDConnection.prototype.close = close;
 CUBRIDConnection.prototype.end = close;
 
 function close(callback) {
-	var self = this;
+  return new Promise((resolve, reject) => {
+    this.logger.debug('close');
 
-	if (!this.connectionOpened) {
-		// If the connection has already been closed, no need to emit
-		// the error. After all this is what the client wants - to
-		// close the connection.
-		if (typeof(callback) === 'function') {
-			callback();
-		}
+    if (!this.connectionOpened) {
+      // If the connection has already been closed, no need to emit
+      // the error. After all this is what the client wants - to
+      // close the connection.
+      if (typeof callback === 'function') {
+        return callback();
+      }
 
-		return;
-	}
+      return resolve();
+    }
 
-	// Remove all pending requests.
-	this._queue.empty();
+    // Remove all pending requests.
+    this._queue.empty();
 
-	ActionQueue.enqueue([
-		function (cb) {
-			ActionQueue.while(
-				function () {
-					return (self._queriesPacketList[0] !== null && self._queriesPacketList[0] !== undefined);
-				},
-				function (cb) {
-					self.closeQuery(self._queriesPacketList[0].queryHandle, cb);
-				},
-				function (err) {
-					// Log non-blocking error
-					if (typeof err !== 'undefined' && err !== null) {
-						Helpers.logError(ErrorMessages.ERROR_ON_CLOSE_QUERY_HANDLE + err);
-					}
+    let promise = Promise.resolve();
 
-					cb();
-				}
-			);
-		},
-		function (cb) {
-			var closeDatabasePacket = new CloseDatabasePacket({
-						casInfo    : self._CASInfo,
-						db_version : self._DB_ENGINE_VER
-					}),
-					packetWriter = new PacketWriter(closeDatabasePacket.getBufferLength()),
-					socket = self._socket;
+    // Close open queries.
+    const queryHandles = Object.keys(this._queryResultSets);
 
-			closeDatabasePacket.write(packetWriter);
+    queryHandles.forEach(queryHandle => {
+      promise = promise.then(() => {
+        return this.closeQuery(queryHandle);
+      });
+    });
 
-			self._socketCurrentEventCallback = cb;
+    let closeConnection = () => {
+      return new Promise((resolve, reject) => {
+        let closeDatabasePacket = new CloseDatabasePacket({
+          casInfo: this._CASInfo,
+        });
+        const packetWriter = new PacketWriter(closeDatabasePacket.getBufferLength());
+        const socket = this._socket;
 
-			socket.on('data', self._receiveBytes({
-				parserFunction: self._parseCloseBuffer,
-				dataPacket: closeDatabasePacket
-			}, cb));
+        closeDatabasePacket.write(packetWriter);
 
-			socket.write(packetWriter._buffer);
-		}
-	], function (err) {
-		// Reset connection status
-		self.connectionPending = false;
-		self.connectionOpened = false;
+        let callback = (err) => {
+          // Propagate the error.
+          if (err) {
+            return reject(err);
+          }
 
-		Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_CONNECTION_CLOSED);
+          resolve();
+        };
 
-		if (typeof(callback) === 'function') {
-			callback(err);
-		}
-	});
+        // `_socketCurrentEventCallback` is called only when
+        // an unexpected error is thrown on the socket layer.
+        this._socketCurrentEventCallback = callback;
+
+        socket.on('data', _receiveBytes.call(this, {
+          parserFunction: _parseCloseBuffer.bind(this),
+          dataPacket: closeDatabasePacket
+        }, callback));
+
+        socket.write(packetWriter._buffer);
+      });
+    };
+
+    // Close the connection.
+    promise
+        .then(closeConnection)
+        .then(() => {
+          // Reset connection status
+          this.connectionPending = false;
+          this.connectionOpened = false;
+
+          if (typeof(callback) === 'function') {
+            return callback();
+          }
+
+          resolve();
+        })
+        .catch(err => {
+          if (typeof(callback) === 'function') {
+            return callback(err);
+          }
+
+          reject(err);
+        });
+  });
 }
 /**
  * Start transaction
  * @param callback
  */
 CUBRIDConnection.prototype.beginTransaction = function (callback) {
-	var self = this;
+  return this.setAutoCommitMode(this.AUTOCOMMIT_OFF, callback);
+};
 
-	ActionQueue.enqueue([
-		this._implyConnect.bind(this),
-		function (cb) {
-			_toggleAutoCommitMode(self, self.AUTOCOMMIT_OFF, cb);
-		}
-	], function (err) {
-		Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_BEGIN_TRANSACTION);
-
-		if (typeof(callback) === 'function') {
-			callback(err);
-		}
-	});
+/**
+ * End transaction
+ * @param callback
+ */
+CUBRIDConnection.prototype.endTransaction = function (callback) {
+  return this.setAutoCommitMode(this.AUTOCOMMIT_ON, callback);
 };
 
 /**
@@ -1347,13 +1463,15 @@ CUBRIDConnection.prototype.beginTransaction = function (callback) {
  * @param callback
  */
 CUBRIDConnection.prototype.setAutoCommitMode = function (autoCommitMode, callback) {
-  var self = this;
+  return new Promise(resolve => {
+    // Accept any truthful value.
+    this.autoCommitMode = !!autoCommitMode;
 
-  _toggleAutoCommitMode(this, autoCommitMode, function (err) {
-    Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_SET_AUTOCOMMIT_MODE_COMPLETED);
-    if (typeof(callback) === 'function') {
-      callback(err);
+    if (typeof callback === 'function') {
+      return callback();
     }
+
+    return resolve();
   });
 };
 
@@ -1369,133 +1487,118 @@ CUBRIDConnection.prototype.getAutoCommitMode = function () {
  * @param callback
  */
 CUBRIDConnection.prototype.rollback = function (callback) {
-	var self = this,
-			query = new Query(null, callback);
+  return new Promise((resolve, reject) => {
+    this._queue.unshift(done => {
+      _rollback
+          .call(this)
+          .then(() => {
+            done();
+            
+            if (typeof callback === 'function') {
+              return callback();
+            }
 
-	this._queue.unshift(function (done) {
-		self._rollback(function (err) {
-			query.callback(err);
-			done();
-		});
-	});
+            return resolve();
+          })
+          .catch(err => {
+            done();
+
+            if (typeof callback === 'function') {
+              return callback(err);
+            }
+
+            reject(err);
+          });
+    });
+  });
 };
 
-CUBRIDConnection.prototype._rollback = function (callback) {
-  var self = this,
-		  err = this._NO_ERROR;
+function _rollback() {
+  return new Promise((resolve, reject) => {
+    if (this.autoCommitMode) {
+      return reject(new Error(ErrorMessages.ERROR_NO_ROLLBACK));
+    }
 
-  if (this.autoCommitMode === false) {
-    var rollbackPacket = new RollbackPacket({
-	        casInfo    : this._CASInfo,
-	        db_version : this._DB_ENGINE_VER
-	      }),
-		    packetWriter = new PacketWriter(rollbackPacket.getBufferLength()),
-		    socket = this._socket;
+    const rollbackPacket = new RollbackPacket({
+      casInfo: this._CASInfo,
+    });
+    const packetWriter = new PacketWriter(rollbackPacket.getBufferLength());
+    const socket = this._socket;
 
     rollbackPacket.write(packetWriter);
 
-	  this._socketCurrentEventCallback = callback;
+    let callback = (err) => {
+      if (err) {
+        return reject(err);
+      }
 
-	  socket.on('data', this._receiveBytes({
-		  parserFunction: this._parseRollbackBuffer,
-		  dataPacket: rollbackPacket
-	  }, function (err) {
-		  Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_ROLLBACK_COMPLETED);
+      resolve();
+    };
 
-		  if (typeof(callback) === 'function') {
-			  callback(err);
-		  }
-	  }));
+    this._socketCurrentEventCallback = callback;
 
-	  socket.write(packetWriter._buffer);
-  } else {
-    err = new Error(ErrorMessages.ERROR_NO_ROLLBACK);
+    socket.on('data', _receiveBytes.call(this, {
+      parserFunction: _parseResponseCodeBuffer.bind(this),
+      dataPacket: rollbackPacket
+    }, callback));
 
-	  Helpers._emitEvent(this, err, this.EVENT_ERROR, null);
-
-	  if (typeof(callback) === 'function') {
-      callback(err);
-    }
-  }
-};
+    socket.write(packetWriter._buffer);
+  });
+}
 
 /**
  * Commit transaction
  * @param callback
  */
 CUBRIDConnection.prototype.commit = function (callback) {
-	var self = this,
-			query = new Query(null, callback);
+  return new Promise((resolve, reject) => {
+    // `commit` request should be higher priority so that
+    // we can free the memory on the server side as soon
+    // as we can.
+    this._queue.unshift(done => {
+      this.logger.debug('commit');
 
-	this._queue.unshift(function (done) {
-		self._commit(function (err) {
-			query.callback(err);
-			done();
-		});
-	});
+      let cb = (err) => {
+        done();
+
+        if (typeof callback === 'function') {
+          return callback(err);
+        }
+
+        if (err) {
+          return reject(err);
+        }
+
+        resolve();
+      };
+
+      if (!this.connectionOpened) {
+        return cb(new Error(ErrorMessages.ERROR_CLOSED_CONNECTION_COMMIT));
+      }
+
+      if (this.autoCommitMode) {
+        return cb(new Error(ErrorMessages.ERROR_AUTO_COMMIT_ENABLED_COMMIT));
+      }
+
+      const commitPacket = new CommitPacket({
+        casInfo: this._CASInfo,
+      });
+      const packetWriter = new PacketWriter(commitPacket.getBufferLength());
+      const socket = this._socket;
+
+      commitPacket.write(packetWriter);
+
+      this._socketCurrentEventCallback = cb;
+
+      socket.on('data', _receiveBytes.call(this, {
+        parserFunction: _parseResponseCodeBuffer.bind(this),
+        dataPacket: commitPacket
+      }, cb));
+
+      socket.write(packetWriter._buffer);
+    });
+  });
 };
-
-CUBRIDConnection.prototype._commit = function (callback) {
-  var self = this,
-		  err = this._NO_ERROR;
-
-  if (this.autoCommitMode === false) {
-    var commitPacket = new CommitPacket({
-	        casInfo    : this._CASInfo,
-	        db_version : this._DB_ENGINE_VER
-	      }),
-		    packetWriter = new PacketWriter(commitPacket.getBufferLength()),
-		    socket = this._socket;
-
-    commitPacket.write(packetWriter);
-
-	  this._socketCurrentEventCallback = callback;
-
-	  socket.on('data', this._receiveBytes({
-		  parserFunction: this._parseCommitBuffer,
-		  dataPacket: commitPacket
-	  }, function (err) {
-		  Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_COMMIT_COMPLETED);
-
-		  if (typeof(callback) === 'function') {
-			  callback(err);
-		  }
-	  }));
-
-    socket.write(packetWriter._buffer);
-  } else {
-    err = new Error(ErrorMessages.ERROR_NO_COMMIT);
-
-    Helpers._emitEvent(this, err, this.EVENT_ERROR, null);
-
-	  if (typeof(callback) === 'function') {
-      callback(err);
-    }
-  }
-};
-
-/**
- * Set Auto-commit mode
- * @param self
- * @param autoCommitMode
- * @param callback
- * @private
- */
-function _toggleAutoCommitMode(self, autoCommitMode, callback) {
-  var err = self._NO_ERROR;
-
-  if (!Helpers._validateInputBoolean(autoCommitMode)) {
-	  err = new Error(ErrorMessages.ERROR_INPUT_VALIDATION);
-
-    Helpers._emitEvent(self, err, self.EVENT_ERROR, null);
-  } else {
-    self.autoCommitMode = autoCommitMode;
-  }
-
-  if (typeof(callback) === 'function') {
-    callback(err);
-  }
-}
 
 /**
  * Get database schema information
@@ -1504,51 +1607,77 @@ function _toggleAutoCommitMode(self, autoCommitMode, callback) {
  * @param callback
  */
 CUBRIDConnection.prototype.getSchema = function (schemaType, tableNameFilter, callback) {
-	var self = this,
-			query = new Query(null, callback);
+  return new Promise((resolve, reject) => {
+    this._queue.push(done => {
+      if (typeof tableNameFilter === 'function') {
+        callback = tableNameFilter;
+        tableNameFilter = undefined;
+      }
+      
+      const query = new Query(callback);
 
-	this._queue.push(function (done) {
-		self._getSchema(schemaType, tableNameFilter, function (err, result) {
-			query.callback(err, result);
-			done();
-		});
-	});
+      this.logger.debug(`getSchema: schemaType = ${schemaType}; tableNameFilter = ${tableNameFilter}.`);
+
+      this.connect()
+          .then(() => {
+            return _getSchema.call(this, schemaType, tableNameFilter);
+          })
+          .then(response => {
+            done();
+
+            if (typeof query.callback === 'function') {
+              return query.callback(undefined, response);
+            }
+
+            resolve(response);
+          })
+          .catch(err => {
+            done();
+
+            if (typeof query.callback === 'function') {
+              return query.callback(err);
+            }
+
+            return reject(err);
+          });
+    });
+  });
 };
 
-CUBRIDConnection.prototype._getSchema = function (schemaType, tableNameFilter, callback) {
-  var self = this;
+function _getSchema(schemaType, tableNameFilter) {
+  this.logger.debug('_getSchema', schemaType, tableNameFilter);
 
-	ActionQueue.enqueue([
-		this._implyConnect.bind(this),
-		function (cb) {
-			var getSchemaPacket = new GetSchemaPacket({
-						casInfo          : self._CASInfo,
-						schemaType       : schemaType,
-						tableNamePattern : tableNameFilter,
-						db_version       : self._DB_ENGINE_VER
-					}),
-					packetWriter = new PacketWriter(getSchemaPacket.getRequestSchemaBufferLength()),
-					socket = self._socket;
+  return new Promise((resolve, reject) => {
+    const getSchemaPacket = new GetSchemaPacket({
+      casInfo: this._CASInfo,
+      protocolVersion: this.brokerInfo.protocolVersion,
+      schemaType: schemaType,
+      shardId: this.shardId,
+      tableNamePattern: tableNameFilter,
+    });
+    const packetWriter = new PacketWriter(getSchemaPacket.getRequestSchemaBufferLength());
+    const socket = this._socket;
 
-			getSchemaPacket.writeRequestSchema(packetWriter);
+    getSchemaPacket.writeRequestSchema(packetWriter);
 
-			self._socketCurrentEventCallback = cb;
+    let callback = (err, result) => {
+      if (err) {
+        return reject(err);
+      }
 
-			socket.on('data', self._receiveBytes({
-				parserFunction: self._parseGetSchemaBuffer,
-				dataPacket: getSchemaPacket
-			}, cb));
+      resolve(result);
+    };
 
-			socket.write(packetWriter._buffer);
-		}
-	], function (err, result) {
-		Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_SCHEMA_DATA_AVAILABLE, result);
+    this._socketCurrentEventCallback = callback;
 
-		if (typeof(callback) === 'function') {
-			callback(err, result);
-		}
-	});
-};
+    socket.on('data', _receiveBytes.call(this, {
+      parserFunction: _parseGetSchemaBuffer.bind(this),
+      dataPacket: getSchemaPacket
+    }, callback));
+
+    socket.write(packetWriter._buffer);
+  });
+}
 
 /**
  * Create a new LOB object
@@ -1556,318 +1685,369 @@ CUBRIDConnection.prototype._getSchema = function (schemaType, tableNameFilter, c
  * @param callback
  */
 CUBRIDConnection.prototype.lobNew = function (lobType, callback) {
-	var self = this,
-			query = new Query(null, callback);
+  return new Promise((resolve, reject) => {
+    this._queue.push(done => {
+      const query = new Query(callback);
 
-	this._queue.push(function (done) {
-		self._lobNew(lobType, function (err, lobObject) {
-			query.callback(err, lobObject);
-			done();
-		});
-	});
-};
+      this.logger.debug(`lobNew: lobType = ${lobType}.`);
 
-CUBRIDConnection.prototype._lobNew = function (lobType, callback) {
-  var self = this;
+      this.connect()
+          .then(() => {
+            return _lobNew.call(this, lobType);
+          })
+          .then(lobObject => {
+            done();
 
-  ActionQueue.enqueue([
-	  this._implyConnect.bind(this),
-    function (cb) {
-      var lobNewPacket = new LOBNewPacket({
-	          casInfo    : self._CASInfo,
-	          lobType    : lobType,
-	          db_version : self._DB_ENGINE_VER
-	        }),
-		      packetWriter = new PacketWriter(lobNewPacket.getBufferLength()),
-		      socket = self._socket;
+            if (typeof query.callback === 'function') {
+              return query.callback(undefined, lobObject);
+            }
 
-      lobNewPacket.write(packetWriter);
+            resolve(lobObject);
+          })
+          .catch(err => {
+            done();
 
-	    self._socketCurrentEventCallback = cb;
+            if (typeof query.callback === 'function') {
+              return query.callback(err);
+            }
 
-      socket.on('data', self._receiveBytes({
-        parserFunction: self._parseLobNewBuffer,
-	      dataPacket: lobNewPacket
-      }, cb));
-
-      socket.write(packetWriter._buffer);
-    }
-  ],
-  function (err, lobObject) {
-    Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_LOB_NEW_COMPLETED, lobObject);
-
-    if (typeof(callback) === 'function') {
-      callback(err, lobObject);
-    }
+            return reject(err);
+          });
+    });
   });
 };
+
+function _lobNew(lobType) {
+  this.logger.debug('_lobNew', lobType);
+
+  return new Promise((resolve, reject) => {
+    const lobNewPacket = new LOBNewPacket({
+      casInfo: this._CASInfo,
+      lobType,
+    });
+    const packetWriter = new PacketWriter(lobNewPacket.getBufferLength());
+    const socket = this._socket;
+
+    lobNewPacket.write(packetWriter);
+
+    let callback = (err, result) => {
+      if (err) {
+        return reject(err);
+      }
+
+      resolve(result);
+    };
+
+    this._socketCurrentEventCallback = callback;
+
+    socket.on('data', _receiveBytes.call(this, {
+      parserFunction: _parseLobNewBuffer.bind(this),
+      dataPacket: lobNewPacket
+    }, callback));
+
+    socket.write(packetWriter._buffer);
+  });
+}
 
 /**
  * Write data to a LOB object
  * @param lobObject
- * @param position
- * @param dataBuffer
+ * @param offset
+ * @param data
  * @param callback
  */
-CUBRIDConnection.prototype.lobWrite = function (lobObject, position, dataBuffer, callback) {
-	var self = this,
-			query = new Query(null, callback);
+CUBRIDConnection.prototype.lobWrite = function (lobObject, offset, data, callback) {
+  return new Promise((resolve, reject) => {
+    this._queue.push(done => {
+      const query = new Query(callback);
 
-	this._queue.push(function (done) {
-		self._lobWrite(lobObject, position, dataBuffer, function (err, lobObject, totalWriteLen) {
-			query.callback(err, lobObject, totalWriteLen);
-			done();
-		});
-	});
+      this.logger.debug('lobNew');
+
+      this.connect()
+          .then(() => {
+            return _lobWrite.call(this, lobObject, offset, data);
+          })
+          .then(response => {
+            done();
+
+            if (typeof query.callback === 'function') {
+              return query.callback(undefined, response.lobObject, response.length);
+            }
+
+            resolve(response);
+          })
+          .catch(err => {
+            done();
+
+            if (typeof query.callback === 'function') {
+              return query.callback(err);
+            }
+
+            return reject(err);
+          });
+    });
+  });
 };
 
-CUBRIDConnection.prototype._lobWrite = function (lobObject, position, dataBuffer, callback) {
-  var self = this,
-		  err = self._NO_ERROR;
+function _lobWrite(lobObject, offset, data) {
+  this.logger.debug('_lobWrite', lobObject, offset);
 
-  if (lobObject.lobLength + 1 !== position) {
-    err = new Error(ErrorMessages.ERROR_INVALID_LOB_POSITION);
-    Helpers.logError(ErrorMessages.ERROR_INVALID_LOB_POSITION);
-    return callback(err);
-  }
+  return new Promise((resolve, reject) => {
+    // Ensure sequential write.
+    if (lobObject.lobLength !== offset) {
+      return reject(new Error(ErrorMessages.ERROR_INVALID_LOB_POSITION));
+    }
 
-  --position;
+    if (typeof data !== 'string' && !Buffer.isBuffer(data)) {
+      return reject(new Error(ErrorMessages.ERROR_INVALID_LOB_DATA));
+    }
 
-  var realWriteLen, writeLen,
-		  totalWriteLen = 0,
-		  len = dataBuffer.length,
-		  offset = 0;
+    if (typeof data === 'string') {
+      // Convert CLOB into a binary buffer.
+      data = Helpers.getBufferFromString(data);
+    }
 
-  ActionQueue.while(
-    function () {
-      return len > 0;
-    },
-    function (cb) {
-      var expectedResponseLength = self._INVALID_RESPONSE_LENGTH;
+    let totalWriteLen = 0;
 
-      writeLen = Math.min(len, self._LOB_MAX_IO_LENGTH);
+    const totalBytesToWrite = data.length;
+    const writeLen = Math.min(totalBytesToWrite, this._LOB_MAX_IO_LENGTH);
 
-	    var dataToWrite = null;
+    const callback = (err) => {
+      this._socketCurrentEventCallback = undefined;
 
-      if (lobObject.lobType === CASConstants.CUBRIDDataType.CCI_U_TYPE_BLOB) {
-        dataToWrite = dataBuffer.slice(position, position + writeLen);
-      } else {
-        if (lobObject.lobType === CASConstants.CUBRIDDataType.CCI_U_TYPE_CLOB) {
-          dataToWrite = dataBuffer.substring(position, position + writeLen);
-        }
+      if (err) {
+        return reject(err);
       }
 
-      var lobWritePacket = new LOBWritePacket({
-		        casInfo    : self._CASInfo,
-		        lobObject  : lobObject,
-		        position   : position,
-		        data       : dataToWrite,
-		        writeLen   : writeLen,
-		        db_version : self._DB_ENGINE_VER
-		      }),
-		      packetWriter = new PacketWriter(lobWritePacket.getBufferLength()),
-		      totalBuffLength = 0,
-		      buffArr = [],
-		      socket = self._socket;
+      lobObject.lobLength = offset;
+
+      resolve({
+        lobObject,
+        length: offset,
+      });
+    };
+
+    this._socketCurrentEventCallback = callback;
+
+    let continueWriting = (err) => {
+      if (err || totalWriteLen >= totalBytesToWrite) {
+        return callback(err);
+      }
+      
+      const lobWritePacket = new LOBWritePacket({
+        casInfo: this._CASInfo,
+        data: data.slice(offset, offset + writeLen),
+        lobObject,
+        offset,
+      });
+      const packetWriter = new PacketWriter(lobWritePacket.getBufferLength());
+      const socket = this._socket;
+
+      let buffArr = [];
+      let totalBuffLength = 0;
+      let expectedResponseLength = this._INVALID_RESPONSE_LENGTH;
 
       lobWritePacket.write(packetWriter);
 
-	    self._socketCurrentEventCallback = cb;
+      socket.on('data', (data) => {
+        totalBuffLength += data.length;
+        buffArr.push(data);
 
-      socket.on('data', function (data) {
-	      totalBuffLength += data.length;
-	      buffArr.push(data);
+        if (expectedResponseLength === this._INVALID_RESPONSE_LENGTH &&
+            totalBuffLength >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
+          const l = buffArr.length;
+          let buff;
 
-	      if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH &&
-			      totalBuffLength >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
-		      var l = buffArr.length,
-				      buff;
+          if (l > 1) {
+            buff = Buffer.concat(buffArr, totalBuffLength);
+            // For later, use this already concatenated buffer.
+            // First empty the array: http://stackoverflow.com/a/1234337/556678.
+            buffArr.length = 0;
+            // Then push this buffer in.
+            buffArr.push(buff);
+          } else {
+            buff = buffArr[0];
+          }
 
-		      if (l > 1) {
-			      buff = Buffer.concat(buffArr, totalBuffLength);
-			      // For later, use this already concatenated buffer.
-			      // First empty the array: http://stackoverflow.com/a/1234337/556678.
-			      buffArr.length = 0;
-			      // Then push this buffer in.
-			      buffArr.push(buff);
-		      } else {
-			      buff = buffArr[0];
-		      }
-
-		      expectedResponseLength = Helpers._getExpectedResponseLength(buff);
-	      }
+          expectedResponseLength = Helpers._getExpectedResponseLength(buff);
+        }
 
         if (totalBuffLength === expectedResponseLength) {
           socket.removeAllListeners('data');
 
-	        var packetReader = new PacketReader();
-	        packetReader.write(Buffer.concat(buffArr, totalBuffLength));
+          const packetReader = new PacketReader();
+          packetReader.write(Buffer.concat(buffArr, totalBuffLength));
 
-          lobWritePacket.parse(packetReader);
-          realWriteLen = lobWritePacket.wroteLength;
-          position = position + realWriteLen;
-          len -= realWriteLen;
-          offset += realWriteLen;
-          totalWriteLen += realWriteLen;
+          const error = lobWritePacket.parse(packetReader);
 
-	        var errorCode = lobWritePacket.errorCode,
-		          errorMsg = lobWritePacket.errorMsg;
-
-          if (errorCode !== 0) {
-            err = new Error(errorCode + ':' + errorMsg);
+          if (!error) {
+            const realWriteLen = lobWritePacket.bytesWritten;
+            offset += realWriteLen;
+            totalWriteLen += realWriteLen;
           }
 
-	        cb(err);
+          continueWriting(error);
         }
       });
 
-	    socket.write(packetWriter._buffer);
-    },
-    function (err) {
-      if (totalWriteLen > lobObject.lobLength) {
-        lobObject.lobLength = totalWriteLen;
-      }
+      socket.write(packetWriter._buffer);
+    };
 
-      Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_LOB_WRITE_COMPLETED, lobObject, totalWriteLen);
-
-      if (typeof(callback) === 'function') {
-        callback(err, lobObject, totalWriteLen);
-      }
-    });
-};
+    continueWriting();
+  });
+}
 
 /**
  * Read a LOB object from the database
  * @param lobObject
- * @param position
+ * @param offset
  * @param length
  * @param callback
  */
-CUBRIDConnection.prototype.lobRead = function (lobObject, position, length, callback) {
-	var self = this,
-			query = new Query(null, callback);
+CUBRIDConnection.prototype.lobRead = function (lobObject, offset, length, callback) {
+  return new Promise((resolve, reject) => {
+    this._queue.push(done => {
+      const query = new Query(callback);
 
-	this._queue.push(function (done) {
-		self._lobRead(lobObject, position, length, function (err, buffer, totalReadLen) {
-			query.callback(err, buffer, totalReadLen);
-			done();
-		});
-	});
+      this.logger.debug('lobNew');
+
+      this.connect()
+          .then(() => {
+            return _lobRead.call(this, lobObject, offset, length);
+          })
+          .then(response => {
+            done();
+
+            if (typeof query.callback === 'function') {
+              return query.callback(undefined, response.data, response.length);
+            }
+
+            resolve(response);
+          })
+          .catch(err => {
+            done();
+
+            if (typeof query.callback === 'function') {
+              return query.callback(err);
+            }
+
+            return reject(err);
+          });
+    });
+  });
 };
 
-CUBRIDConnection.prototype._lobRead = function (lobObject, position, length, callback) {
-  var self = this,
-		  err = self._NO_ERROR,
-		  buffer;
+function _lobRead(lobObject, offset, length) {
+  this.logger.debug('_lobRead', lobObject, offset, length);
 
-  if (lobObject.lobType === CASConstants.CUBRIDDataType.CCI_U_TYPE_CLOB) {
-    buffer = '';
-  } else {
-    buffer = new Buffer(0);
-  }
+  return new Promise((resolve, reject) => {
+    if (lobObject.lobLength < offset + length) {
+      return reject(new Error(ErrorMessages.ERROR_INVALID_LOB_POSITION));
+    }
 
-  --position;
+    let buffers = [];
+    let totalReadLen = 0;
 
-  if (lobObject.lobLength < position + length) {
-    err = new Error(ErrorMessages.ERROR_INVALID_LOB_POSITION);
-    Helpers.logError(ErrorMessages.ERROR_INVALID_LOB_POSITION);
-    return callback(err);
-  }
+    const callback = (err) => {
+      this._socketCurrentEventCallback = undefined;
 
-  var realReadLen,
-		  readLen,
-		  totalReadLen = 0;
+      if (err) {
+        return reject(err);
+      }
 
-  ActionQueue.while(
-    function () {
-      return length > 0;
-    },
-    function (cb) {
-      var expectedResponseLength = self._INVALID_RESPONSE_LENGTH,
-		      lobReadPacket = new LOBReadPacket({
-	          casInfo      : self._CASInfo,
-	          lobObject    : lobObject,
-	          position     : position,
-	          lengthToRead : length,
-	          db_version   : self._DB_ENGINE_VER
-	        }),
-		      packetWriter = new PacketWriter(lobReadPacket.getBufferLength()),
-		      totalBuffLength = 0,
-		      buffArr = [],
-		      socket = self._socket;
+      buffers = Buffer.concat(buffers, totalReadLen);
 
-	    readLen = Math.min(length, self._LOB_MAX_IO_LENGTH);
+      if (lobObject.lobType === CASConstants.CUBRIDDataType.CCI_U_TYPE_CLOB) {
+        buffers = buffers.toString();
+      }
 
-	    lobReadPacket.write(packetWriter);
+      resolve({
+        data: buffers,
+        length: totalReadLen,
+      });
+    };
 
-	    self._socketCurrentEventCallback = cb;
+    this._socketCurrentEventCallback = callback;
 
-      socket.on('data', function (data) {
-	      totalBuffLength += data.length;
-	      buffArr.push(data);
+    let continueReading = (err) => {
+      if (err || length <= totalReadLen) {
+        return callback(err);
+      }
 
-	      if (expectedResponseLength === self._INVALID_RESPONSE_LENGTH &&
-			      totalBuffLength >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
-		      var l = buffArr.length,
-				      buff;
+      const lobReadPacket = new LOBReadPacket({
+        casInfo: this._CASInfo,
+        bytesToRead: length - totalReadLen,
+        lobObject,
+        offset,
+      });
+      const packetWriter = new PacketWriter(lobReadPacket.getBufferLength());
+      const socket = this._socket;
 
-		      if (l > 1) {
-			      buff = Buffer.concat(buffArr, totalBuffLength);
-			      // For later, use this already concatenated buffer.
-			      // First empty the array: http://stackoverflow.com/a/1234337/556678.
-			      buffArr.length = 0;
-			      // Then push this buffer in.
-			      buffArr.push(buff);
-		      } else {
-			      buff = buffArr[0];
-		      }
+      let buffArr = [];
+      let expectedResponseLength = this._INVALID_RESPONSE_LENGTH;
+      let totalBuffLength = 0;
 
-		      expectedResponseLength = Helpers._getExpectedResponseLength(buff);
+      lobReadPacket.write(packetWriter);
+
+      socket.on('data', (data) => {
+        totalBuffLength += data.length;
+        buffArr.push(data);
+
+        if (expectedResponseLength === this._INVALID_RESPONSE_LENGTH &&
+            totalBuffLength >= DATA_TYPES.DATA_LENGTH_SIZEOF) {
+          const l = buffArr.length;
+          let buff;
+
+          if (l > 1) {
+            buff = Buffer.concat(buffArr, totalBuffLength);
+            // For later, use this already concatenated buffer.
+            // First empty the array: http://stackoverflow.com/a/1234337/556678.
+            buffArr.length = 0;
+            // Then push this buffer in.
+            buffArr.push(buff);
+          } else {
+            buff = buffArr[0];
+          }
+
+          expectedResponseLength = Helpers._getExpectedResponseLength(buff);
         }
 
         if (totalBuffLength === expectedResponseLength) {
           socket.removeAllListeners('data');
 
-          var packetReader = new PacketReader();
-	        packetReader.write(Buffer.concat(buffArr, totalBuffLength));
+          const packetReader = new PacketReader();
 
-          lobReadPacket.parse(packetReader);
+          packetReader.write(Buffer.concat(buffArr, totalBuffLength));
 
-	        realReadLen = lobReadPacket.readLength;
-          position += realReadLen;
-          length -= realReadLen;
-          totalReadLen += realReadLen;
+          const error = lobReadPacket.parse(packetReader);
 
-	        if (realReadLen === 0) {
-            length = 0;
+          if (!error) {
+            const realReadLen = lobReadPacket.readLength;
+
+            // The actual data stored in CUBRID may be empty.
+            if (realReadLen === 0) {
+              length = 0;
+            } else {
+              // The data received from the server can be partial.
+              // So if we haven't received enough data, we need
+              // to keep requesting.
+              offset += realReadLen;
+              totalReadLen += realReadLen;
+            }
+
+            buffers.push(lobReadPacket.lobBuffer);
           }
 
-	        if (lobObject.lobType === CASConstants.CUBRIDDataType.CCI_U_TYPE_CLOB) {
-            buffer += lobReadPacket.lobBuffer;
-          } else {
-            buffer = Helpers._combineData(buffer, lobReadPacket.lobBuffer);
-          }
-
-	        var errorCode = lobReadPacket.errorCode;
-
-          if (errorCode !== 0) {
-            err = new Error(errorCode + ':' + lobReadPacket.errorMsg);
-          }
-
-	        cb(err);
+          setImmediate(continueReading.bind(this, error));
         }
       });
 
-	    socket.write(packetWriter._buffer);
-    },
-    function (err) {
-      Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_LOB_READ_COMPLETED, buffer, totalReadLen);
+      socket.write(packetWriter._buffer);
+    };
 
-	    if (typeof(callback) === 'function') {
-        callback(err, buffer, totalReadLen);
-      }
-    });
-};
+    continueReading();
+  });
+}
 
 /**
  * Set connection timeout value in milliseconds.
@@ -1877,7 +2057,7 @@ CUBRIDConnection.prototype._lobRead = function (lobObject, position, length, cal
  * @param timeout (msec)
  */
 CUBRIDConnection.prototype.setConnectionTimeout = function (timeout) {
-  this._CONNECTION_TIMEOUT = timeout >= 0 ? timeout : 0;
+  this.connectionTimeout = timeout > 0 ? timeout : 0;
 };
 
 /**
@@ -1885,7 +2065,7 @@ CUBRIDConnection.prototype.setConnectionTimeout = function (timeout) {
  * @return {Number} (.msec)
  */
 CUBRIDConnection.prototype.getConnectionTimeout = function () {
-  return this._CONNECTION_TIMEOUT;
+  return this.connectionTimeout;
 };
 
 /**
@@ -1895,61 +2075,76 @@ CUBRIDConnection.prototype.getConnectionTimeout = function () {
  * @param callback
  */
 CUBRIDConnection.prototype.setDatabaseParameter = function (parameter, value, callback) {
-	var self = this,
-			query = new Query(null, callback);
+  return new Promise((resolve, reject) => {
+    this._queue.push((done) => {
+      this
+          .connect()
+          .then(() => {
+            return _setDatabaseParameter.call(this, parameter, value);
+          })
+          .then(() => {
+            done();
 
-	this._queue.push(function (done) {
-		self._setDatabaseParameter(parameter, value, function (err) {
-			query.callback(err);
-			done();
-		});
-	});
+            if (typeof callback === 'function') {
+              return callback();
+            }
+
+            resolve();
+          })
+          .catch(err => {
+            done();
+
+            if (typeof callback === 'function') {
+              return callback(err);
+            }
+
+            reject(err);
+          });
+    });
+  });
 };
 
-CUBRIDConnection.prototype._setDatabaseParameter = function (parameter, value, callback) {
-  var self = this,
-		  err = this._NO_ERROR;
+function _setDatabaseParameter(parameter, value) {
+  return new Promise((resolve, reject) => {
+    if (parameter === CASConstants.CCIDbParam.CCI_PARAM_MAX_STRING_LENGTH) {
+      // The `CCI_PARAM_MAX_STRING_LENGTH` parameter **cannot** be set
+      // programmatically from code as it is a CUBRID Broker parameter
+      // and the client can only query its current value.
+      let error = new Error();
+      error.code = -1011;
+      error.message = ErrorMessages.resolveErrorCode(error.code);
 
-  if (parameter === CASConstants.CCIDbParam.CCI_PARAM_MAX_STRING_LENGTH) {
-    var errorCode = -1011,
-		    errorMsg = Helpers._resolveErrorCode(errorCode);
-
-    err = new Error(errorCode + ':' + errorMsg);
-
-	  Helpers._emitEvent(this, err, this.EVENT_ERROR, null);
-
-	  if (typeof(callback) === 'function') {
-      callback(err);
+      return reject(error);
     }
 
-	  return;
-  }
+    const setDbParameterPacket = new SetDbParameterPacket({
+      casInfo: this._CASInfo,
+      parameter,
+      value
+    });
+    const packetWriter = new PacketWriter(setDbParameterPacket.getBufferLength());
+    const socket = this._socket;
 
-  var setDbParameterPacket = new SetDbParameterPacket({
-	      casInfo   : this._CASInfo,
-	      parameter : parameter,
-	      value     : value
-	    }),
-		  packetWriter = new PacketWriter(setDbParameterPacket.getBufferLength()),
-		  socket = this._socket;
+    setDbParameterPacket.write(packetWriter);
 
-  setDbParameterPacket.write(packetWriter);
+    let callback = (err) => {
+      if (err) {
+        return reject(err);
+      }
 
-	this._socketCurrentEventCallback = callback;
+      resolve();
+    };
 
-  socket.on('data', this._receiveBytes({
-	  parserFunction: this._parseSetDatabaseParameterBuffer,
-	  dataPacket: setDbParameterPacket
-  }, function (err) {
-	  Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_SET_DB_PARAMETER_COMPLETED, null);
+    this._socketCurrentEventCallback = callback;
 
-	  if (typeof(callback) === 'function') {
-		  callback(err);
-	  }
-  }));
+    socket.on('data', _receiveBytes.call(this, {
+      parserFunction: _parseResponseCodeBuffer.bind(this),
+      dataPacket: setDbParameterPacket
+    }, callback));
 
-	socket.write(packetWriter._buffer);
-};
+    socket.write(packetWriter._buffer);
+  });
+}
 
 /**
  * Get a database parameter
@@ -1957,60 +2152,72 @@ CUBRIDConnection.prototype._setDatabaseParameter = function (parameter, value, c
  * @param callback
  */
 CUBRIDConnection.prototype.getDatabaseParameter = function (parameter, callback) {
-	var self = this,
-			query = new Query(null, callback);
+  return new Promise((resolve, reject) => {
+    this._queue.push((done) => {
+      this
+          .connect()
+          .then(() => {
+            return _getDatabaseParameter.call(this, parameter);
+          })
+          .then(value => {
+            done();
 
-	this._queue.push(function (done) {
-		self._getDatabaseParameter(parameter, function (err, value) {
-			query.callback(err, value);
-			done();
-		});
-	});
+            if (typeof callback === 'function') {
+              return callback(undefined, value);
+            }
+
+            resolve(value);
+          })
+          .catch(err => {
+            done();
+
+            if (typeof callback === 'function') {
+              return callback(err);
+            }
+
+            reject(err);
+          });
+    });
+  });
 };
 
-CUBRIDConnection.prototype._getDatabaseParameter = function (parameter, callback) {
-  var self = this,
-		  err = this._NO_ERROR;
+function _getDatabaseParameter(parameter) {
+  return new Promise((resolve, reject) => {
+    if (parameter === CASConstants.CCIDbParam.CCI_PARAM_MAX_STRING_LENGTH) {
+      let error = new Error();
+      error.code = -1011;
+      error.message = ErrorMessages.resolveErrorCode(error.code);
 
-  if (parameter === CASConstants.CCIDbParam.CCI_PARAM_MAX_STRING_LENGTH) {
-    var errorCode = -1011,
-		    errorMsg = Helpers._resolveErrorCode(errorCode);
-
-    err = new Error(errorCode + ':' + errorMsg);
-
-	  Helpers._emitEvent(this, err, this.EVENT_ERROR, null);
-
-	  if (typeof(callback) === 'function') {
-      callback(err);
+      return reject(error);
     }
 
-	  return;
-  }
+    const getDbParameterPacket = new GetDbParameterPacket({
+      casInfo: this._CASInfo,
+      parameter,
+    });
+    const packetWriter = new PacketWriter(getDbParameterPacket.getBufferLength());
+    const socket = this._socket;
 
-  var getDbParameterPacket = new GetDbParameterPacket({
-	      casInfo   : this._CASInfo,
-	      parameter : parameter
-	    }),
-		  packetWriter = new PacketWriter(getDbParameterPacket.getBufferLength()),
-		  socket = this._socket;
+    getDbParameterPacket.write(packetWriter);
 
-  getDbParameterPacket.write(packetWriter);
+    let callback = (err) => {
+      if (err) {
+        return reject(err);
+      }
 
-	this._socketCurrentEventCallback = callback;
+      resolve(getDbParameterPacket.value);
+    };
 
-	socket.on('data', this._receiveBytes({
-		parserFunction: this._parseGetDatabaseParameterBuffer,
-		dataPacket: getDbParameterPacket
-	}, function (err) {
-		Helpers._emitEvent(self, err, self.EVENT_ERROR, self.EVENT_GET_DB_PARAMETER_COMPLETED, getDbParameterPacket.value);
+    this._socketCurrentEventCallback = callback;
 
-		if (typeof(callback) === 'function') {
-			callback(err, getDbParameterPacket.value);
-		}
-	}));
+    socket.on('data', _receiveBytes.call(this, {
+      parserFunction: _parseResponseCodeBuffer.bind(this),
+      dataPacket: getDbParameterPacket
+    }, callback));
 
-	socket.write(packetWriter._buffer);
-};
+    socket.write(packetWriter._buffer);
+  });
+}
 
 /**
  * Set the protocol to be used for queries execution.
@@ -2019,50 +2226,30 @@ CUBRIDConnection.prototype._getDatabaseParameter = function (parameter, callback
  * @param enforceOldProtocol
  */
 CUBRIDConnection.prototype.setEnforceOldQueryProtocol = function (enforceOldProtocol) {
-  if (this._ENFORCE_OLD_QUERY_PROTOCOL !== enforceOldProtocol) {
-    this._ENFORCE_OLD_QUERY_PROTOCOL = enforceOldProtocol;
-  }
+  this.logger.info('setEnforceOldQueryProtocol', enforceOldProtocol);
+
+  this._ENFORCE_OLD_QUERY_PROTOCOL = enforceOldProtocol;
 };
 
 /**
  * Returns the protocol used for queries execution.
  * If true, the driver uses the (old) 8.4.x protocol.
  * If false, the driver uses the newer 9.x protocol.
- * @private
  */
-CUBRIDConnection.prototype.getEnforceOldQueryProtocol = function () {
-  return this._ENFORCE_OLD_QUERY_PROTOCOL;
-};
-
-/**
- * Add a query to the queries queue
- * @param sql SQL query to execute
- * @param callback
- */
-CUBRIDConnection.prototype.addQuery = function (sql, callback) {
-	this.query(sql, callback);
-};
-
-/**
- * Add a non-query (direct SQL execute statement) to the queries queue
- * @param sql SQL command to execute
- * @param callback
- */
-CUBRIDConnection.prototype.addNonQuery = function (sql, callback) {
-  this.execute(sql, callback);
+CUBRIDConnection.prototype.shouldUseOldQueryProtocol = function () {
+  return !!this._ENFORCE_OLD_QUERY_PROTOCOL;
 };
 
 /**
  * Return true if there are pending queries in the queries queue
  * @return {Boolean}
  */
-CUBRIDConnection.prototype.queriesQueueIsEmpty = isQueueEmpty;
-CUBRIDConnection.prototype.isQueueEmpty = isQueueEmpty;
-
-function isQueueEmpty() {
+CUBRIDConnection.prototype.isQueueEmpty = function () {
   return this._queue.isEmpty();
-}
+};
 
 CUBRIDConnection.prototype.getQueueDepth = function () {
-	return this._queue.getDepth();
+  return this._queue.getDepth();
 };
+
+module.exports = CUBRIDConnection;

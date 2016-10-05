@@ -1,64 +1,32 @@
+sudo: required
+
 language: node_js
 
 node_js:
-  # Quote the version number as Travis will interpret 0.10 as 0.1 unless quoted.
-  - "0.10"
+  - 6
+  - 5
+  - 4.6
+  - 4.5
+  - 4.4
+
+services:
+  - docker
 
 env:
-  - CUBRID_VERSION=9.1.0
-  - CUBRID_VERSION=8.4.4
-  - CUBRID_VERSION=8.4.3
-  - CUBRID_VERSION=8.4.1
+  - CUBRID_VERSION=9.3.6.0002
+  - CUBRID_VERSION=9.2.26.0004
+  - CUBRID_VERSION=9.2.3.0005
+  - CUBRID_VERSION=9.1.0.0218
+  - CUBRID_VERSION=9.0.0.0478
+  - CUBRID_VERSION=8.4.3.10001
+  - CUBRID_VERSION=8.4.1.32003
 
 before_install:
-  # According to http://docs.travis-ci.com/user/build-configuration/
-  # prepare the system to install prerequisites or dependencies.
-  # Update the OS before installing prerequisites.
-  - sudo apt-get update
-  # Install Chef Solo prerequisites.
-  # Ruby >=2.0.0 is required by one of the Chef dependencies.
-  # Build Ruby from source. Will auto install gem. 
-  - RUBY_MAJOR_VERSION=2.2
-  - RUBY_VERSION=$RUBY_MAJOR_VERSION.0
-  # Install Ruby prerequisites.
-  - sudo apt-get install -y build-essential zlib1g-dev libssl-dev libreadline6-dev libyaml-dev wget ssl-cert
-  # Download Ruby source into the current directory.
-  - wget http://cache.ruby-lang.org/pub/ruby/$RUBY_MAJOR_VERSION/ruby-$RUBY_VERSION.tar.gz
-  # Extract Ruby source
-  - tar -xvzf ruby-$RUBY_VERSION.tar.gz
-  # Enter the Ruby directory.
-  - cd ruby-$RUBY_VERSION
-  # Configure Ruby.
-  - ./configure --prefix=/usr/local
-  - make
-  # Install Ruby.
-  - sudo make install
-  # Return back to the previous directory.
-  - cd ..
-  # Install Chef Solo.
-  # Chef Solo 11.4.4 is broken, so install one of the later versions.
-  # The bug was supposed to be fixed in 11.4.5 which is already released.
-  - sudo gem install chef --no-rdoc --no-ri
-
-install:
-  # Install dev dependencies for this Node.js project.
-  - npm install
-  # CUBRID operates on IPv4 address, while Travis defaults to IPv6.
-  # Therefore, we need to explicitly override the default `hostname`
-  # to point to an IPv4 address.
-  - sudo hostname localhost
-  # Make sure the target directory for cookbooks exists.
-  - mkdir -p /tmp/chef-solo
-  # Prepare a file with runlist for Chef Solo.
-  - echo '{"cubrid":{"version":"'$CUBRID_VERSION'"},"run_list":["cubrid::demodb"]}' > cubrid_chef.json
-  # Install CUBRID via Chef Solo. Download all cookbooks from a remote URL.
-  - sudo chef-solo -c test/testSetup/solo.rb -j cubrid_chef.json -r http://sourceforge.net/projects/cubrid/files/CUBRID-Demo-Virtual-Machines/Vagrant/chef-cookbooks.tar.gz/download
+  - docker pull lighthopper/cubrid:$CUBRID_VERSION
+  - docker run -d -p 33000:33000 lighthopper/cubrid:$CUBRID_VERSION ./create-start-demodb.sh
+  - docker ps -a
 
 after_success:
-  # Install JSCoverage prerequisites.
-  - sudo apt-get install zip
-  # Install JSCoverage to instrument code covered version of the node-cubrid module.
-  - export JSCOVERAGE_VERSION=0.5.1
-  - wget http://siliconforks.com/jscoverage/download/jscoverage-$JSCOVERAGE_VERSION.tar.bz2
-  - tar jxf jscoverage-$JSCOVERAGE_VERSION.tar.bz2 && cd jscoverage-$JSCOVERAGE_VERSION && ./configure && make && sudo make install && cd ..
-  - npm run cover
+  - npm run coverage
+
+script: npm run test

@@ -1,7 +1,7 @@
-var DRIVER_VERSION = require('../constants/DriverVersion'),
-		DATA_TYPES = require('../constants/DataTypes');
+'use strict';
 
-module.exports = ClientInfoExchangePacket;
+const CASConstants = require('../constants/CASConstants');
+const DATA_TYPES = require('../constants/DataTypes');
 
 /**
  * Constructor
@@ -16,12 +16,13 @@ function ClientInfoExchangePacket() {
  * @param writer
  */
 ClientInfoExchangePacket.prototype.write = function (writer) {
-  writer._writeFixedLengthString('CUBRK', 0, 5);
-  writer._writeByte(3); // 3 = JDBC client type
-  writer._writeByte(DRIVER_VERSION.CAS_VER); // CAS client/driver version
-  writer._writeByte(0);
-  writer._writeByte(0);
-  writer._writeByte(0);
+  // Write the driver info which consists of 10 bytes.
+  writer._writeFixedLengthString(CASConstants.CAS_MAGIC_STRING, 0, CASConstants.CAS_MAGIC_STRING.length);
+  writer._writeByte(CASConstants.CAS_CLIENT_JDBC);
+  writer._writeByte(CASConstants.CAS_VERSION);
+  writer._writeByte(0); // Reserved by the protocol.
+  writer._writeByte(0); // Reserved by the protocol.
+  writer._writeByte(0); // Reserved by the protocol.
 
   return writer;
 };
@@ -31,17 +32,18 @@ ClientInfoExchangePacket.prototype.write = function (writer) {
  * @param parser
  */
 ClientInfoExchangePacket.prototype.parse = function (parser) {
-  this.newConnectionPort = parser._parseInt(); // (TCP/IP) Port value
-
-  return this;
+  // (TCP/IP) Port value
+  this.newConnectionPort = parser._parseInt();
 };
 
 ClientInfoExchangePacket.prototype.getBufferLength = function () {
-	var bufferLength =
-			// The length of "CUBRK" string.
-			5 +
-			// JDBC client type + CAS version + 0 + 0 + 0. All bytes.
-			DATA_TYPES.BYTE_SIZEOF * 5;
+  const bufferLength =
+      // The length of "CUBRK" string.
+      CASConstants.CAS_MAGIC_STRING.length +
+      // JDBC client type + CAS version + 0 + 0 + 0. All bytes.
+      DATA_TYPES.BYTE_SIZEOF * 5;
 
-	return bufferLength;
+  return bufferLength;
 };
+
+module.exports = ClientInfoExchangePacket;

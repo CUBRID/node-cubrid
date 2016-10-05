@@ -1,7 +1,5 @@
-var DATA_TYPES = require('../constants/DataTypes'),
-  Helpers = require('../utils/Helpers'),
-  ErrorMessages = require('../constants/ErrorMessages'),
-  CAS = require('../constants/CASConstants');
+const CAS = require('../constants/CASConstants');
+const DATA_TYPES = require('../constants/DataTypes');
 
 module.exports = LOBWritePacket;
 
@@ -11,19 +9,7 @@ module.exports = LOBWritePacket;
  * @constructor
  */
 function LOBWritePacket(options) {
-  options = options || {};
-
-  this.casInfo = options.casInfo;
-  this.lobObject = options.lobObject;
-  this.position = options.position;
-  this.data = options.data;
-  this.writeLen = options.writeLen;
-  this.dbVersion = options.dbVersion;
-
-  this.responseCode = 0;
-  this.errorCode = 0;
-  this.errorMsg = '';
-  this.wroteLength = 0;
+  this.options = options;
 }
 
 /**
@@ -31,24 +17,20 @@ function LOBWritePacket(options) {
  * @param writer
  */
 LOBWritePacket.prototype.write = function (writer) {
+  const options = this.options;
+  const lobObject = options.lobObject;
+
   writer._writeInt(this.getBufferLength() - DATA_TYPES.DATA_LENGTH_SIZEOF - DATA_TYPES.CAS_INFO_SIZE);
-  writer._writeBytes(DATA_TYPES.CAS_INFO_SIZE, this.casInfo);
+  writer._writeBytes(options.casInfo);
 
   writer._writeByte(CAS.CASFunctionCode.CAS_FC_LOB_WRITE);
-  writer._writeInt(this.lobObject.packedLobHandle.length); // Length of the packedLobHandle
-  writer._writeBytes(this.lobObject.packedLobHandle.length, this.lobObject.packedLobHandle); // LOB handle
-  writer._writeInt(DATA_TYPES.LONG_SIZEOF);
-  writer._writeLong(this.position); // Start position from witch to write data
-  writer._writeInt(this.writeLen); // Length of data to be written
-  if (this.lobObject.lobType === CAS.CUBRIDDataType.CCI_U_TYPE_BLOB) {
-    writer._writeBytes(this.writeLen, this.data);
-  } else {
-	  // Otherwise, it must be `CAS.CUBRIDDataType.CCI_U_TYPE_CLOB`.
+  writer.addBytes(lobObject.packedLobHandle);
+  // Offset from which to write data.
+  writer.addLong(options.offset);
 
-	  // Convert clob string to bytes
-    var dataInBytes = new Buffer(this.data, 'binary');
-    writer._writeBytes(this.writeLen, dataInBytes);
-  }
+  // `data` is always a buffer. The `client` already converts
+  // CLOB into a Buffer object.
+  writer.addBytes(options.data);
 
   return writer;
 };
@@ -58,27 +40,25 @@ LOBWritePacket.prototype.write = function (writer) {
  * @param parser
  */
 LOBWritePacket.prototype.parse = function (parser) {
-  var responseLength = parser._parseInt();
-  this.casInfo = parser._parseBytes(DATA_TYPES.CAS_INFO_SIZE);
+  const responseLength = parser._parseInt();
 
-  this.responseCode = parser._parseInt();
-  if (this.responseCode < 0) {
-    this.errorCode = parser._parseInt();
-    this.errorMsg = parser._parseNullTerminatedString(responseLength - 2 * DATA_TYPES.INT_SIZEOF);
-    if (this.errorMsg.length === 0) {
-      this.errorMsg = Helpers._resolveErrorCode(this.errorCode);
-    }
-  } else {
-    this.wroteLength = this.responseCode;
-  }
+  // CAS Info.
+  parser._parseBytes(DATA_TYPES.CAS_INFO_SIZE);
+  const responseCode = parser._parseInt();
+  
+  if (responseCode < 0) {
+    return parser.readError(responseLength);
+  } 
 
-  return this;
+  this.bytesWritten = responseCode;
 };
 
 LOBWritePacket.prototype.getBufferLength = function () {
-	var bufferLength = DATA_TYPES.DATA_LENGTH_SIZEOF + DATA_TYPES.CAS_INFO_SIZE +
-			DATA_TYPES.BYTE_SIZEOF + DATA_TYPES.INT_SIZEOF + this.lobObject.packedLobHandle.length +
-			DATA_TYPES.INT_SIZEOF + DATA_TYPES.LONG_SIZEOF + DATA_TYPES.INT_SIZEOF + this.writeLen;
+  const options = this.options;
+
+	const bufferLength = DATA_TYPES.DATA_LENGTH_SIZEOF + DATA_TYPES.CAS_INFO_SIZE +
+			DATA_TYPES.BYTE_SIZEOF + DATA_TYPES.INT_SIZEOF + options.lobObject.packedLobHandle.length +
+			DATA_TYPES.INT_SIZEOF + DATA_TYPES.LONG_SIZEOF + DATA_TYPES.INT_SIZEOF + options.data.length;
 
 	return bufferLength;
 };

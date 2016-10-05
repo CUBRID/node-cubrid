@@ -1,6 +1,6 @@
 exports['test_QueryWithParams'] = function (test) {
 	var CUBRID = require('../'),
-			client = require('./testSetup/test_Setup').createDefaultCUBRIDDemodbConnection(),
+			client = require('./testSetup').createDefaultCUBRIDDemodbConnection(),
 			Helpers = CUBRID.Helpers,
 			Result2Array = CUBRID.Result2Array;
 

@@ -1,0 +1,8 @@
+extends: eslint:recommended
+installedESLint: true
+env:
+ es6: true
+ node: true
+ mocha: true
+rules:
+ no-console: off

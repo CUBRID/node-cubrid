@@ -1,9 +1,5 @@
-var DATA_TYPES = require('../constants/DataTypes'),
-  Helpers = require('../utils/Helpers'),
-  ErrorMessages = require('../constants/ErrorMessages'),
-  CAS = require('../constants/CASConstants');
-
-module.exports = SetAutoCommitModePacket;
+const CAS = require('../constants/CASConstants');
+const DATA_TYPES = require('../constants/DataTypes');
 
 /**
  * Constructor
@@ -15,11 +11,8 @@ function SetAutoCommitModePacket(options) {
 
   this.casInfo = options.casInfo;
   this.autoCommitMode = options.autoCommitMode;
-  this.dbVersion = options.dbVersion;
-
+  
   this.responseCode = 0;
-  this.errorCode = 0;
-  this.errorMsg = '';
 }
 
 /**
@@ -28,7 +21,7 @@ function SetAutoCommitModePacket(options) {
  */
 SetAutoCommitModePacket.prototype.write = function (writer) {
   writer._writeInt(this.getBufferLength() - DATA_TYPES.DATA_LENGTH_SIZEOF - DATA_TYPES.CAS_INFO_SIZE);
-  writer._writeBytes(DATA_TYPES.CAS_INFO_SIZE, this.casInfo);
+  writer._writeBytes(this.casInfo);
   writer._writeByte(CAS.CASFunctionCode.CAS_FC_SET_DB_PARAMETER);
   writer._writeInt(DATA_TYPES.INT_SIZEOF);
   writer._writeInt(CAS.CCIDbParam.CCI_PARAM_AUTO_COMMIT); // Parameter type auto-commit mode
@@ -43,24 +36,21 @@ SetAutoCommitModePacket.prototype.write = function (writer) {
  * @param parser
  */
 SetAutoCommitModePacket.prototype.parse = function (parser) {
-  var responseLength = parser._parseInt();
+  const responseLength = parser._parseInt();
+  
   this.casInfo = parser._parseBytes(DATA_TYPES.CAS_INFO_SIZE);
-
   this.responseCode = parser._parseInt();
+  
   if (this.responseCode < 0) {
-    this.errorCode = parser._parseInt();
-    this.errorMsg = parser._parseNullTerminatedString(responseLength - 2 * DATA_TYPES.INT_SIZEOF);
-    if (this.errorMsg.length === 0) {
-      this.errorMsg = Helpers._resolveErrorCode(this.errorCode);
-    }
+    return parser.readError(responseLength);
   }
-
-  return this;
 };
 
 SetAutoCommitModePacket.prototype.getBufferLength = function () {
-	var bufferLength = DATA_TYPES.DATA_LENGTH_SIZEOF + DATA_TYPES.CAS_INFO_SIZE +
+	const bufferLength = DATA_TYPES.DATA_LENGTH_SIZEOF + DATA_TYPES.CAS_INFO_SIZE +
 			DATA_TYPES.BYTE_SIZEOF + 2 * DATA_TYPES.INT_SIZEOF + 2 * DATA_TYPES.INT_SIZEOF;
 
 	return bufferLength;
 };
+
+module.exports = SetAutoCommitModePacket;
