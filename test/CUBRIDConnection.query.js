@@ -1130,7 +1130,9 @@ describe('CUBRIDConnection', function () {
             })
             .catch(err => {
               expect(err).to.be.an.instanceOf(Error);
-              expect(err.message).to.equal('This socket is closed.');
+              // Node `v6` reports an error that has no `.` at the end of the
+              // error message, while previous versions included the `.`.
+              expect(err.message).to.contain('This socket is closed');
             });
       });
     });
