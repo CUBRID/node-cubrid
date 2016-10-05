@@ -236,8 +236,7 @@ exports._getExpectedResponseLength = function (buffer) {
 };
 
 exports.getBufferFromString = function (str, encoding) {
-  if (typeof Buffer.from === 'function') {
-    // Node v6.
+  if (process.version >= 'v4.5.0') {
     return Buffer.from(str, encoding);
   }
   

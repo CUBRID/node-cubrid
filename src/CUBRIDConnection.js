@@ -1753,7 +1753,7 @@ function _lobNew(lobType) {
  * Write data to a LOB object
  * @param lobObject
  * @param offset
- * @param dataBuffer
+ * @param data
  * @param callback
  */
 CUBRIDConnection.prototype.lobWrite = function (lobObject, offset, data, callback) {
