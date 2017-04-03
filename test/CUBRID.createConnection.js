@@ -78,6 +78,11 @@ describe('CUBRID', function () {
               .then(() => {
                 return client.close();
               })
+              .catch(err => {
+                if ((config.host === err.address) && (config.port === err.port) && (err.code === 'ECONNREFUSED')) {
+                  throw err;
+                }
+              })
               .then(() => {
                 ++closedCount;
               });
