@@ -188,7 +188,11 @@ exports.CUBRIDDataType = {
   CCI_U_TYPE_DATETIME  : 22,
   CCI_U_TYPE_BLOB      : 23,
   CCI_U_TYPE_CLOB      : 24,
-  CCI_U_TYPE_ENUM      : 25
+  CCI_U_TYPE_ENUM      : 25,
+  CCI_U_TYPE_TIMESTAMPTZ  : 29,
+  CCI_U_TYPE_TIMESTAMPLTZ : 30,
+  CCI_U_TYPE_DATETIMETZ   : 31,
+  CCI_U_TYPE_DATETIMELTZ  : 32
 };
 
 /**
@@ -246,6 +250,14 @@ exports.getCUBRIDDataTypeName = function (type) {
       return 'ENUM';
     case this.CUBRIDDataType.CCI_U_TYPE_RESULTSET:
       return 'Resultset';
+    case this.CUBRIDDataType.CCI_U_TYPE_TIMESTAMPTZ:
+      return 'TimestampTz';
+    case this.CUBRIDDataType.CCI_U_TYPE_TIMESTAMPLTZ:
+      return 'TimestampLtz';
+    case this.CUBRIDDataType.CCI_U_TYPE_DATETIMETZ:
+      return 'DateTimeTz';
+    case this.CUBRIDDataType.CCI_U_TYPE_DATETIMELTZ:
+      return 'DateTimeLtz';
     default:
       return 'UNKNOWN';
   }
@@ -307,6 +319,14 @@ exports.getCUBRIDDataTypeNumber = function (type) {
       return this.CUBRIDDataType.CCI_U_TYPE_CLOB;
     case 'resultset':
       return this.CUBRIDDataType.CCI_U_TYPE_RESULTSET;
+    case 'timestamptz':
+      return this.CUBRIDDataType.CCI_U_TYPE_TIMESTAMPTZ;
+    case 'timestampltz':
+      return this.CUBRIDDataType.CCI_U_TYPE_TIMESTAMPLTZ;
+    case 'datetimetz':
+      return this.CUBRIDDataType.CCI_U_TYPE_DATETIMETZ;
+    case 'datetimeltz':
+      return this.CUBRIDDataType.CCI_U_TYPE_DATETIMELTZ;
     default:
       return this.CUBRIDDataType.CCI_U_TYPE_UNKNOWN;
   }
