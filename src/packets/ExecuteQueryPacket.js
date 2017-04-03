@@ -318,6 +318,14 @@ function _readValue(parser, type, size) {
     case CAS.CUBRIDDataType.CCI_U_TYPE_TIMESTAMP:
       return parser._parseTimeStamp();
 
+    case CAS.CUBRIDDataType.CCI_U_TYPE_TIMESTAMPTZ:
+    case CAS.CUBRIDDataType.CCI_U_TYPE_TIMESTAMPLTZ:
+      return parser._parseTimeStampTz(size);
+
+    case CAS.CUBRIDDataType.CCI_U_TYPE_DATETIMETZ:
+    case CAS.CUBRIDDataType.CCI_U_TYPE_DATETIMELTZ:
+      return parser._parseDateTimeTz(size);
+
     case CAS.CUBRIDDataType.CCI_U_TYPE_OBJECT:
       return parser._parseObject();
 

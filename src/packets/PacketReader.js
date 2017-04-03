@@ -237,6 +237,64 @@ PacketReader.prototype._parseTimeStamp = function () {
 };
 
 /**
+ * Returns a timestamptz value from the internal buffer
+ * @param size
+ * @returns {string}
+ */
+PacketReader.prototype._parseTimeStampTz = function(size) {
+  const tmp_position = this._offset;
+  const year = this._parseShort();
+  const month = this._parseShort() - 1;
+  const day = this._parseShort();
+  const hour = this._parseShort();
+  const min = this._parseShort();
+  const sec = this._parseShort();
+  const msec = 0;
+  const timestamp_size = this._offset - tmp_position;
+  let timezone;
+
+  if (timestamp_size > 0) {
+    const timezoneLength = size - timestamp_size - 1;
+    timezone = this._buffer.slice(this._offset, this._offset + timezoneLength);
+    this._offset += size - timestamp_size;
+  } else {
+    timezone = '';
+    this._offset++;
+  }
+
+  return `${new Date(year, month, day, hour, min, sec, msec)} ${timezone}`;
+};
+
+/**
+ * Returns a datetimetz value from the internal buffer
+ * @param size
+ * @returns {string}
+ */
+PacketReader.prototype._parseDateTimeTz = function(size) {
+  const tmp_position = this._offset;
+  const year = this._parseShort();
+  const month = this._parseShort() - 1;
+  const day = this._parseShort();
+  const hour = this._parseShort();
+  const min = this._parseShort();
+  const sec = this._parseShort();
+  const msec = this._parseShort();
+  const datetime_size = this._offset - tmp_position;
+  let timezone;
+
+  if (datetime_size > 0) {
+      const timezoneLength = size - datetime_size - 1;
+      timezone = this._buffer.slice(this._offset, this._offset + timezoneLength);
+      this._offset += size - datetime_size;
+  } else {
+      timezone = '';
+      this._offset++;
+  }
+
+  return `${new Date(year, month, day, hour, min, sec, msec)} ${timezone}`;
+};
+
+/**
  * Returns a char value from the internal buffer
  * @return {String}
  */
