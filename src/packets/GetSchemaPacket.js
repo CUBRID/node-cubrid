@@ -90,11 +90,17 @@ GetSchemaPacket.prototype.parseRequestSchema = function (parser) {
   const numColInfo = parser._parseInt(); // Number of columns
 
   this.infoArray = [];
+  const MASK_TYPE_HAS_2_BYTES = 0x80;
 
   for (let i = 0; i < numColInfo; ++i) {
     let info = new ColumnMetaData();
 
-    info.ColumnType = parser._parseByte(); // Column data type
+    let legacyType = parser._parseByte(); // Column data type
+    if ((legacyType & MASK_TYPE_HAS_2_BYTES) === 128) {
+      info.ColumnType = parser._parseByte(); // Column data type
+    } else {
+      info.ColumnType = legacyType;
+    }
     info.scale = parser._parseShort(); // Scale
     info.precision = parser._parseInt(); // Precision
 

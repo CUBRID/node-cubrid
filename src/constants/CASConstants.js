@@ -472,9 +472,10 @@ exports.CAS_PROTOCOL_VERSION = (function getProtocolVersion() {
   // const CAS_PROTOCOL_VERSION_3 = /* since 8.4.3 */3;
   // const CAS_PROTOCOL_VERSION_4 = /* since 9.1.0 */4;
   // const CAS_PROTOCOL_VERSION_5 = /* since 9.2.0 */5;
-  const CAS_PROTOCOL_VERSION_6 = /* since 9.2.26 */6;
+  // const CAS_PROTOCOL_VERSION_6 = /* since 9.2.26 */6;
+  const CAS_PROTOCOL_VERSION_7 = /* since 10.0.0 */7;
 
-  return CAS_PROTOCOL_VERSION_6;
+  return CAS_PROTOCOL_VERSION_7;
 })();
 
 exports.CAS_VERSION = CAS_PROTO_INDICATOR | exports.CAS_PROTOCOL_VERSION;
@@ -485,8 +486,8 @@ exports.CAS_CLIENT_JDBC = 3;
 exports.CAS_MAGIC_STRING = 'CUBRK';
 
 exports.getProtocolVersion = function (version) {
-  // At this moment `node-cubrid` supports at most protocol version 6.
-  for (let protocolVersion = 0; protocolVersion < 7; ++protocolVersion) {
+  // At this moment `node-cubrid` supports at most protocol version 7.
+  for (let protocolVersion = 0; protocolVersion < 8; ++protocolVersion) {
     if ((CAS_PROTO_INDICATOR | protocolVersion) === version) {
       return protocolVersion;
     }

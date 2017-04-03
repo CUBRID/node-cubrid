@@ -110,10 +110,16 @@ ExecuteQueryPacket.prototype.parse = function (parser) {
   let i;
   let info;
   let len;
+  const MASK_TYPE_HAS_2_BYTES = 0x80;
 
   for (i = 0; i < this.columnCount; i++) {
     info = new ColumnMetaData();
-    info.ColumnType = parser._parseByte(); // Column type
+    let legacyType = parser._parseByte();  // Column type before PROTOCOL_V7
+    if ((legacyType & MASK_TYPE_HAS_2_BYTES) === 128) {
+      info.ColumnType = parser._parseByte(); // Column type
+    } else {
+      info.ColumnType = legacyType;
+    }
     info.scale = parser._parseShort(); // Scale
     info.precision = parser._parseInt(); // Precision
     len = parser._parseInt();

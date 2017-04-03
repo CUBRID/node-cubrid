@@ -93,11 +93,17 @@ PrepareExecutePacket.prototype.parsePrepare = function (parser) {
   this.isUpdatable = parser._parseByte() === 1; // Updatable?
   this.columnCount = parser._parseInt(); // Column count
   this.infoArray = [];
+  const MASK_TYPE_HAS_2_BYTES = 0x80;
 
   for (let i = 0; i < this.columnCount; ++i) {
     let info = new ColumnMetaData();
 
-    info.ColumnType = parser._parseByte(); // Column type
+    let legacyType = parser._parseByte(); // Column type
+    if ((legacyType & MASK_TYPE_HAS_2_BYTES) === 128) {
+      info.ColumnType = parser._parseByte();
+    } else {
+      info.ColumnType = legacyType;
+    }
     info.scale = parser._parseShort(); // Scale
     info.precision = parser._parseInt(); // Precision
 
