@@ -3,6 +3,7 @@
 const CAS = require('../constants/CASConstants');
 const DATA_TYPES = require('../constants/DataTypes');
 const ErrorMessages = require('../constants/ErrorMessages');
+const Timezone = require('../utils/Timezone');
 
 module.exports = PacketReader;
 
@@ -239,17 +240,11 @@ PacketReader.prototype._parseTimeStamp = function () {
 /**
  * Returns a timestamptz value from the internal buffer
  * @param size
- * @returns {string}
+ * @returns {Timezone}
  */
 PacketReader.prototype._parseTimeStampTz = function(size) {
   const tmp_position = this._offset;
-  const year = this._parseShort();
-  const month = this._parseShort() - 1;
-  const day = this._parseShort();
-  const hour = this._parseShort();
-  const min = this._parseShort();
-  const sec = this._parseShort();
-  const msec = 0;
+  const timestamp = this._parseTimeStamp.call(this);
   const timestamp_size = this._offset - tmp_position;
   let timezone;
 
@@ -262,23 +257,17 @@ PacketReader.prototype._parseTimeStampTz = function(size) {
     this._offset++;
   }
 
-  return `${new Date(year, month, day, hour, min, sec, msec)} ${timezone}`;
+  return new Timezone(timestamp, timezone);
 };
 
 /**
  * Returns a datetimetz value from the internal buffer
  * @param size
- * @returns {string}
+ * @returns {Timezone}
  */
 PacketReader.prototype._parseDateTimeTz = function(size) {
   const tmp_position = this._offset;
-  const year = this._parseShort();
-  const month = this._parseShort() - 1;
-  const day = this._parseShort();
-  const hour = this._parseShort();
-  const min = this._parseShort();
-  const sec = this._parseShort();
-  const msec = this._parseShort();
+  const datetime = this._parseDateTime.call(this);
   const datetime_size = this._offset - tmp_position;
   let timezone;
 
@@ -291,7 +280,7 @@ PacketReader.prototype._parseDateTimeTz = function(size) {
       this._offset++;
   }
 
-  return `${new Date(year, month, day, hour, min, sec, msec)} ${timezone}`;
+  return new Timezone(datetime, timezone);
 };
 
 /**
