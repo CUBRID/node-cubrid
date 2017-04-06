@@ -115,7 +115,7 @@ module.exports.timezone = {
     "Kralendijk": {"abbreviation": "AST", "tzh": "-04", "tzm": "00", "offset": -14400000},
     "La_Paz": {"abbreviation": "BOT", "tzh": "-04", "tzm": "00", "offset": -14400000},
     "Lima": {"abbreviation": "PET", "tzh": "-05", "tzm": "00", "offset": -18000000},
-    "Los_Angeles": {"abbreviation": "PDT", "tzh": "-07", "tzm": "00", "offset": -25200000},
+    "Los_Angeles": {"abbreviation": "PST", "tzh": "-07", "tzm": "00", "offset": -25200000},
     "Lower_Princes": {"abbreviation": "AST", "tzh": "-04", "tzm": "00", "offset": -14400000},
     "Maceio": {"abbreviation": "BRT", "tzh": "-03", "tzm": "00", "offset": -10800000},
     "Managua": {"abbreviation": "CST", "tzh": "-06", "tzm": "00", "offset": -21600000},

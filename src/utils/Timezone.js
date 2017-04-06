@@ -20,8 +20,8 @@ function Timezone(datetime, timezone) {
       this.city = tz[0].split('/')[1];
     }
     this.tzd = tz[1];
-    this.tzh = timezoneData[region][city].tzh;
-    this.tzm = timezoneData[region][city].tzm;
+    this.tzh = timezoneData[this.region][this.city].tzh;
+    this.tzm = timezoneData[this.region][this.city].tzm;
   } else {
     this.timezone = '';
     this.tzd = '';
@@ -35,7 +35,7 @@ function Timezone(datetime, timezone) {
  * @returns {string}
  */
 Timezone.prototype.toString = function() {
-  return `${this.format('YYYY-MM-DD HH24:MI:SS')} ${this.timezone}`;
+    return `${this.format('YYYY-MM-DD HH24:MI:SS.FF')}${(this.timezone ? ` ${this.timezone}` : ``)}`;
 };
 
 /**
@@ -44,7 +44,7 @@ Timezone.prototype.toString = function() {
  * @returns {String}
  */
 Timezone.prototype.format = function(format) {
-  if (!this.valueOf()) return '';
+  if (!this.datetime) return '';
 
   const weeks = [
     'Sunday',
@@ -88,11 +88,11 @@ Timezone.prototype.format = function(format) {
   return format.replace(formatRex, function($1) {
     switch($1) {
       case 'CC':
-        return parseInt(date.getFullYear() / 100) + 1;
+        return Math.floor(parseInt(date.getUTCFullYear() / 100)) + 1;
       case 'YYYY':
-        return date.getFullYear();
+        return date.getUTCFullYear();
       case 'YY':
-        return _zeroPadding(date.getFullYear() % 1000);
+        return _zeroPadding(date.getUTCFullYear() % 100);
       case 'Q': {
         const mon = date.getMonth();
         if (mon < 3) return 1;
