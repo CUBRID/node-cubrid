@@ -1,5 +1,5 @@
 'use strict';
-const timezoneData = require('./timezone-data').timezone;
+const moment = require('moment-timezone');
 
 module.exports = Timezone;
 
@@ -10,18 +10,22 @@ module.exports = Timezone;
  */
 function Timezone(datetime, timezone) {
   this.datetime = datetime;
+
   if (timezone) {
     this.timezone = timezone.toString();
     const tz = this.timezone.split(' ');
-    this.region = tz[0].split('/')[0];
-    if (this.region === 'UTC') {
-      this.city = 'UTC';
+    this.region = tz[0];
+
+    if (!tz[1]) {
+      // create from moment
+      this.tzd = moment.tz(this.datetime, this.region).format('z')
     } else {
-      this.city = tz[0].split('/')[1];
+      this.tzd = tz[1];
     }
-    this.tzd = tz[1];
-    this.tzh = timezoneData[this.region][this.city].tzh;
-    this.tzm = timezoneData[this.region][this.city].tzm;
+
+    const timeOffset = moment.tz(this.datetime, this.region).format('Z').split(':');
+    this.tzh = timeOffset[0];
+    this.tzm = timeOffset[1];
   } else {
     this.timezone = '';
     this.tzd = '';
@@ -156,7 +160,8 @@ Timezone.prototype.valueOf = function() {
  * @returns {Number}
  */
 Timezone.prototype.getOffset = function() {
-  return timezoneData[this.region][this.city]['offset'];
+  const zone = moment.tz.zone(this.region);
+  return zone.parse(this.datetime) * 60 * 1000;
 };
 
 function _zeroPadding(value, isMs) {

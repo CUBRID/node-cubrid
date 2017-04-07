@@ -368,26 +368,26 @@ describe('Timezone', function() {
       timezoneObject = new Timezone(new Date(Date.UTC(2017, 0, 1, 0, 0, 0)), 'Europe/London BST');
       expect(timezoneObject.format('TZD')).to.equal('BST');
       expect(timezoneObject.format('tzd')).to.equal('BST');
-      expect(timezoneObject.format('TZH')).to.equal('+01');
-      expect(timezoneObject.format('tzh')).to.equal('+01');
+      expect(timezoneObject.format('TZH')).to.equal('+00');
+      expect(timezoneObject.format('tzh')).to.equal('+00');
       expect(timezoneObject.format('TZM')).to.equal('00');
       expect(timezoneObject.format('tzm')).to.equal('00');
 
       timezoneObject = new Timezone(new Date(Date.UTC(2017, 0, 1, 0, 0, 0)), 'America/Los_Angeles PDT');
       expect(timezoneObject.format('TZD')).to.equal('PDT');
       expect(timezoneObject.format('tzd')).to.equal('PDT');
-      expect(timezoneObject.format('TZH')).to.equal('-07');
-      expect(timezoneObject.format('tzh')).to.equal('-07');
+      expect(timezoneObject.format('TZH')).to.equal('-08');
+      expect(timezoneObject.format('tzh')).to.equal('-08');
       expect(timezoneObject.format('TZM')).to.equal('00');
       expect(timezoneObject.format('tzm')).to.equal('00');
 
       timezoneObject = new Timezone(new Date(Date.UTC(2017, 0, 1, 0, 0, 0)), 'America/St_Johns NDT');
       expect(timezoneObject.format('TZD')).to.equal('NDT');
       expect(timezoneObject.format('tzd')).to.equal('NDT');
-      expect(timezoneObject.format('TZH')).to.equal('-02');
-      expect(timezoneObject.format('tzh')).to.equal('-02');
-      expect(timezoneObject.format('TZM')).to.equal('-30');
-      expect(timezoneObject.format('tzm')).to.equal('-30');
+      expect(timezoneObject.format('TZH')).to.equal('-03');
+      expect(timezoneObject.format('tzh')).to.equal('-03');
+      expect(timezoneObject.format('TZM')).to.equal('30');
+      expect(timezoneObject.format('tzm')).to.equal('30');
 
 
       // 12. format combinations
@@ -426,19 +426,19 @@ describe('Timezone', function() {
     it('should success to validate the return values', function() {
       const date = new Date(Date.UTC(2017, 3, 5, 13, 30, 30, 300));
       let timezoneObject = new Timezone(date, 'Asia/Seoul KST');
-      expect(timezoneObject.getOffset()).to.equal(32400000);
+      expect(timezoneObject.getOffset()).to.equal(-32400000);
 
       timezoneObject = new Timezone(date, 'UTC UTC');
       expect(timezoneObject.getOffset()).to.equal(0);
 
       timezoneObject = new Timezone(date, 'Europe/London BST');
-      expect(timezoneObject.getOffset()).to.equal(3600000);
+      expect(timezoneObject.getOffset()).to.equal(-3600000);
 
       timezoneObject = new Timezone(date, 'America/Los_Angeles PDT');
-      expect(timezoneObject.getOffset()).to.equal(-25200000);
+      expect(timezoneObject.getOffset()).to.equal(25200000);
 
       timezoneObject = new Timezone(date, 'America/St_Johns NDT');
-      expect(timezoneObject.getOffset()).to.equal(-9000000);
+      expect(timezoneObject.getOffset()).to.equal(9000000);
     });
   });
 
@@ -515,7 +515,7 @@ describe('Timezone', function() {
 
     const createTable = `CREATE TABLE IF NOT EXISTS ${TABLE_NAME} (\
     col1 DATETIMETZ, col2 DATETIMELTZ, col3 TIMESTAMPTZ, col4 TIMESTAMPLTZ)`;
-    const insertData = `INSERT INTO timezone_tbl VALUES (\
+    const insertData = `INSERT INTO ${TABLE_NAME} VALUES (\
     DATETIMETZ'2017-04-05 13:30:30.500 ${TIMEZONE}',\
     DATETIMELTZ'2017-04-05 13:30:30.500 ${TIMEZONE}',\
     TIMESTAMPTZ'2017-04-05 13:30:30 ${TIMEZONE}',\
@@ -586,14 +586,17 @@ describe('Timezone', function() {
           //   .to.equal(CAS.getCUBRIDDataTypeName(CAS.CUBRIDDataType.CCI_U_TYPE_TIMESTAMPLTZ));
 
           const row = result.ColumnValues[0];
-          const col1 = row[0].toString();
-          const col2 = row[1].toString();
+          const col2 = row[0].toString();
+          const col4 = row[1].toString();
 
-          expect(col1)
-            .to.equal('2017-04-05 13:30:30.500 America/Los_Angeles PDT');
           expect(col2)
-            .to.equal('2017-04-05 13:30:30.000 America/Los_Angeles KST');
+            .to.equal('2017-04-04 21:30:30.500 America/Los_Angeles PDT');
+          expect(col4)
+            .to.equal('2017-04-04 21:30:30.000 America/Los_Angeles PDT');
         })
+        .then(() =>{
+          return client.close();
+        });
     });
   });
 });
