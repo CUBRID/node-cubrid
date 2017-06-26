@@ -12,7 +12,11 @@ describe('CUBRIDConnection', function () {
       return client
           .getSchema(CAS.CUBRIDSchemaType.CCI_SCH_CLASS)
           .then(schema => {
-            if ([/* 8.4.1 */1, /* 8.4.3 */3].indexOf(client.brokerInfo.protocolVersion) > -1) {
+            if (client.brokerInfo.protocolVersion === /* 10.0.0 */7) {
+              expect(schema)
+                  .to.be.an('array')
+                  .with.length(34);
+            } else if ([/* 8.4.1 */1, /* 8.4.3 */3].indexOf(client.brokerInfo.protocolVersion) > -1) {
               expect(schema)
                   .to.be.an('array')
                   .with.length(32);
@@ -34,7 +38,11 @@ describe('CUBRIDConnection', function () {
           return done(err);
         }
 
-        if ([/* 8.4.1 */1, /* 8.4.3 */3].indexOf(client.brokerInfo.protocolVersion) > -1) {
+        if (client.brokerInfo.protocolVersion === /* 10.0.0 */7) {
+          expect(schema)
+              .to.be.an('array')
+              .with.length(34);
+        } else if ([/* 8.4.1 */1, /* 8.4.3 */3].indexOf(client.brokerInfo.protocolVersion) > -1) {
           expect(schema)
               .to.be.an('array')
               .with.length(32);
@@ -54,7 +62,11 @@ describe('CUBRIDConnection', function () {
       return client
           .getSchema(CAS.CUBRIDSchemaType.CCI_SCH_VCLASS)
           .then(schema => {
-            if ([/* 8.4.1 */1, /* 8.4.3 */3].indexOf(client.brokerInfo.protocolVersion) > -1) {
+            if (client.brokerInfo.protocolVersion === /* 10.0.0 */7) {
+              expect(schema)
+                  .to.be.an('array')
+                  .with.length(18);
+            } else if ([/* 8.4.1 */1, /* 8.4.3 */3].indexOf(client.brokerInfo.protocolVersion) > -1) {
               expect(schema)
                   .to.be.an('array')
                   .with.length(16);
@@ -76,7 +88,11 @@ describe('CUBRIDConnection', function () {
           return done(err);
         }
 
-        if ([/* 8.4.1 */1, /* 8.4.3 */3].indexOf(client.brokerInfo.protocolVersion) > -1) {
+        if (client.brokerInfo.protocolVersion === /* 10.0.0 */7) {
+          expect(schema)
+              .to.be.an('array')
+              .with.length(18);
+        } else if ([/* 8.4.1 */1, /* 8.4.3 */3].indexOf(client.brokerInfo.protocolVersion) > -1) {
           expect(schema)
               .to.be.an('array')
               .with.length(16);
@@ -96,7 +112,11 @@ describe('CUBRIDConnection', function () {
       return client
           .getSchema(CAS.CUBRIDSchemaType.CCI_SCH_CLASS_PRIVILEGE)
           .then(schema => {
-            if ([/* 8.4.1 */1, /* 8.4.3 */3].indexOf(client.brokerInfo.protocolVersion) > -1) {
+            if (client.brokerInfo.protocolVersion === /* 10.0.0 */7) {
+              expect(schema)
+                  .to.be.an('array')
+                  .with.length(98);
+            } else if ([/* 8.4.1 */1, /* 8.4.3 */3].indexOf(client.brokerInfo.protocolVersion) > -1) {
               expect(schema)
                   .to.be.an('array')
                   .with.length(96);
@@ -135,7 +155,11 @@ describe('CUBRIDConnection', function () {
           return done(err);
         }
 
-        if ([/* 8.4.1 */1, /* 8.4.3 */3].indexOf(client.brokerInfo.protocolVersion) > -1) {
+        if (client.brokerInfo.protocolVersion === /* 10.0.0 */7) {
+          expect(schema)
+              .to.be.an('array')
+              .with.length(98);
+        } else if ([/* 8.4.1 */1, /* 8.4.3 */3].indexOf(client.brokerInfo.protocolVersion) > -1) {
           expect(schema)
               .to.be.an('array')
               .with.length(96);
@@ -175,7 +199,7 @@ describe('CUBRIDConnection', function () {
             expect(schema)
                 .to.be.an('array')
                 .with.length(0);
-            
+
             return client.close();
           });
     });
@@ -339,7 +363,7 @@ describe('CUBRIDConnection', function () {
             let table1 = schema[0];
             let table2 = schema[1];
 
-            if ([/* 9.0.0 */2, /* 9.1.0 */4].indexOf(client.brokerInfo.protocolVersion) > -1) {
+            if ([/* 9.0.0 */2, /* 9.1.0 */4, /* since 9.2.0 */5, /* since 9.2.26 */6, /* since 10.0.0 */7].indexOf(client.brokerInfo.protocolVersion) > -1) {
               let t = table1;
               table1 = table2;
               table2 = t;
@@ -460,7 +484,7 @@ describe('CUBRIDConnection', function () {
         let table1 = schema[0];
         let table2 = schema[1];
 
-        if ([/* 9.0.0 */2, /* 9.1.0 */4].indexOf(client.brokerInfo.protocolVersion) > -1) {
+        if ([/* 9.0.0 */2, /* 9.1.0 */4, /* since 9.2.0 */5, /* since 9.2.26 */6, /* since 10.0.0 */7].indexOf(client.brokerInfo.protocolVersion) > -1) {
           let t = table1;
           table1 = table2;
           table2 = t;
@@ -642,7 +666,11 @@ describe('CUBRIDConnection', function () {
       return client
           .getSchema(CAS.CUBRIDSchemaType.CCI_SCH_ATTRIBUTE)
           .then(schema => {
-            if ([/* 8.4.1 */1, /* 8.4.3 */3].indexOf(client.brokerInfo.protocolVersion) > -1) {
+            if (client.brokerInfo.protocolVersion === /* 10.0.0 */7) {
+              expect(schema)
+                  .to.be.an('array')
+                  .with.length(229);
+            } else if ([/* 8.4.1 */1, /* 8.4.3 */3].indexOf(client.brokerInfo.protocolVersion) > -1) {
               expect(schema)
                   .to.be.an('array')
                   .with.length(191);
@@ -653,7 +681,7 @@ describe('CUBRIDConnection', function () {
             }
 
             const table = schema[0];
-            
+
             expect(table)
                 .to.be.an('object')
                 .to.have.property('Name')
@@ -721,7 +749,11 @@ describe('CUBRIDConnection', function () {
           return done(err);
         }
 
-        if ([/* 8.4.1 */1, /* 8.4.3 */3].indexOf(client.brokerInfo.protocolVersion) > -1) {
+        if (client.brokerInfo.protocolVersion === /* 10.0.0 */7) {
+          expect(schema)
+              .to.be.an('array')
+              .with.length(229);
+        } else if ([/* 8.4.1 */1, /* 8.4.3 */3].indexOf(client.brokerInfo.protocolVersion) > -1) {
           expect(schema)
               .to.be.an('array')
               .with.length(191);

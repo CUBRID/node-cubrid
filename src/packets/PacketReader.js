@@ -3,6 +3,7 @@
 const CAS = require('../constants/CASConstants');
 const DATA_TYPES = require('../constants/DataTypes');
 const ErrorMessages = require('../constants/ErrorMessages');
+const Timezone = require('../utils/Timezone');
 
 module.exports = PacketReader;
 
@@ -234,6 +235,52 @@ PacketReader.prototype._parseTimeStamp = function () {
   date.setUTCHours(hour, min, sec, msec);
 
   return date;
+};
+
+/**
+ * Returns a timestamptz value from the internal buffer
+ * @param size
+ * @returns {Timezone}
+ */
+PacketReader.prototype._parseTimeStampTz = function(size) {
+  const tmp_position = this._offset;
+  const timestamp = this._parseTimeStamp.call(this);
+  const timestamp_size = this._offset - tmp_position;
+  let timezone;
+
+  if (timestamp_size > 0) {
+    const timezoneLength = size - timestamp_size - 1;
+    timezone = this._buffer.slice(this._offset, this._offset + timezoneLength);
+    this._offset += size - timestamp_size;
+  } else {
+    timezone = '';
+    this._offset++;
+  }
+
+  return new Timezone(timestamp, timezone);
+};
+
+/**
+ * Returns a datetimetz value from the internal buffer
+ * @param size
+ * @returns {Timezone}
+ */
+PacketReader.prototype._parseDateTimeTz = function(size) {
+  const tmp_position = this._offset;
+  const datetime = this._parseDateTime.call(this);
+  const datetime_size = this._offset - tmp_position;
+  let timezone;
+
+  if (datetime_size > 0) {
+      const timezoneLength = size - datetime_size - 1;
+      timezone = this._buffer.slice(this._offset, this._offset + timezoneLength);
+      this._offset += size - datetime_size;
+  } else {
+      timezone = '';
+      this._offset++;
+  }
+
+  return new Timezone(datetime, timezone);
 };
 
 /**

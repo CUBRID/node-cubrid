@@ -188,7 +188,11 @@ exports.CUBRIDDataType = {
   CCI_U_TYPE_DATETIME  : 22,
   CCI_U_TYPE_BLOB      : 23,
   CCI_U_TYPE_CLOB      : 24,
-  CCI_U_TYPE_ENUM      : 25
+  CCI_U_TYPE_ENUM      : 25,
+  CCI_U_TYPE_TIMESTAMPTZ  : 29,
+  CCI_U_TYPE_TIMESTAMPLTZ : 30,
+  CCI_U_TYPE_DATETIMETZ   : 31,
+  CCI_U_TYPE_DATETIMELTZ  : 32
 };
 
 /**
@@ -246,6 +250,14 @@ exports.getCUBRIDDataTypeName = function (type) {
       return 'ENUM';
     case this.CUBRIDDataType.CCI_U_TYPE_RESULTSET:
       return 'Resultset';
+    case this.CUBRIDDataType.CCI_U_TYPE_TIMESTAMPTZ:
+      return 'TimestampTz';
+    case this.CUBRIDDataType.CCI_U_TYPE_TIMESTAMPLTZ:
+      return 'TimestampLtz';
+    case this.CUBRIDDataType.CCI_U_TYPE_DATETIMETZ:
+      return 'DateTimeTz';
+    case this.CUBRIDDataType.CCI_U_TYPE_DATETIMELTZ:
+      return 'DateTimeLtz';
     default:
       return 'UNKNOWN';
   }
@@ -307,6 +319,14 @@ exports.getCUBRIDDataTypeNumber = function (type) {
       return this.CUBRIDDataType.CCI_U_TYPE_CLOB;
     case 'resultset':
       return this.CUBRIDDataType.CCI_U_TYPE_RESULTSET;
+    case 'timestamptz':
+      return this.CUBRIDDataType.CCI_U_TYPE_TIMESTAMPTZ;
+    case 'timestampltz':
+      return this.CUBRIDDataType.CCI_U_TYPE_TIMESTAMPLTZ;
+    case 'datetimetz':
+      return this.CUBRIDDataType.CCI_U_TYPE_DATETIMETZ;
+    case 'datetimeltz':
+      return this.CUBRIDDataType.CCI_U_TYPE_DATETIMELTZ;
     default:
       return this.CUBRIDDataType.CCI_U_TYPE_UNKNOWN;
   }
@@ -472,9 +492,10 @@ exports.CAS_PROTOCOL_VERSION = (function getProtocolVersion() {
   // const CAS_PROTOCOL_VERSION_3 = /* since 8.4.3 */3;
   // const CAS_PROTOCOL_VERSION_4 = /* since 9.1.0 */4;
   // const CAS_PROTOCOL_VERSION_5 = /* since 9.2.0 */5;
-  const CAS_PROTOCOL_VERSION_6 = /* since 9.2.26 */6;
+  // const CAS_PROTOCOL_VERSION_6 = /* since 9.2.26 */6;
+  const CAS_PROTOCOL_VERSION_7 = /* since 10.0.0 */7;
 
-  return CAS_PROTOCOL_VERSION_6;
+  return CAS_PROTOCOL_VERSION_7;
 })();
 
 exports.CAS_VERSION = CAS_PROTO_INDICATOR | exports.CAS_PROTOCOL_VERSION;
@@ -485,8 +506,8 @@ exports.CAS_CLIENT_JDBC = 3;
 exports.CAS_MAGIC_STRING = 'CUBRK';
 
 exports.getProtocolVersion = function (version) {
-  // At this moment `node-cubrid` supports at most protocol version 6.
-  for (let protocolVersion = 0; protocolVersion < 7; ++protocolVersion) {
+  // At this moment `node-cubrid` supports at most protocol version 7.
+  for (let protocolVersion = 0; protocolVersion < 8; ++protocolVersion) {
     if ((CAS_PROTO_INDICATOR | protocolVersion) === version) {
       return protocolVersion;
     }
