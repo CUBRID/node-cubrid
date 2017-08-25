@@ -86,7 +86,7 @@ function CUBRIDConnection(hosts, port, user, password, database, connectionTimeo
 
     if (ix > -1) {
       host = hostPort.substr(0, ix);
-      port = hostPort.substr(ix);
+      port = hostPort.substr(ix + 1);
     } else {
       // If port is not specified with the hostname,
       // use the default port.
@@ -422,7 +422,7 @@ CUBRIDConnection.prototype.getActiveHost = function (callback) {
  */
 CUBRIDConnection.prototype.connect = function (callback) {
   this.logger.debug(`connect with timeout = ${this.connectionTimeout} ms.`);
-  
+
   return new Promise((resolve, reject) => {
     if (this.connectionOpened) {
       if (typeof callback === 'function') {
@@ -875,7 +875,7 @@ function _parseGetSchemaBuffer(packetReader) {
   if (error) {
     return this._callback(error);
   }
-  
+
   _parseWriteFetchSchema.call(this);
 }
 
@@ -1234,8 +1234,8 @@ CUBRIDConnection.prototype.closeQuery = function (queryHandle, callback) {
 
             if (typeof callback === 'function') {
               return callback();
-            } 
-            
+            }
+
             resolve();
           })
           .catch(err => {
@@ -1493,7 +1493,7 @@ CUBRIDConnection.prototype.rollback = function (callback) {
           .call(this)
           .then(() => {
             done();
-            
+
             if (typeof callback === 'function') {
               return callback();
             }
@@ -1613,7 +1613,7 @@ CUBRIDConnection.prototype.getSchema = function (schemaType, tableNameFilter, ca
         callback = tableNameFilter;
         tableNameFilter = undefined;
       }
-      
+
       const query = new Query(callback);
 
       this.logger.debug(`getSchema: schemaType = ${schemaType}; tableNameFilter = ${tableNameFilter}.`);
@@ -1833,7 +1833,7 @@ function _lobWrite(lobObject, offset, data) {
       if (err || totalWriteLen >= totalBytesToWrite) {
         return callback(err);
       }
-      
+
       const lobWritePacket = new LOBWritePacket({
         casInfo: this._CASInfo,
         data: data.slice(offset, offset + writeLen),
