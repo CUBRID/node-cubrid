@@ -42,8 +42,8 @@ parametrize SQL statements, etc.
 - Support for queries queueing.
 - Support for database schema.
 - Support for database parameters and transactions.
-- Support for [LOB](http://www.cubrid.org/manual/93/en/sql/datatype.html#blob-clob-data-types) (Binary and Character) objects.
-- Support for [ENUM](http://www.cubrid.org/manual/93/en/sql/datatype.html#enum-data-type) data types since CUBRID 9+.
+- Support for [LOB](https://www.cubrid.org/manual/en/10.1/sql/datatype.html#blob-clob-data-types) (Binary and Character) objects.
+- Support for [ENUM](https://www.cubrid.org/manual/en/10.1/sql/datatype.html#enum-data-type) data types since CUBRID 9+.
 - Fully implements the event emitter.
 - Extensive tests suite (90% code coverage).
 - Full `Promise` support since `v3.0.0`.
@@ -68,7 +68,7 @@ The node-cubrid module exports the following properties and functions:
 
 - `Helpers`: an object which provides a set of helper functions.
 - `createConnection()` (*alias* `createCUBRIDConnection()`): a function which returns a new client connection object to work with a user defined CUBRID host and database.
-- `createDefaultCUBRIDDemodbConnection()`: a function which returns a connection object to work with a local [demodb](http://blog.cubrid.org/wiki_tutorials/entry/getting-started-with-demodb-cubrid-demo-database) database.
+- `createDefaultCUBRIDDemodbConnection()`: a function which returns a connection object to work with a local [demodb](https://www.cubrid.org/manual/en/10.1/quick_start.html) database.
 
 ## Request flow in node-cubrid
 
@@ -338,8 +338,6 @@ The output result is:
     LOCK_TIMEOUT is: -1
 
 **Note**: The same value can be obtained also from CUBRID Manager Client:
-
-![Figure 2: CUBRID Manager](http://blog.cubrid.org:8080/files/attach/images/194379/729/617/manager.png)
 
 If you need to change the default values for these parameters, it is highly recommended 
 to do it immediately after `connect ()`.
@@ -1178,10 +1176,6 @@ The following errors may be emitted when the application tries to close the conn
 
 1. If closing a connection was unsuccessful, an error message returned by a database is emitted.
 
-## More examples
-
-You can also find more tutorials at [http://www.cubrid.org/wiki_apis/entry/cubrid-node-js-tutorials](http://www.cubrid.org/wiki_apis/entry/cubrid-node-js-tutorials).
-
 ## Running tests
 
 To run tests on **node-cubrid** module:
@@ -1217,7 +1211,7 @@ You are more than welcome to suggest what we should improve or add - please let 
 
 ## Authors and Contributors
 
-The authors of this driver are the members of the CUBRID API team - [http://www.cubrid.org/wiki_apis](http://www.cubrid.org/wiki_apis).
+The authors of this driver are the members of the [CUBRID](https://github.com/orgs/CUBRID).
 
 We welcome new contributors and hope you will enjoy using and coding with CUBRID! :)
 
