@@ -12,7 +12,7 @@ ConsoleLogger.prototype.error = function () {
 
 ConsoleLogger.prototype.info = function () {
   /* eslint-disable no-console */
-  console.error.apply(console, arguments);
+  console.log.apply(console, arguments);
   /* eslint-enable no-console */
 };
 

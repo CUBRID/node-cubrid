@@ -149,7 +149,12 @@ function _doGetBrokerPort() {
     const clientInfoExchangePacket = new ClientInfoExchangePacket();
     const packetWriter = new PacketWriter(clientInfoExchangePacket.getBufferLength());
 
-    const hostInfo = this.hosts[this.currentHostIndex];
+    var hostInfo = this.hosts[this.currentHostIndex];
+    if(!hostInfo){
+      this.logger.debug(`_doGetBrokerPort Resuming after failed attempt to get broker? Host index ${this.currentHostIndex} overrun.`);
+      this.currentHostIndex = 0;
+      hostInfo = this.hosts[this.currentHostIndex];
+    } 
 
     const socket = this._socket = Net.createConnection(hostInfo.port, hostInfo.host);
 
@@ -328,7 +333,13 @@ function _doDatabaseLogin() {
     if (this.connectionBrokerPort) {
       // The broker port has changed, so we need to create
       // a new socket connection.
-      socket = this._socket = Net.createConnection(this.connectionBrokerPort, this.host);
+      var hostInfo = this.hosts[this.currentHostIndex];
+      if(!hostInfo){
+        this.logger.debug(`_doDatabaseLogin Resuming after failed attempt to get broker? Host index ${this.currentHostIndex} overrun.`);
+        this.currentHostIndex = 0;
+        hostInfo = this.hosts[this.currentHostIndex];
+      }
+      socket = this._socket = Net.createConnection(this.connectionBrokerPort, hostInfo.host);
 
       socket.setNoDelay(true);
       socket.setTimeout(this.getConnectionTimeout());
