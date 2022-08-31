@@ -328,7 +328,9 @@ function _doDatabaseLogin() {
     if (this.connectionBrokerPort) {
       // The broker port has changed, so we need to create
       // a new socket connection.
-      socket = this._socket = Net.createConnection(this.connectionBrokerPort, this.host);
+      const hostInfo = this.hosts[this.currentHostIndex];
+
+      socket = this._socket = Net.createConnection(this.connectionBrokerPort, hostInfo.host);
 
       socket.setNoDelay(true);
       socket.setTimeout(this.getConnectionTimeout());
