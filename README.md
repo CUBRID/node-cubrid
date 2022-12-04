@@ -126,7 +126,7 @@ The following example shows how to create a client by providing an object of con
         host: host,
         port: port,
         user: user,
-        password: password:
+        password: password,
         database: database,
         connectionTimeout: connectionTimeout,
         maxConnectionRetryCount: maxConnectionRetryCount,
