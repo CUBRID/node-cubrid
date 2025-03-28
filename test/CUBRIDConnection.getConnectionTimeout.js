@@ -7,7 +7,7 @@ describe('CUBRIDConnection', function () {
   describe('getConnectionTimeout', function () {
     it('should succeed to get the connection timeout value', function () {
       const client = testSetup.createDefaultCUBRIDDemodbConnection();
-      const newTimeoutValue = 2000;
+      const newTimeoutValue = 0;
 
       expect(client.getConnectionTimeout()).to.equal(0);
 

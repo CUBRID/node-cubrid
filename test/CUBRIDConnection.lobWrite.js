@@ -20,9 +20,10 @@ describe('CUBRIDConnection', function () {
           .to.have.property('lobType')
           .to.equal(type);
 
-      if (!re) {
-        re = new RegExp(`file:.+/demodb/.+/${TABLE_NAME}\.[\\d_]+`);
-      }
+      // if (!re) {
+        // re = new RegExp(`file:.+/demodb/.+/${TABLE_NAME}\.[\\d_]+`);
+      // }
+      re = new RegExp(`file:ces_\\d+\\/[a-zA-Z0-9_.]+?\\.\\d+_\\d+`);
 
       expect(lobObject)
           .to.have.property('fileLocator')

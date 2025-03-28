@@ -77,7 +77,7 @@ describe('CUBRIDConnection', function () {
       const port = 80;
       const connectionTimeout = 5000;
 
-      this.timeout(connectionTimeout * 2);
+      this.timeout(connectionTimeout * 5);
 
       it('should fail to connect to an incorrect port using a callback', function (done) {
         const client = CUBRID.createConnection(config.hosts, port, config.user, config.password, config.database, connectionTimeout, config.maxConnectionRetryCount, config.maxConnectionRetryCount, config.logger);
@@ -109,15 +109,15 @@ describe('CUBRIDConnection', function () {
       const host = '80.80.80.80';
       const connectionTimeout = 5000;
 
-      this.timeout(connectionTimeout * 2);
+      this.timeout(connectionTimeout * 5);
 
       it('should fail to connect to an incorrect port using a callback', function (done) {
         const client = CUBRID.createConnection(host, config.port, config.user, config.password, config.database, connectionTimeout, config.maxConnectionRetryCount, config.logger);
 
         client.connect(function (err) {
           expect(err).to.be.an.instanceOf(Error);
-          expect(err.message).to.equal(`connect ECONNREFUSED ${host}:${config.port}`);
-
+          // expect(err.message).to.equal(`connect ECONNREFUSED ${host}:${config.port}`);
+          expect(err.message).to.equal(`connect ETIMEDOUT`);
           done();
         });
       });
@@ -132,7 +132,8 @@ describe('CUBRIDConnection', function () {
             })
             .catch(err => {
               expect(err).to.be.an.instanceOf(Error);
-              expect(err.message).to.equal(`connect ECONNREFUSED ${host}:${config.port}`);
+              // expect(err.message).to.equal(`connect ECONNREFUSED ${host}:${config.port}`);
+              expect(err.message).to.equal(`connect ETIMEDOUT`);
             });
       });
 

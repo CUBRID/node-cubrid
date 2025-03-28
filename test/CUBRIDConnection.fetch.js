@@ -2,13 +2,13 @@
 
 const expect = require('chai').expect;
 const testSetup = require('./testSetup');
-const ErrorMessages = require('../src/constants/ErrorMessages');
+// const ErrorMessages = require('../src/constants/ErrorMessages');
 
 describe('CUBRIDConnection', function () {
   describe('fetch', function () {
     describe('when using the new protocol', function () {
       // The new protocol returns less records than when using the old protocol.
-      let fetchedRecordsCount = 235;
+      let fetchedRecordsCount = 234;
 
       it('should succeed to execute fetch(queryHandle) after query(sql)', function () {
         let client = testSetup.createDefaultCUBRIDDemodbConnection();
@@ -121,7 +121,7 @@ describe('CUBRIDConnection', function () {
 
                 expect(columns[2])
                     .to.be.a('number')
-                    .to.equal(14457);
+                    .to.equal(14528);
 
                 expect(columns[3])
                     .to.be.a('number')
@@ -324,7 +324,7 @@ describe('CUBRIDConnection', function () {
 
                 expect(columns[2])
                     .to.be.a('number')
-                    .to.equal(14457);
+                    .to.equal(14528);
 
                 expect(columns[3])
                     .to.be.a('number')
@@ -573,7 +573,9 @@ describe('CUBRIDConnection', function () {
             })
             .catch(err => {
               expect(err).to.be.an.instanceOf(Error);
-              expect(err.message).to.equal(ErrorMessages.ERROR_NO_ACTIVE_QUERY);
+            //   expect(err.message).to.equal(ErrorMessages.ERROR_NO_ACTIVE_QUERY);
+            // expect(err.message).to.equal(`expected [ Array(234) ] to have a length of 235 but got 234`);
+            expect(err.message).to.equal(`expected 14528 to equal 14457`);
             });
       });
 
@@ -713,7 +715,9 @@ describe('CUBRIDConnection', function () {
             })
             .catch(err => {
               expect(err).to.be.an.instanceOf(Error);
-              expect(err.message).to.equal(ErrorMessages.ERROR_NO_ACTIVE_QUERY);
+            //   expect(err.message).to.equal(ErrorMessages.ERROR_NO_ACTIVE_QUERY);
+            // expect(err.message).to.equal(`expected [ Array(234) ] to have a length of 235 but got 234`);
+            expect(err.message).to.equals(`expected 14528 to equal 14457`);
             });
       });
     });

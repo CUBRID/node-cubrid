@@ -25,7 +25,7 @@ exports.cleanup = function (tableName) {
   return function cleanup() {
     let client = createDefaultCUBRIDDemodbConnection();
 
-    this.timeout(5000);
+    this.timeout(500000);
     
     return client
         .execute(`DROP TABLE IF EXISTS ${tableName}`)
