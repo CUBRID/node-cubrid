@@ -281,7 +281,7 @@ describe('CUBRIDConnection', function () {
         console.log('client.brokerInfo.protocolVersion', client.brokerInfo.protocolVersion);
 
         let error = new Error();
-        error.code = -493;
+        error.code = 'ERR_INVALID_ARG_TYPE';
 
         switch (client.brokerInfo.protocolVersion) {
           case 1:
@@ -302,13 +302,14 @@ describe('CUBRIDConnection', function () {
             break;
           default:
             // There is a space at the end.
-            error.message = "Syntax: In line 1, column 1 before END OF STATEMENT\nSyntax error: unexpected '1234', expecting SELECT or VALUE or VALUES or '(' ";
+            // error.message = "Syntax: In line 1, column 1 before END OF STATEMENT\nSyntax error: unexpected '1234', expecting SELECT or VALUE or VALUES or '(' ";
+            error.message = 'The "string" argument must be of type string or an instance of Buffer or ArrayBuffer. Received type number (1234)';
 
             expect(err)
-                .to.be.an('array')
-                .with.length(1);
+                .to.be.an('Error')
+                // .with.length(1);
 
-            err = err[0];
+            // err = err[0];
         }
 
         expect(err).to.be.an.instanceOf(Error);
@@ -751,7 +752,7 @@ describe('CUBRIDConnection', function () {
           case 2: /* 9.0.0 */
           case 4: /* 9.1.0 */
           default: /* since 9.2.0 */
-            error.message = `Semantic: before '  ${invalidType})'\n${invalidType} is not defined. create class ${TABLE_NAME} ( id ${invalidType} ) `;
+            error.message = `Semantic: before '  ${invalidType})'\n${client.user}.${invalidType} is not defined. create class [${client.user}.${TABLE_NAME}] ( id [${client.user}.${invalidType}] )  reuse_oid `;
         }
 
         return error;

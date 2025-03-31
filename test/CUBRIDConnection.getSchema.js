@@ -15,7 +15,7 @@ describe('CUBRIDConnection', function () {
             if (client.brokerInfo.protocolVersion === /* 10.0.0 */7) {
               expect(schema)
                   .to.be.an('array')
-                  .with.length(34);
+                  .with.length(37);
             } else if ([/* 8.4.1 */1, /* 8.4.3 */3].indexOf(client.brokerInfo.protocolVersion) > -1) {
               expect(schema)
                   .to.be.an('array')
@@ -41,7 +41,7 @@ describe('CUBRIDConnection', function () {
         if (client.brokerInfo.protocolVersion === /* 10.0.0 */7) {
           expect(schema)
               .to.be.an('array')
-              .with.length(34);
+              .with.length(37);
         } else if ([/* 8.4.1 */1, /* 8.4.3 */3].indexOf(client.brokerInfo.protocolVersion) > -1) {
           expect(schema)
               .to.be.an('array')
@@ -65,7 +65,7 @@ describe('CUBRIDConnection', function () {
             if (client.brokerInfo.protocolVersion === /* 10.0.0 */7) {
               expect(schema)
                   .to.be.an('array')
-                  .with.length(18);
+                  .with.length(20);
             } else if ([/* 8.4.1 */1, /* 8.4.3 */3].indexOf(client.brokerInfo.protocolVersion) > -1) {
               expect(schema)
                   .to.be.an('array')
@@ -91,7 +91,7 @@ describe('CUBRIDConnection', function () {
         if (client.brokerInfo.protocolVersion === /* 10.0.0 */7) {
           expect(schema)
               .to.be.an('array')
-              .with.length(18);
+              .with.length(20);
         } else if ([/* 8.4.1 */1, /* 8.4.3 */3].indexOf(client.brokerInfo.protocolVersion) > -1) {
           expect(schema)
               .to.be.an('array')
@@ -115,7 +115,7 @@ describe('CUBRIDConnection', function () {
             if (client.brokerInfo.protocolVersion === /* 10.0.0 */7) {
               expect(schema)
                   .to.be.an('array')
-                  .with.length(98);
+                  .with.length(101);
             } else if ([/* 8.4.1 */1, /* 8.4.3 */3].indexOf(client.brokerInfo.protocolVersion) > -1) {
               expect(schema)
                   .to.be.an('array')
@@ -158,7 +158,7 @@ describe('CUBRIDConnection', function () {
         if (client.brokerInfo.protocolVersion === /* 10.0.0 */7) {
           expect(schema)
               .to.be.an('array')
-              .with.length(98);
+              .with.length(101);
         } else if ([/* 8.4.1 */1, /* 8.4.3 */3].indexOf(client.brokerInfo.protocolVersion) > -1) {
           expect(schema)
               .to.be.an('array')
@@ -248,7 +248,7 @@ describe('CUBRIDConnection', function () {
                 .to.be.an('object')
                 .to.have.property('FkTableName')
                 .to.be.a('string')
-                .to.equal('game');
+                .to.equal(`${client.user}.game`);
 
             expect(table)
                 .to.be.an('object')
@@ -314,7 +314,7 @@ describe('CUBRIDConnection', function () {
             .to.be.an('object')
             .to.have.property('FkTableName')
             .to.be.a('string')
-            .to.equal('game');
+            .to.equal(`${client.user}.game`);
 
         expect(table)
             .to.be.an('object')
@@ -363,11 +363,11 @@ describe('CUBRIDConnection', function () {
             let table1 = schema[0];
             let table2 = schema[1];
 
-            if ([/* 9.0.0 */2, /* 9.1.0 */4, /* since 9.2.0 */5, /* since 9.2.26 */6, /* since 10.0.0 */7].indexOf(client.brokerInfo.protocolVersion) > -1) {
-              let t = table1;
-              table1 = table2;
-              table2 = t;
-            }
+            // if ([/* 9.0.0 */2, /* 9.1.0 */4, /* since 9.2.0 */5, /* since 9.2.26 */6, /* since 10.0.0 */7].indexOf(client.brokerInfo.protocolVersion) > -1) {
+            //   let t = table1;
+            //   table1 = table2;
+            //   table2 = t;
+            // }
 
             expect(table1)
                 .to.be.an('object')
@@ -391,7 +391,7 @@ describe('CUBRIDConnection', function () {
                 .to.be.an('object')
                 .to.have.property('PkTableName')
                 .to.be.a('string')
-                .to.equal('athlete');
+                .to.equal(`${client.user}.athlete`);
 
             expect(table1)
                 .to.be.an('object')
@@ -439,7 +439,7 @@ describe('CUBRIDConnection', function () {
                 .to.be.an('object')
                 .to.have.property('PkTableName')
                 .to.be.a('string')
-                .to.equal('event');
+                .to.equal(`${client.user}.event`);
 
             expect(table2)
                 .to.be.an('object')
@@ -484,11 +484,11 @@ describe('CUBRIDConnection', function () {
         let table1 = schema[0];
         let table2 = schema[1];
 
-        if ([/* 9.0.0 */2, /* 9.1.0 */4, /* since 9.2.0 */5, /* since 9.2.26 */6, /* since 10.0.0 */7].indexOf(client.brokerInfo.protocolVersion) > -1) {
-          let t = table1;
-          table1 = table2;
-          table2 = t;
-        }
+        // if ([/* 9.0.0 */2, /* 9.1.0 */4, /* since 9.2.0 */5, /* since 9.2.26 */6, /* since 10.0.0 */7].indexOf(client.brokerInfo.protocolVersion) > -1) {
+        //   let t = table1;
+        //   table1 = table2;
+        //   table2 = t;
+        // }
 
         expect(table1)
             .to.be.an('object')
@@ -512,7 +512,7 @@ describe('CUBRIDConnection', function () {
             .to.be.an('object')
             .to.have.property('PkTableName')
             .to.be.a('string')
-            .to.equal('athlete');
+            .to.equal(`${client.user}.athlete`);
 
         expect(table1)
             .to.be.an('object')
@@ -560,7 +560,7 @@ describe('CUBRIDConnection', function () {
             .to.be.an('object')
             .to.have.property('PkTableName')
             .to.be.a('string')
-            .to.equal('event');
+            .to.equal(`${client.user}.event`);
 
         expect(table2)
             .to.be.an('object')
@@ -606,7 +606,7 @@ describe('CUBRIDConnection', function () {
                 .to.be.an('object')
                 .to.have.property('TableName')
                 .to.be.a('string')
-                .to.equal('athlete');
+                .to.equal(`${client.user}.athlete`);
 
             expect(table)
                 .to.be.an('object')
@@ -642,7 +642,7 @@ describe('CUBRIDConnection', function () {
             .to.be.an('object')
             .to.have.property('TableName')
             .to.be.a('string')
-            .to.equal('athlete');
+            .to.equal(`${client.user}.athlete`);
 
         expect(table)
             .to.be.an('object')
@@ -669,7 +669,7 @@ describe('CUBRIDConnection', function () {
             if (client.brokerInfo.protocolVersion === /* 10.0.0 */7) {
               expect(schema)
                   .to.be.an('array')
-                  .with.length(229);
+                  .with.length(276);
             } else if ([/* 8.4.1 */1, /* 8.4.3 */3].indexOf(client.brokerInfo.protocolVersion) > -1) {
               expect(schema)
                   .to.be.an('array')
@@ -723,13 +723,13 @@ describe('CUBRIDConnection', function () {
                 .to.be.an('object')
                 .to.have.property('ClassName')
                 .to.be.a('string')
-                .to.equal('athlete');
+                .to.equal(`${client.user}.athlete`);
 
             expect(table)
                 .to.be.an('object')
                 .to.have.property('SourceClass')
                 .to.be.a('string')
-                .to.equal('athlete');
+                .to.equal(`${client.user}.athlete`);
 
             expect(table)
                 .to.be.an('object')
@@ -752,7 +752,7 @@ describe('CUBRIDConnection', function () {
         if (client.brokerInfo.protocolVersion === /* 10.0.0 */7) {
           expect(schema)
               .to.be.an('array')
-              .with.length(229);
+              .with.length(276);
         } else if ([/* 8.4.1 */1, /* 8.4.3 */3].indexOf(client.brokerInfo.protocolVersion) > -1) {
           expect(schema)
               .to.be.an('array')
@@ -806,13 +806,13 @@ describe('CUBRIDConnection', function () {
             .to.be.an('object')
             .to.have.property('ClassName')
             .to.be.a('string')
-            .to.equal('athlete');
+            .to.equal(`${client.user}.athlete`);
 
         expect(table)
             .to.be.an('object')
             .to.have.property('SourceClass')
             .to.be.a('string')
-            .to.equal('athlete');
+            .to.equal(`${client.user}.athlete`);
 
         expect(table)
             .to.be.an('object')

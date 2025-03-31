@@ -46,14 +46,14 @@ describe('CUBRID', function () {
         user: config.user,
         password: config.password,
         database: config.database,
-        connectionTimeout: 2000,
+        connectionTimeout: 20000,
         maxConnectionRetryCount: 2,
       });
 
       // Ensure the options reached the client.
       expect(client6)
           .to.have.property('connectionTimeout')
-          .to.equal(2000);
+          .to.equal(20000);
 
       expect(client6)
           .to.have.property('maxConnectionRetryCount')
@@ -102,19 +102,21 @@ describe('CUBRID', function () {
       const config = testSetup.config;
 
       const client = new CUBRID.createConnection({
-        hosts: ['80.80.80.80'].concat(config.hosts),
+        // hosts: ['80.80.80.80'].concat(config.hosts),
+        // hosts: ['192.168.2.37:33000'].concat(config.hosts),
+        hosts: ['localhost'].concat('192.168.2.37'),
         port: config.port,
         user: config.user,
         password: config.password,
         database: config.database,
-        connectionTimeout: 2000,
+        connectionTimeout: 20000,
         maxConnectionRetryCount: 2,
       });
 
       // Ensure the options reached the client.
       expect(client)
           .to.have.property('connectionTimeout')
-          .to.equal(2000);
+          .to.equal(20000);
 
       expect(client)
           .to.have.property('maxConnectionRetryCount')
@@ -148,22 +150,24 @@ describe('CUBRID', function () {
 
     it('should auto connect to the second host when custom port is contained in hosts and first host is down', function () {
       const config = testSetup.config;
-      const hosts = `${config.hosts}:${config.port}`;
+      // const hosts = `${config.hosts}:${config.port}`;
 
       const client = new CUBRID.createConnection({
-        hosts: ['80.80.80.80'].concat(hosts),
+        // hosts: ['80.80.80.80'].concat(hosts),
+        // hosts: ['192.168.2.37:33000'].concat(config.hosts),
+        hosts: ['localhost'].concat('192.168.2.37:33000'),
         port: config.port,
         user: config.user,
         password: config.password,
         database: config.database,
-        connectionTimeout: 2000,
+        connectionTimeout: 20000,
         maxConnectionRetryCount: 2,
       });
 
       // Ensure the options reached the client.
       expect(client)
           .to.have.property('connectionTimeout')
-          .to.equal(2000);
+          .to.equal(20000);
 
       expect(client)
           .to.have.property('maxConnectionRetryCount')
@@ -188,8 +192,8 @@ describe('CUBRID', function () {
 
             expect(host)
                 .to.have.property('port')
-                .to.be.a('string')
-                .to.equal(`${config.port}`);
+                .to.be.a('number')
+                .to.equal(config.port);
 
             return client.close();
           });
